@@ -276,13 +276,6 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
 .feed-item.sw-match { background: rgba(214,158,46,0.1); border-left: 3px solid var(--medium); padding-left: 11px; margin-left: -14px; }
 
 /* Settings */
-#settings-btn {
-  width: 28px; height: 28px; background: var(--bg-ctrl); border: 1px solid var(--border);
-  border-radius: 5px; color: var(--text-muted); font-size: 15px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  transition: color 0.15s, background 0.15s;
-}
-#settings-btn:hover { color: var(--text); background: var(--bg-hover); }
 #settings-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200;
   display: none; justify-content: flex-end;
@@ -1007,12 +1000,21 @@ function applySettings() {
   const states = [...document.querySelectorAll('#s-states input[type=checkbox]:checked')].map(cb => cb.value);
   saveSettings({ industry, states, software: [..._pendingChips] });
   closeSettings();
+  updateBriefingContext();
   renderNews();
   loadNewsRSS();
   renderRegulatory();
   loadKEV();
   loadNVD();
   loadReddit();
+}
+
+function updateBriefingContext() {
+  const s = loadSettings();
+  const indLabel = (PROFILE_DATA.industries[s.industry] || PROFILE_DATA.industries.banking).label;
+  const stateList = s.states.length ? s.states.join(' / ') : 'None';
+  const el = document.getElementById('briefing-context');
+  if (el) el.textContent = 'Morning Briefing · ' + indLabel + ' · ' + stateList;
 }
 
 function renderNews() {
@@ -1534,6 +1536,7 @@ function refreshAll() {
 renderPatchTuesday();
 renderNews();
 renderRegulatory();
+updateBriefingContext();
 checkFirstRun();
 refreshAll();
 </script>
