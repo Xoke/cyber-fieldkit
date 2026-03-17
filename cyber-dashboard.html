@@ -144,7 +144,7 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
   display: flex; flex-direction: column; gap: 2px;
 }
 .feed-item:last-child { border-bottom: none; }
-.feed-item.banking-relevant { background: var(--accent-light); border-left: 3px solid var(--accent); padding-left: 8px; margin-left: -14px; padding-left: 11px; }
+.feed-item.industry-relevant { background: var(--accent-light); border-left: 3px solid var(--accent); padding-left: 8px; margin-left: -14px; padding-left: 11px; }
 .feed-item.industry-relevant { background: var(--accent-light); border-left: 3px solid var(--accent); padding-left: 11px; margin-left: -14px; }
 .reddit-sub { font-size: 10px; padding: 1px 5px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 3px; color: var(--text-muted); }
 .feed-item-title {
@@ -1232,34 +1232,52 @@ async function loadNVD() {
 }
 
 // ─── Panel 3: Security Community (r/netsec + r/cybersecurity) ────────────────
+const REDDIT_KEYWORDS = {
+  banking:    'bank fraud ransomware phishing breach payment wire swift GLBA',
+  healthcare: 'healthcare HIPAA ransomware patient breach medical PHI EHR',
+  retail:     'retail ecommerce PCI payment skimming magecart breach card',
+  technology: 'cloud vulnerability zero-day exploit ransomware API supply chain',
+  legal:      'law firm ransomware breach attorney privilege client data',
+  government: 'government CISA federal ransomware nation-state breach critical infrastructure FISMA',
+};
 async function loadReddit() {
   setLoading('reddit-body');
+  const s = loadSettings();
+  const kw = getIndustryKW();
+  const keywords = REDDIT_KEYWORDS[s.industry] || REDDIT_KEYWORDS.banking;
+  const base = 'https://www.reddit.com/search.json?sort=top&t=week&limit=15&raw_json=1';
   try {
     const [r1, r2] = await Promise.all([
-      fetch('https://www.reddit.com/r/netsec/hot.json?limit=20&raw_json=1').then(r => { if (!r.ok) throw new Error(); return r.json(); }),
-      fetch('https://www.reddit.com/r/cybersecurity/hot.json?limit=20&raw_json=1').then(r => { if (!r.ok) throw new Error(); return r.json(); }),
+      fetch(`${base}&q=${encodeURIComponent('(subreddit:netsec OR subreddit:cybersecurity)')}`)
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); }),
+      fetch(`${base}&q=${encodeURIComponent(keywords)}`)
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); }),
     ]);
-    const posts = [
-      ...(r1.data?.children || []).map(c => ({...c.data, _sub: 'netsec'})),
-      ...(r2.data?.children || []).map(c => ({...c.data, _sub: 'cybersecurity'})),
-    ].sort((a, b) => b.score - a.score).slice(0, 20);
-
-    if (!posts.length) { document.getElementById('reddit-body').innerHTML = '<div class="loading-state">No posts.</div>'; return; }
-
-    const kw = getIndustryKW();
-    const ind = PROFILE_DATA.industries[loadSettings().industry] || PROFILE_DATA.industries.banking;
-    document.getElementById('reddit-kw-label').textContent = ind.newsTitle.replace(' Security News','').replace(' News','') + ' relevant ★';
+    const seen = new Set();
+    const posts = [];
+    [...(r1.data?.children || []), ...(r2.data?.children || [])].forEach(c => {
+      const p = c.data;
+      const key = p.url || p.id;
+      if (!seen.has(key)) { seen.add(key); posts.push(p); }
+    });
+    posts.sort((a, b) => (b.score || 0) - (a.score || 0));
+    const top10 = posts.slice(0, 10);
+    if (!top10.length) {
+      document.getElementById('reddit-body').innerHTML = '<div class="loading-state">No posts found.</div>';
+      return;
+    }
     const ul = document.createElement('ul');
     ul.className = 'feed-list';
-    posts.forEach(p => {
-      const postUrl = 'https://www.reddit.com' + p.permalink;
+    top10.forEach(p => {
+      const postUrl = 'https://www.reddit.com' + (p.permalink || '');
       const relevant = kw.test(p.title + ' ' + (p.selftext || ''));
+      const sub = p.subreddit || 'unknown';
       const li = document.createElement('li');
-      li.className = 'feed-item' + (relevant ? ' banking-relevant' : '');
+      li.className = 'feed-item' + (relevant ? ' industry-relevant' : '');
       li.innerHTML = `
         <a class="feed-item-title" href="${escHtml(p.url || postUrl)}" target="_blank" rel="noopener">${relevant ? '★ ' : ''}${escHtml(p.title)}</a>
         <div class="feed-item-meta">
-          <span class="reddit-sub">r/${p._sub}</span>
+          <span class="reddit-sub">r/${escHtml(sub)}</span>
           <span>↑ ${(p.score || 0).toLocaleString()}</span>
           <a href="${escHtml(postUrl)}" target="_blank" rel="noopener">${p.num_comments || 0} comments</a>
           <span>${timeAgo(new Date(p.created_utc * 1000).toISOString())}</span>
@@ -1268,7 +1286,7 @@ async function loadReddit() {
     });
     document.getElementById('reddit-body').innerHTML = '';
     document.getElementById('reddit-body').appendChild(ul);
-  } catch (e) {
+  } catch(e) {
     setError('reddit-body', 'https://www.reddit.com/r/netsec/');
   }
 }
