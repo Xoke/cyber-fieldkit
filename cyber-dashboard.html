@@ -957,7 +957,6 @@ function openSettings() {
 }
 
 function closeSettings() {
-  localStorage.setItem(WELCOMED_KEY, '1');
   document.getElementById('settings-overlay').classList.remove('open');
 }
 
@@ -1033,7 +1032,8 @@ function renderNews() {
 function renderRegulatory() {
   const s = loadSettings();
   const ind = PROFILE_DATA.industries[s.industry] || PROFILE_DATA.industries.banking;
-  const stLabels = (s.states || []).map(a => (PROFILE_DATA.states[a]?.label || a).replace(' Breach Notification', ''));
+  const stShort = { VA: 'VA (VCDPA)', CT: 'CT (CTDPA)', OR: 'OR (OCPA)', GA: 'GA' };
+  const stLabels = (s.states || []).map(a => stShort[a] || (PROFILE_DATA.states[a]?.label || a).replace(' Breach Notification', ''));
   document.getElementById('refs-title').textContent =
     stLabels.length ? `${stLabels.join(' / ')} + Federal Regulatory` : 'Federal Regulatory Quick Reference';
   let html = '';
@@ -1414,9 +1414,11 @@ function clearCVE() {
 function getPatchTuesday(year, month) {
   // Second Tuesday of month (month is 0-indexed)
   const d = new Date(year, month, 1);
-  const day = d.getDay(); // 0=Sun,1=Mon,...,2=Tue
-  const firstTue = day <= 2 ? 2 - day + 1 : 9 - day;
-  return new Date(year, month, firstTue + 7);
+  const day = d.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+  const daysToTue = (2 - day + 7) % 7;  // 0 if already Tuesday, positive otherwise
+  const firstTue = 1 + daysToTue;
+  const secondTue = firstTue + 7;
+  return new Date(year, month, secondTue);
 }
 
 function renderPatchTuesday() {
@@ -1501,6 +1503,7 @@ async function loadNewsRSS() {
       li.className = 'feed-item' + (relevant ? ' industry-relevant' : '');
       li.innerHTML = `
         <a class="feed-item-title" href="${escHtml(item.link)}" target="_blank" rel="noopener">${escHtml(item.title)}</a>
+        ${item.description ? `<div class="feed-excerpt" style="font-size:11px;color:var(--text-muted);line-height:1.4;margin-top:2px;">${escHtml(item.description)}</div>` : ''}
         <div class="feed-item-meta">
           <span>${escHtml(item.source)}</span>
           <span>${item.pubDate ? timeAgo(item.pubDate) : ''}</span>
