@@ -363,9 +363,169 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
     </div>
   </nav>
   <main class="main-content">
-    <div id="tab-briefing" class="tab-panel active"></div>
-    <div id="tab-resources" class="tab-panel"></div>
-    <div id="tab-intel" class="tab-panel"></div>
+    <div id="tab-briefing" class="tab-panel active">
+      <!-- Briefing header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+        <span id="briefing-context" style="font-size:12px;color:var(--text-muted);">Morning Briefing</span>
+        <button id="refresh-all-btn" onclick="refreshAll()" style="padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:5px;font-size:12px;font-weight:500;cursor:pointer;">↻ Refresh All</button>
+      </div>
+      <div id="last-updated" style="font-size:11px;color:var(--text-muted);margin-bottom:12px;margin-top:-10px;"></div>
+
+      <div class="dashboard-grid">
+        <!-- KEV panel -->
+        <div class="panel" id="panel-kev">
+          <div class="panel-header">
+            <span class="panel-title">CISA Known Exploited Vulnerabilities</span>
+            <div class="panel-header-links">
+              <a class="panel-link" href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" target="_blank" rel="noopener">View all ↗</a>
+              <button class="panel-refresh" onclick="loadKEV()">↻ Refresh</button>
+            </div>
+          </div>
+          <div class="panel-body" id="kev-body"><div class="loading-state"><span class="spinner"></span>Loading…</div></div>
+        </div>
+
+        <!-- NVD panel -->
+        <div class="panel" id="panel-nvd">
+          <div class="panel-header">
+            <span class="panel-title">NVD Recent Critical CVEs</span>
+            <div class="panel-header-links">
+              <a class="panel-link" href="https://nvd.nist.gov/vuln/search" target="_blank" rel="noopener">Search NVD ↗</a>
+              <button class="panel-refresh" onclick="loadNVD()">↻ Refresh</button>
+            </div>
+          </div>
+          <div class="panel-body" id="nvd-body"><div class="loading-state"><span class="spinner"></span>Loading…</div></div>
+        </div>
+
+        <!-- News RSS panel (body populated by loadNewsRSS in Task 5) -->
+        <div class="panel" id="panel-news">
+          <div class="panel-header">
+            <span class="panel-title" id="news-title">Security News</span>
+            <div class="panel-header-links">
+              <span id="news-source-label" style="font-size:11px;color:var(--text-muted);">RSS</span>
+              <button class="panel-refresh" onclick="loadNewsRSS()">↻ Refresh</button>
+            </div>
+          </div>
+          <div class="panel-body" id="news-body"><div class="loading-state"><span class="spinner"></span>Loading…</div></div>
+        </div>
+
+        <!-- Community Pulse (Reddit) -->
+        <div class="panel" id="panel-reddit">
+          <div class="panel-header">
+            <span class="panel-title">Community Pulse <span id="reddit-kw-label" style="font-weight:400;color:var(--accent);font-size:11px;">★ = industry relevant</span></span>
+            <div class="panel-header-links">
+              <a class="panel-link" href="https://www.reddit.com/r/netsec/" target="_blank" rel="noopener">r/netsec ↗</a>
+              <button class="panel-refresh" onclick="loadReddit()">↻ Refresh</button>
+            </div>
+          </div>
+          <div class="panel-body" id="reddit-body"><div class="loading-state"><span class="spinner"></span>Loading…</div></div>
+        </div>
+
+        <!-- Regulations (full width) -->
+        <div class="panel col-span-2" id="panel-refs">
+          <div class="panel-header">
+            <span class="panel-title" id="refs-title">Regulatory Quick Reference</span>
+          </div>
+          <div class="panel-body no-scroll" id="refs-body"></div>
+        </div>
+      </div>
+    </div>
+    <div id="tab-resources" class="tab-panel">
+      <div class="dashboard-grid">
+        <!-- Industry news links (new panel — content rendered by renderNews()) -->
+        <div class="panel" id="panel-news-links">
+          <div class="panel-header">
+            <span class="panel-title" id="news-links-title">Security News Links</span>
+          </div>
+          <div class="panel-body no-scroll" id="news-links-body"></div>
+        </div>
+
+        <!-- Vendor patch pages -->
+        <div class="panel" id="panel-vendor">
+          <div class="panel-header">
+            <span class="panel-title">Vendor Patch Pages</span>
+          </div>
+          <div class="panel-body no-scroll">
+            <div class="vendor-section">
+              <div class="vendor-label">Microsoft</div>
+              <div class="vendor-links">
+                <a class="vendor-link" href="https://msrc.microsoft.com/update-guide/" target="_blank" rel="noopener">Security Update Guide</a>
+                <a class="vendor-link" href="https://msrc.microsoft.com/blog/" target="_blank" rel="noopener">MSRC Blog</a>
+              </div>
+            </div>
+            <div class="vendor-section">
+              <div class="vendor-label">Network</div>
+              <div class="vendor-links">
+                <a class="vendor-link" href="https://sec.cloudapps.cisco.com/security/center/publicationListing.x" target="_blank" rel="noopener">Cisco Advisories</a>
+                <a class="vendor-link" href="https://security.paloaltonetworks.com/" target="_blank" rel="noopener">Palo Alto</a>
+                <a class="vendor-link" href="https://www.fortiguard.com/psirt" target="_blank" rel="noopener">Fortinet</a>
+              </div>
+            </div>
+            <div class="vendor-section">
+              <div class="vendor-label">OS / Platform</div>
+              <div class="vendor-links">
+                <a class="vendor-link" href="https://support.apple.com/en-us/HT201222" target="_blank" rel="noopener">Apple Security</a>
+                <a class="vendor-link" href="https://chromereleases.googleblog.com/" target="_blank" rel="noopener">Chrome Releases</a>
+                <a class="vendor-link" href="https://www.mozilla.org/en-US/security/advisories/" target="_blank" rel="noopener">Mozilla Security</a>
+              </div>
+            </div>
+            <div class="vendor-section">
+              <div class="vendor-label">Other</div>
+              <div class="vendor-links">
+                <a class="vendor-link" href="https://support.broadcom.com/web/ecx/security-advisory" target="_blank" rel="noopener">VMware/Broadcom</a>
+                <a class="vendor-link" href="https://support.sap.com/en/my-support/security-notes.html" target="_blank" rel="noopener">SAP Security Notes</a>
+                <a class="vendor-link" href="https://www.oracle.com/security-alerts/" target="_blank" rel="noopener">Oracle</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Patch Tuesday countdown -->
+        <div class="panel" id="panel-pt">
+          <div class="panel-header">
+            <span class="panel-title">Patch Tuesday Countdown</span>
+          </div>
+          <div class="panel-body no-scroll" id="pt-body"></div>
+        </div>
+      </div>
+    </div>
+    <div id="tab-intel" class="tab-panel">
+      <div class="dashboard-grid">
+        <!-- Threat Intel Lookup (full width) -->
+        <div class="panel col-span-2" id="panel-ti">
+          <div class="panel-header">
+            <span class="panel-title">Threat Intel Lookup</span>
+          </div>
+          <div class="panel-body no-scroll" id="ti-body">
+            <div class="ti-input-row">
+              <input class="ti-input" id="ti-val" type="text" placeholder="IP, domain, hash, or URL…" autocomplete="off" oninput="tiDetect()" onkeydown="if(event.key==='Enter')tiDetect()">
+              <select class="ti-select" id="ti-type" onchange="tiRender()">
+                <option value="ip">IP</option>
+                <option value="domain">Domain</option>
+                <option value="hash">Hash</option>
+                <option value="url">URL</option>
+              </select>
+              <button class="btn-primary" onclick="tiDetect()">Detect</button>
+            </div>
+            <div id="ti-services"></div>
+          </div>
+        </div>
+
+        <!-- CVE Lookup (full width) -->
+        <div class="panel col-span-2" id="panel-cve">
+          <div class="panel-header">
+            <span class="panel-title">CVE Lookup</span>
+          </div>
+          <div class="panel-body no-scroll" id="cve-body">
+            <div class="cve-input-row">
+              <input class="ti-input" id="cve-input" type="text" placeholder="CVE-2024-12345" autocomplete="off" onkeydown="if(event.key==='Enter')lookupCVE()">
+              <button class="btn-primary" onclick="lookupCVE()">Look Up</button>
+              <button class="btn-secondary" onclick="clearCVE()">Clear</button>
+            </div>
+            <div id="cve-result"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 </div>
 
@@ -770,14 +930,14 @@ function applySettings() {
 function renderNews() {
   const s = loadSettings();
   const ind = PROFILE_DATA.industries[s.industry] || PROFILE_DATA.industries.banking;
-  document.getElementById('news-title').textContent = ind.newsTitle;
+  document.getElementById('news-links-title').textContent = ind.newsTitle;
   let html = '';
   ind.news.forEach(sec => {
     html += `<div class="link-section"><div class="link-section-label">${escHtml(sec.label)}</div><div class="link-grid">`;
     sec.links.forEach(l => { html += `<a class="link-tile" href="${escHtml(l.url)}" target="_blank" rel="noopener">${escHtml(l.name)}</a>`; });
     html += '</div></div>';
   });
-  document.getElementById('news-body').innerHTML = html;
+  document.getElementById('news-links-body').innerHTML = html;
 }
 
 function renderRegulatory() {
