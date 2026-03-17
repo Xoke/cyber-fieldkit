@@ -40,21 +40,53 @@ html[data-theme="dark"] {
 
 body { background: var(--bg); color: var(--text); min-height: 100vh; }
 
-/* Header */
-#header {
-  position: sticky; top: 0; z-index: 100;
-  display: flex; align-items: center; padding: 0 20px; height: 46px;
-  background: var(--bg-alt); border-bottom: 1px solid var(--border);
-  gap: 12px; flex-shrink: 0;
+/* App Shell */
+.app-shell { display: flex; height: 100vh; overflow: hidden; }
+
+/* Sidebar */
+.sidebar {
+  width: 160px; flex-shrink: 0;
+  background: var(--bg-alt); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
 }
-#app-name { font-weight: 700; font-size: 15px; }
-#last-updated { font-size: 12px; color: var(--text-muted); flex: 1; }
-#refresh-all-btn {
-  padding: 5px 12px; background: var(--accent); color: #fff;
-  border: none; border-radius: 5px; font-size: 12px; font-weight: 500;
-  cursor: pointer; transition: background 0.15s;
+.sidebar-brand {
+  padding: 14px 14px 12px; font-size: 14px; font-weight: 700;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
 }
-#refresh-all-btn:hover { background: var(--accent-hover); }
+.sidebar-nav { padding: 8px 6px; display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.nav-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; background: none; border: none; border-radius: 5px;
+  color: var(--text-muted); font-size: 13px; font-family: inherit;
+  cursor: pointer; text-align: left; width: 100%; transition: background 0.12s, color 0.12s;
+}
+.nav-item:hover { background: var(--bg-hover); color: var(--text); }
+.nav-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+.nav-icon { font-size: 15px; flex-shrink: 0; }
+.sidebar-bottom { padding: 8px 6px 12px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.theme-row { display: flex; gap: 6px; padding: 6px 10px; }
+
+/* Main content */
+.main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* Tab panels */
+.tab-panel { display: none; flex: 1; overflow-y: auto; padding: 16px 20px; }
+.tab-panel.active { display: block; }
+
+/* Dashboard grid (inside tabs) */
+.dashboard-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+}
+.col-span-2 { grid-column: 1 / -1; }
+@media (max-width: 860px) {
+  .app-shell { flex-direction: column; }
+  .sidebar { width: 100%; height: auto; flex-direction: row; flex-wrap: wrap; }
+  .sidebar-nav { flex-direction: row; flex: none; }
+  .sidebar-bottom { margin-left: auto; }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .col-span-2 { grid-column: 1; }
+}
+
 .theme-btn {
   width: 16px; height: 16px; border-radius: 50%; cursor: pointer;
   border: 2px solid transparent; padding: 0; outline: none;
@@ -66,20 +98,6 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
 .theme-btn[data-t="sepia"] { background: #c8a97e; }
 .theme-btn[data-t="dusk"]  { background: #4a5580; }
 .theme-btn[data-t="dark"]  { background: #2a2d35; box-shadow: 0 0 0 1px #555; }
-
-/* Grid */
-#content { padding: 20px; }
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-.col-span-2 { grid-column: 1 / -1; }
-
-@media (max-width: 860px) {
-  .dashboard-grid { grid-template-columns: 1fr; }
-  .col-span-2 { grid-column: 1; }
-}
 
 /* Panel card */
 .panel {
@@ -318,154 +336,38 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
 </head>
 <body>
 
-<div id="header">
-  <div id="app-name">Cyber Dashboard</div>
-  <div id="last-updated">Last updated: —</div>
-  <button id="refresh-all-btn" onclick="refreshAll()">↻ Refresh All</button>
-  <button class="theme-btn" data-t="light"  title="Light"></button>
-  <button class="theme-btn" data-t="sepia"  title="Sepia"></button>
-  <button class="theme-btn" data-t="dusk"   title="Dusk"></button>
-  <button class="theme-btn" data-t="dark"   title="Dark"></button>
-  <button id="settings-btn" onclick="openSettings()" title="Settings">⚙</button>
+<div class="app-shell">
+  <nav class="sidebar">
+    <div class="sidebar-brand">⚡ Cyber Dash</div>
+    <div class="sidebar-nav">
+      <button class="nav-item active" data-tab="briefing" onclick="switchTab('briefing')">
+        <span class="nav-icon">📰</span><span class="nav-label">Briefing</span>
+      </button>
+      <button class="nav-item" data-tab="resources" onclick="switchTab('resources')">
+        <span class="nav-icon">🔗</span><span class="nav-label">Resources</span>
+      </button>
+      <button class="nav-item" data-tab="intel" onclick="switchTab('intel')">
+        <span class="nav-icon">🔍</span><span class="nav-label">Intel</span>
+      </button>
+    </div>
+    <div class="sidebar-bottom">
+      <button class="nav-item" onclick="openSettings()">
+        <span class="nav-icon">⚙</span><span class="nav-label">Settings</span>
+      </button>
+      <div class="theme-row">
+        <button class="theme-btn" data-t="light" title="Light"></button>
+        <button class="theme-btn" data-t="sepia" title="Sepia"></button>
+        <button class="theme-btn" data-t="dusk" title="Dusk"></button>
+        <button class="theme-btn" data-t="dark" title="Dark"></button>
+      </div>
+    </div>
+  </nav>
+  <main class="main-content">
+    <div id="tab-briefing" class="tab-panel active"></div>
+    <div id="tab-resources" class="tab-panel"></div>
+    <div id="tab-intel" class="tab-panel"></div>
+  </main>
 </div>
-
-<div id="content">
-<div class="dashboard-grid">
-
-  <!-- Row 1: CISA KEV | NVD Critical CVEs -->
-  <div class="panel" id="panel-kev">
-    <div class="panel-header">
-      <span class="panel-title">CISA Known Exploited Vulnerabilities</span>
-      <div class="panel-header-links">
-        <a class="panel-link" href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" target="_blank" rel="noopener">View all ↗</a>
-        <button class="panel-refresh" onclick="loadKEV()">↻ Refresh</button>
-      </div>
-    </div>
-    <div class="panel-body" id="kev-body"><div class="loading-state"><span class="spinner"></span>Loading…</div></div>
-  </div>
-
-  <div class="panel" id="panel-nvd">
-    <div class="panel-header">
-      <span class="panel-title">NVD Recent Critical CVEs</span>
-      <div class="panel-header-links">
-        <a class="panel-link" href="https://nvd.nist.gov/vuln/search" target="_blank" rel="noopener">Search NVD ↗</a>
-        <button class="panel-refresh" onclick="loadNVD()">↻ Refresh</button>
-      </div>
-    </div>
-    <div class="panel-body" id="nvd-body"><div class="loading-state"><span class="spinner"></span>Loading…</div></div>
-  </div>
-
-  <!-- Row 2: r/netsec | News & Community -->
-  <div class="panel" id="panel-reddit">
-    <div class="panel-header">
-      <span class="panel-title">Security Community <span id="reddit-kw-label" style="font-weight:400;color:var(--accent);font-size:11px;">★ = industry relevant</span></span>
-      <div class="panel-header-links">
-        <a class="panel-link" href="https://www.reddit.com/r/netsec/" target="_blank" rel="noopener">r/netsec ↗</a>
-        <a class="panel-link" href="https://www.reddit.com/r/cybersecurity/" target="_blank" rel="noopener">r/cybersecurity ↗</a>
-        <button class="panel-refresh" onclick="loadReddit()">↻ Refresh</button>
-      </div>
-    </div>
-    <div class="panel-body" id="reddit-body"><div class="loading-state"><span class="spinner"></span>Loading…</div></div>
-  </div>
-
-  <div class="panel" id="panel-news">
-    <div class="panel-header">
-      <span class="panel-title" id="news-title">Security News</span>
-    </div>
-    <div class="panel-body no-scroll" id="news-body"></div>
-  </div>
-
-  <!-- Row 3: Threat Intel Lookup (full width) -->
-  <div class="panel col-span-2" id="panel-ti">
-    <div class="panel-header">
-      <span class="panel-title">Threat Intel Lookup</span>
-    </div>
-    <div class="panel-body no-scroll" id="ti-body">
-      <div class="ti-input-row">
-        <input class="ti-input" id="ti-val" type="text" placeholder="IP, domain, hash, or URL…" autocomplete="off" oninput="tiDetect()" onkeydown="if(event.key==='Enter')tiDetect()">
-        <select class="ti-select" id="ti-type" onchange="tiRender()">
-          <option value="ip">IP</option>
-          <option value="domain">Domain</option>
-          <option value="hash">Hash</option>
-          <option value="url">URL</option>
-        </select>
-        <button class="btn-primary" onclick="tiDetect()">Detect</button>
-      </div>
-      <div id="ti-services"></div>
-    </div>
-  </div>
-
-  <!-- Row 4: CVE Lookup | Vendor Patch Pages -->
-  <div class="panel" id="panel-cve">
-    <div class="panel-header">
-      <span class="panel-title">CVE Lookup</span>
-    </div>
-    <div class="panel-body no-scroll" id="cve-body">
-      <div class="cve-input-row">
-        <input class="ti-input" id="cve-input" type="text" placeholder="CVE-2024-12345" autocomplete="off" onkeydown="if(event.key==='Enter')lookupCVE()">
-        <button class="btn-primary" onclick="lookupCVE()">Look Up</button>
-        <button class="btn-secondary" onclick="clearCVE()">Clear</button>
-      </div>
-      <div id="cve-result"></div>
-    </div>
-  </div>
-
-  <div class="panel" id="panel-vendor">
-    <div class="panel-header">
-      <span class="panel-title">Vendor Patch Pages</span>
-    </div>
-    <div class="panel-body no-scroll">
-      <div class="vendor-section">
-        <div class="vendor-label">Microsoft</div>
-        <div class="vendor-links">
-          <a class="vendor-link" href="https://msrc.microsoft.com/update-guide/" target="_blank" rel="noopener">Security Update Guide</a>
-          <a class="vendor-link" href="https://msrc.microsoft.com/blog/" target="_blank" rel="noopener">MSRC Blog</a>
-        </div>
-      </div>
-      <div class="vendor-section">
-        <div class="vendor-label">Network</div>
-        <div class="vendor-links">
-          <a class="vendor-link" href="https://sec.cloudapps.cisco.com/security/center/publicationListing.x" target="_blank" rel="noopener">Cisco Advisories</a>
-          <a class="vendor-link" href="https://security.paloaltonetworks.com/" target="_blank" rel="noopener">Palo Alto</a>
-          <a class="vendor-link" href="https://www.fortiguard.com/psirt" target="_blank" rel="noopener">Fortinet</a>
-        </div>
-      </div>
-      <div class="vendor-section">
-        <div class="vendor-label">OS / Platform</div>
-        <div class="vendor-links">
-          <a class="vendor-link" href="https://support.apple.com/en-us/HT201222" target="_blank" rel="noopener">Apple Security</a>
-          <a class="vendor-link" href="https://chromereleases.googleblog.com/" target="_blank" rel="noopener">Chrome Releases</a>
-          <a class="vendor-link" href="https://www.mozilla.org/en-US/security/advisories/" target="_blank" rel="noopener">Mozilla Security</a>
-        </div>
-      </div>
-      <div class="vendor-section">
-        <div class="vendor-label">Other</div>
-        <div class="vendor-links">
-          <a class="vendor-link" href="https://support.broadcom.com/web/ecx/security-advisory" target="_blank" rel="noopener">VMware/Broadcom</a>
-          <a class="vendor-link" href="https://support.sap.com/en/my-support/security-notes.html" target="_blank" rel="noopener">SAP Security Notes</a>
-          <a class="vendor-link" href="https://www.oracle.com/security-alerts/" target="_blank" rel="noopener">Oracle</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Row 5: Patch Tuesday Countdown | (placeholder filled with quick stats) -->
-  <div class="panel" id="panel-pt">
-    <div class="panel-header">
-      <span class="panel-title">Patch Tuesday Countdown</span>
-    </div>
-    <div class="panel-body no-scroll" id="pt-body"></div>
-  </div>
-
-  <div class="panel" id="panel-refs">
-    <div class="panel-header">
-      <span class="panel-title" id="refs-title">Regulatory Quick Reference</span>
-    </div>
-    <div class="panel-body no-scroll" id="refs-body"></div>
-  </div>
-
-</div><!-- .dashboard-grid -->
-</div><!-- #content -->
 
 <div id="settings-overlay" onclick="if(event.target===this)closeSettings()">
   <div id="settings-panel">
@@ -514,6 +416,15 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
 </div>
 
 <script>
+// ─── Tab Navigation ──────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item[data-tab]').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  const btn = document.querySelector('.nav-item[data-tab="' + name + '"]');
+  if (btn) btn.classList.add('active');
+}
+
 // ─── Theme ───────────────────────────────────────────────────────────────────
 const THEME_KEY = 'cyber-dash-theme';
 function applyTheme(t) {
