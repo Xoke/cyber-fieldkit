@@ -332,6 +332,18 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
 .chip-input { border: none; outline: none; background: none; color: var(--text); font-size: 12px; font-family: inherit; min-width: 100px; flex: 1; }
 .settings-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 .settings-actions { display: flex; gap: 8px; }
+
+.welcome-banner {
+  background: #7a5c00; color: #ffe082; border: 1px solid #a07800;
+  border-radius: 6px; padding: 10px 14px; margin-bottom: 14px;
+  font-size: 13px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+html[data-theme="light"] .welcome-banner { background: #fff8e1; color: #7a5c00; border-color: #f0c000; }
+html[data-theme="sepia"] .welcome-banner { background: #f5edd6; color: #6b4c00; border-color: #c8a040; }
+.welcome-banner button {
+  padding: 4px 10px; background: var(--accent); color: #fff; border: none;
+  border-radius: 4px; font-size: 12px; cursor: pointer; white-space: nowrap;
+}
 </style>
 </head>
 <body>
@@ -364,6 +376,10 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
   </nav>
   <main class="main-content">
     <div id="tab-briefing" class="tab-panel active">
+      <div id="welcome-banner" class="welcome-banner" style="display:none;">
+        <span>Welcome — select your industry and states to personalise this briefing.</span>
+        <button onclick="openSettings()">Open Settings ⚙</button>
+      </div>
       <!-- Briefing header -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
         <span id="briefing-context" style="font-size:12px;color:var(--text-muted);">Morning Briefing</span>
@@ -597,6 +613,7 @@ applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
 
 // ─── Settings Data ────────────────────────────────────────────────────────────
 const SETTINGS_KEY = 'cyber-dash-settings';
+const WELCOMED_KEY = 'cyber-dash-welcomed';
 const DEFAULT_SETTINGS = { industry: 'banking', states: ['CA', 'NV'], software: [] };
 
 const PROFILE_DATA = {
@@ -916,6 +933,8 @@ function chipKeydown(e) {
 }
 
 function applySettings() {
+  localStorage.setItem(WELCOMED_KEY, '1');
+  document.getElementById('welcome-banner').style.display = 'none';
   const industry = document.getElementById('s-industry').value;
   const states = [...document.querySelectorAll('#s-states input[type=checkbox]:checked')].map(cb => cb.value);
   saveSettings({ industry, states, software: [..._pendingChips] });
@@ -1342,6 +1361,15 @@ function renderPatchTuesday() {
     <a class="pt-link" href="https://msrc.microsoft.com/update-guide/releaseNote" target="_blank" rel="noopener">MSRC Release Notes ↗</a>`;
 }
 
+function checkFirstRun() {
+  const hasSettings = !!localStorage.getItem(SETTINGS_KEY);
+  const hasWelcomed = !!localStorage.getItem(WELCOMED_KEY);
+  if (!hasSettings && !hasWelcomed) {
+    document.getElementById('welcome-banner').style.display = 'flex';
+    openSettings();
+  }
+}
+
 // ─── News RSS (stub — replaced in Task 5) ────────────────────────────────────
 function loadNewsRSS() { /* implemented in Task 5 */ }
 
@@ -1357,6 +1385,7 @@ function refreshAll() {
 renderPatchTuesday();
 renderNews();
 renderRegulatory();
+checkFirstRun();
 refreshAll();
 </script>
 </body>
