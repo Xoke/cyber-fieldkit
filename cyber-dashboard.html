@@ -1275,7 +1275,7 @@ async function loadReddit() {
       const li = document.createElement('li');
       li.className = 'feed-item' + (relevant ? ' industry-relevant' : '');
       li.innerHTML = `
-        <a class="feed-item-title" href="${escHtml(p.url || postUrl)}" target="_blank" rel="noopener">${relevant ? '★ ' : ''}${escHtml(p.title)}</a>
+        <a class="feed-item-title" href="${escHtml(postUrl)}" target="_blank" rel="noopener">${relevant ? '★ ' : ''}${escHtml(p.title)}</a>
         <div class="feed-item-meta">
           <span class="reddit-sub">r/${escHtml(sub)}</span>
           <span>↑ ${(p.score || 0).toLocaleString()}</span>
