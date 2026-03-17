@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CISSP CPE Tracker</title>
+<script>
+/**
+ * marked v15.0.12 - a markdown parser
+ * Copyright (c) 2011-2025, Christopher Jeffrey. (MIT Licensed)
+ * https://github.com/markedjs/marked
+ */
+(function(g,f){if(typeof exports=="object"&&typeof module<"u"){module.exports=f()}else if("function"==typeof define && define.amd){define("marked",f)}else {g["marked"]=f()}}(typeof globalThis < "u" ? globalThis : typeof self < "u" ? self : this,function(){var exports={};var __exports=exports;var module={exports};
+"use strict";var H=Object.defineProperty;var be=Object.getOwnPropertyDescriptor;var Te=Object.getOwnPropertyNames;var we=Object.prototype.hasOwnProperty;var ye=(l,e)=>{for(var t in e)H(l,t,{get:e[t],enumerable:!0})},Re=(l,e,t,n)=>{if(e&&typeof e=="object"||typeof e=="function")for(let s of Te(e))!we.call(l,s)&&s!==t&&H(l,s,{get:()=>e[s],enumerable:!(n=be(e,s))||n.enumerable});return l};var Se=l=>Re(H({},"__esModule",{value:!0}),l);var kt={};ye(kt,{Hooks:()=>L,Lexer:()=>x,Marked:()=>E,Parser:()=>b,Renderer:()=>$,TextRenderer:()=>_,Tokenizer:()=>S,defaults:()=>w,getDefaults:()=>z,lexer:()=>ht,marked:()=>k,options:()=>it,parse:()=>pt,parseInline:()=>ct,parser:()=>ut,setOptions:()=>ot,use:()=>lt,walkTokens:()=>at});module.exports=Se(kt);function z(){return{async:!1,breaks:!1,extensions:null,gfm:!0,hooks:null,pedantic:!1,renderer:null,silent:!1,tokenizer:null,walkTokens:null}}var w=z();function N(l){w=l}var I={exec:()=>null};function h(l,e=""){let t=typeof l=="string"?l:l.source,n={replace:(s,i)=>{let r=typeof i=="string"?i:i.source;return r=r.replace(m.caret,"$1"),t=t.replace(s,r),n},getRegex:()=>new RegExp(t,e)};return n}var m={codeRemoveIndent:/^(?: {1,4}| {0,3}\t)/gm,outputLinkReplace:/\\([\[\]])/g,indentCodeCompensation:/^(\s+)(?:```)/,beginningSpace:/^\s+/,endingHash:/#$/,startingSpaceChar:/^ /,endingSpaceChar:/ $/,nonSpaceChar:/[^ ]/,newLineCharGlobal:/\n/g,tabCharGlobal:/\t/g,multipleSpaceGlobal:/\s+/g,blankLine:/^[ \t]*$/,doubleBlankLine:/\n[ \t]*\n[ \t]*$/,blockquoteStart:/^ {0,3}>/,blockquoteSetextReplace:/\n {0,3}((?:=+|-+) *)(?=\n|$)/g,blockquoteSetextReplace2:/^ {0,3}>[ \t]?/gm,listReplaceTabs:/^\t+/,listReplaceNesting:/^ {1,4}(?=( {4})*[^ ])/g,listIsTask:/^\[[ xX]\] /,listReplaceTask:/^\[[ xX]\] +/,anyLine:/\n.*\n/,hrefBrackets:/^<(.*)>$/,tableDelimiter:/[:|]/,tableAlignChars:/^\||\| *$/g,tableRowBlankLine:/\n[ \t]*$/,tableAlignRight:/^ *-+: *$/,tableAlignCenter:/^ *:-+: *$/,tableAlignLeft:/^ *:-+ *$/,startATag:/^<a /i,endATag:/^<\/a>/i,startPreScriptTag:/^<(pre|code|kbd|script)(\s|>)/i,endPreScriptTag:/^<\/(pre|code|kbd|script)(\s|>)/i,startAngleBracket:/^</,endAngleBracket:/>$/,pedanticHrefTitle:/^([^'"]*[^\s])\s+(['"])(.*)\2/,unicodeAlphaNumeric:/[\p{L}\p{N}]/u,escapeTest:/[&<>"']/,escapeReplace:/[&<>"']/g,escapeTestNoEncode:/[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/,escapeReplaceNoEncode:/[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/g,unescapeTest:/&(#(?:\d+)|(?:#x[0-9A-Fa-f]+)|(?:\w+));?/ig,caret:/(^|[^\[])\^/g,percentDecode:/%25/g,findPipe:/\|/g,splitPipe:/ \|/,slashPipe:/\\\|/g,carriageReturn:/\r\n|\r/g,spaceLine:/^ +$/gm,notSpaceStart:/^\S*/,endingNewline:/\n$/,listItemRegex:l=>new RegExp(`^( {0,3}${l})((?:[	 ][^\\n]*)?(?:\\n|$))`),nextBulletRegex:l=>new RegExp(`^ {0,${Math.min(3,l-1)}}(?:[*+-]|\\d{1,9}[.)])((?:[ 	][^\\n]*)?(?:\\n|$))`),hrRegex:l=>new RegExp(`^ {0,${Math.min(3,l-1)}}((?:- *){3,}|(?:_ *){3,}|(?:\\* *){3,})(?:\\n+|$)`),fencesBeginRegex:l=>new RegExp(`^ {0,${Math.min(3,l-1)}}(?:\`\`\`|~~~)`),headingBeginRegex:l=>new RegExp(`^ {0,${Math.min(3,l-1)}}#`),htmlBeginRegex:l=>new RegExp(`^ {0,${Math.min(3,l-1)}}<(?:[a-z].*>|!--)`,"i")},$e=/^(?:[ \t]*(?:\n|$))+/,_e=/^((?: {4}| {0,3}\t)[^\n]+(?:\n(?:[ \t]*(?:\n|$))*)?)+/,Le=/^ {0,3}(`{3,}(?=[^`\n]*(?:\n|$))|~{3,})([^\n]*)(?:\n|$)(?:|([\s\S]*?)(?:\n|$))(?: {0,3}\1[~`]* *(?=\n|$)|$)/,O=/^ {0,3}((?:-[\t ]*){3,}|(?:_[ \t]*){3,}|(?:\*[ \t]*){3,})(?:\n+|$)/,ze=/^ {0,3}(#{1,6})(?=\s|$)(.*)(?:\n+|$)/,F=/(?:[*+-]|\d{1,9}[.)])/,ie=/^(?!bull |blockCode|fences|blockquote|heading|html|table)((?:.|\n(?!\s*?\n|bull |blockCode|fences|blockquote|heading|html|table))+?)\n {0,3}(=+|-+) *(?:\n+|$)/,oe=h(ie).replace(/bull/g,F).replace(/blockCode/g,/(?: {4}| {0,3}\t)/).replace(/fences/g,/ {0,3}(?:`{3,}|~{3,})/).replace(/blockquote/g,/ {0,3}>/).replace(/heading/g,/ {0,3}#{1,6}/).replace(/html/g,/ {0,3}<[^\n>]+>\n/).replace(/\|table/g,"").getRegex(),Me=h(ie).replace(/bull/g,F).replace(/blockCode/g,/(?: {4}| {0,3}\t)/).replace(/fences/g,/ {0,3}(?:`{3,}|~{3,})/).replace(/blockquote/g,/ {0,3}>/).replace(/heading/g,/ {0,3}#{1,6}/).replace(/html/g,/ {0,3}<[^\n>]+>\n/).replace(/table/g,/ {0,3}\|?(?:[:\- ]*\|)+[\:\- ]*\n/).getRegex(),Q=/^([^\n]+(?:\n(?!hr|heading|lheading|blockquote|fences|list|html|table| +\n)[^\n]+)*)/,Pe=/^[^\n]+/,U=/(?!\s*\])(?:\\.|[^\[\]\\])+/,Ae=h(/^ {0,3}\[(label)\]: *(?:\n[ \t]*)?([^<\s][^\s]*|<.*?>)(?:(?: +(?:\n[ \t]*)?| *\n[ \t]*)(title))? *(?:\n+|$)/).replace("label",U).replace("title",/(?:"(?:\\"?|[^"\\])*"|'[^'\n]*(?:\n[^'\n]+)*\n?'|\([^()]*\))/).getRegex(),Ee=h(/^( {0,3}bull)([ \t][^\n]+?)?(?:\n|$)/).replace(/bull/g,F).getRegex(),v="address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|menuitem|meta|nav|noframes|ol|optgroup|option|p|param|search|section|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul",K=/<!--(?:-?>|[\s\S]*?(?:-->|$))/,Ce=h("^ {0,3}(?:<(script|pre|style|textarea)[\\s>][\\s\\S]*?(?:</\\1>[^\\n]*\\n+|$)|comment[^\\n]*(\\n+|$)|<\\?[\\s\\S]*?(?:\\?>\\n*|$)|<![A-Z][\\s\\S]*?(?:>\\n*|$)|<!\\[CDATA\\[[\\s\\S]*?(?:\\]\\]>\\n*|$)|</?(tag)(?: +|\\n|/?>)[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$)|<(?!script|pre|style|textarea)([a-z][\\w-]*)(?:attribute)*? */?>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$)|</(?!script|pre|style|textarea)[a-z][\\w-]*\\s*>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$))","i").replace("comment",K).replace("tag",v).replace("attribute",/ +[a-zA-Z:_][\w.:-]*(?: *= *"[^"\n]*"| *= *'[^'\n]*'| *= *[^\s"'=<>`]+)?/).getRegex(),le=h(Q).replace("hr",O).replace("heading"," {0,3}#{1,6}(?:\\s|$)").replace("|lheading","").replace("|table","").replace("blockquote"," {0,3}>").replace("fences"," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list"," {0,3}(?:[*+-]|1[.)]) ").replace("html","</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag",v).getRegex(),Ie=h(/^( {0,3}> ?(paragraph|[^\n]*)(?:\n|$))+/).replace("paragraph",le).getRegex(),X={blockquote:Ie,code:_e,def:Ae,fences:Le,heading:ze,hr:O,html:Ce,lheading:oe,list:Ee,newline:$e,paragraph:le,table:I,text:Pe},re=h("^ *([^\\n ].*)\\n {0,3}((?:\\| *)?:?-+:? *(?:\\| *:?-+:? *)*(?:\\| *)?)(?:\\n((?:(?! *\\n|hr|heading|blockquote|code|fences|list|html).*(?:\\n|$))*)\\n*|$)").replace("hr",O).replace("heading"," {0,3}#{1,6}(?:\\s|$)").replace("blockquote"," {0,3}>").replace("code","(?: {4}| {0,3}	)[^\\n]").replace("fences"," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list"," {0,3}(?:[*+-]|1[.)]) ").replace("html","</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag",v).getRegex(),Oe={...X,lheading:Me,table:re,paragraph:h(Q).replace("hr",O).replace("heading"," {0,3}#{1,6}(?:\\s|$)").replace("|lheading","").replace("table",re).replace("blockquote"," {0,3}>").replace("fences"," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list"," {0,3}(?:[*+-]|1[.)]) ").replace("html","</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag",v).getRegex()},Be={...X,html:h(`^ *(?:comment *(?:\\n|\\s*$)|<(tag)[\\s\\S]+?</\\1> *(?:\\n{2,}|\\s*$)|<tag(?:"[^"]*"|'[^']*'|\\s[^'"/>\\s]*)*?/?> *(?:\\n{2,}|\\s*$))`).replace("comment",K).replace(/tag/g,"(?!(?:a|em|strong|small|s|cite|q|dfn|abbr|data|time|code|var|samp|kbd|sub|sup|i|b|u|mark|ruby|rt|rp|bdi|bdo|span|br|wbr|ins|del|img)\\b)\\w+(?!:|[^\\w\\s@]*@)\\b").getRegex(),def:/^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +(["(][^\n]+[")]))? *(?:\n+|$)/,heading:/^(#{1,6})(.*)(?:\n+|$)/,fences:I,lheading:/^(.+?)\n {0,3}(=+|-+) *(?:\n+|$)/,paragraph:h(Q).replace("hr",O).replace("heading",` *#{1,6} *[^
+]`).replace("lheading",oe).replace("|table","").replace("blockquote"," {0,3}>").replace("|fences","").replace("|list","").replace("|html","").replace("|tag","").getRegex()},qe=/^\\([!"#$%&'()*+,\-./:;<=>?@\[\]\\^_`{|}~])/,ve=/^(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/,ae=/^( {2,}|\\)\n(?!\s*$)/,De=/^(`+|[^`])(?:(?= {2,}\n)|[\s\S]*?(?:(?=[\\<!\[`*_]|\b_|$)|[^ ](?= {2,}\n)))/,D=/[\p{P}\p{S}]/u,W=/[\s\p{P}\p{S}]/u,ce=/[^\s\p{P}\p{S}]/u,Ze=h(/^((?![*_])punctSpace)/,"u").replace(/punctSpace/g,W).getRegex(),pe=/(?!~)[\p{P}\p{S}]/u,Ge=/(?!~)[\s\p{P}\p{S}]/u,He=/(?:[^\s\p{P}\p{S}]|~)/u,Ne=/\[[^[\]]*?\]\((?:\\.|[^\\\(\)]|\((?:\\.|[^\\\(\)])*\))*\)|`[^`]*?`|<[^<>]*?>/g,ue=/^(?:\*+(?:((?!\*)punct)|[^\s*]))|^_+(?:((?!_)punct)|([^\s_]))/,je=h(ue,"u").replace(/punct/g,D).getRegex(),Fe=h(ue,"u").replace(/punct/g,pe).getRegex(),he="^[^_*]*?__[^_*]*?\\*[^_*]*?(?=__)|[^*]+(?=[^*])|(?!\\*)punct(\\*+)(?=[\\s]|$)|notPunctSpace(\\*+)(?!\\*)(?=punctSpace|$)|(?!\\*)punctSpace(\\*+)(?=notPunctSpace)|[\\s](\\*+)(?!\\*)(?=punct)|(?!\\*)punct(\\*+)(?!\\*)(?=punct)|notPunctSpace(\\*+)(?=notPunctSpace)",Qe=h(he,"gu").replace(/notPunctSpace/g,ce).replace(/punctSpace/g,W).replace(/punct/g,D).getRegex(),Ue=h(he,"gu").replace(/notPunctSpace/g,He).replace(/punctSpace/g,Ge).replace(/punct/g,pe).getRegex(),Ke=h("^[^_*]*?\\*\\*[^_*]*?_[^_*]*?(?=\\*\\*)|[^_]+(?=[^_])|(?!_)punct(_+)(?=[\\s]|$)|notPunctSpace(_+)(?!_)(?=punctSpace|$)|(?!_)punctSpace(_+)(?=notPunctSpace)|[\\s](_+)(?!_)(?=punct)|(?!_)punct(_+)(?!_)(?=punct)","gu").replace(/notPunctSpace/g,ce).replace(/punctSpace/g,W).replace(/punct/g,D).getRegex(),Xe=h(/\\(punct)/,"gu").replace(/punct/g,D).getRegex(),We=h(/^<(scheme:[^\s\x00-\x1f<>]*|email)>/).replace("scheme",/[a-zA-Z][a-zA-Z0-9+.-]{1,31}/).replace("email",/[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+(@)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+(?![-_])/).getRegex(),Je=h(K).replace("(?:-->|$)","-->").getRegex(),Ve=h("^comment|^</[a-zA-Z][\\w:-]*\\s*>|^<[a-zA-Z][\\w-]*(?:attribute)*?\\s*/?>|^<\\?[\\s\\S]*?\\?>|^<![a-zA-Z]+\\s[\\s\\S]*?>|^<!\\[CDATA\\[[\\s\\S]*?\\]\\]>").replace("comment",Je).replace("attribute",/\s+[a-zA-Z:_][\w.:-]*(?:\s*=\s*"[^"]*"|\s*=\s*'[^']*'|\s*=\s*[^\s"'=<>`]+)?/).getRegex(),q=/(?:\[(?:\\.|[^\[\]\\])*\]|\\.|`[^`]*`|[^\[\]\\`])*?/,Ye=h(/^!?\[(label)\]\(\s*(href)(?:(?:[ \t]*(?:\n[ \t]*)?)(title))?\s*\)/).replace("label",q).replace("href",/<(?:\\.|[^\n<>\\])+>|[^ \t\n\x00-\x1f]*/).replace("title",/"(?:\\"?|[^"\\])*"|'(?:\\'?|[^'\\])*'|\((?:\\\)?|[^)\\])*\)/).getRegex(),ke=h(/^!?\[(label)\]\[(ref)\]/).replace("label",q).replace("ref",U).getRegex(),ge=h(/^!?\[(ref)\](?:\[\])?/).replace("ref",U).getRegex(),et=h("reflink|nolink(?!\\()","g").replace("reflink",ke).replace("nolink",ge).getRegex(),J={_backpedal:I,anyPunctuation:Xe,autolink:We,blockSkip:Ne,br:ae,code:ve,del:I,emStrongLDelim:je,emStrongRDelimAst:Qe,emStrongRDelimUnd:Ke,escape:qe,link:Ye,nolink:ge,punctuation:Ze,reflink:ke,reflinkSearch:et,tag:Ve,text:De,url:I},tt={...J,link:h(/^!?\[(label)\]\((.*?)\)/).replace("label",q).getRegex(),reflink:h(/^!?\[(label)\]\s*\[([^\]]*)\]/).replace("label",q).getRegex()},j={...J,emStrongRDelimAst:Ue,emStrongLDelim:Fe,url:h(/^((?:ftp|https?):\/\/|www\.)(?:[a-zA-Z0-9\-]+\.?)+[^\s<]*|^email/,"i").replace("email",/[A-Za-z0-9._+-]+(@)[a-zA-Z0-9-_]+(?:\.[a-zA-Z0-9-_]*[a-zA-Z0-9])+(?![-_])/).getRegex(),_backpedal:/(?:[^?!.,:;*_'"~()&]+|\([^)]*\)|&(?![a-zA-Z0-9]+;$)|[?!.,:;*_'"~)]+(?!$))+/,del:/^(~~?)(?=[^\s~])((?:\\.|[^\\])*?(?:\\.|[^\s~\\]))\1(?=[^~]|$)/,text:/^([`~]+|[^`~])(?:(?= {2,}\n)|(?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)|[\s\S]*?(?:(?=[\\<!\[`*~_]|\b_|https?:\/\/|ftp:\/\/|www\.|$)|[^ ](?= {2,}\n)|[^a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-](?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)))/},nt={...j,br:h(ae).replace("{2,}","*").getRegex(),text:h(j.text).replace("\\b_","\\b_| {2,}\\n").replace(/\{2,\}/g,"*").getRegex()},B={normal:X,gfm:Oe,pedantic:Be},P={normal:J,gfm:j,breaks:nt,pedantic:tt};var st={"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"},fe=l=>st[l];function R(l,e){if(e){if(m.escapeTest.test(l))return l.replace(m.escapeReplace,fe)}else if(m.escapeTestNoEncode.test(l))return l.replace(m.escapeReplaceNoEncode,fe);return l}function V(l){try{l=encodeURI(l).replace(m.percentDecode,"%")}catch{return null}return l}function Y(l,e){let t=l.replace(m.findPipe,(i,r,o)=>{let a=!1,c=r;for(;--c>=0&&o[c]==="\\";)a=!a;return a?"|":" |"}),n=t.split(m.splitPipe),s=0;if(n[0].trim()||n.shift(),n.length>0&&!n.at(-1)?.trim()&&n.pop(),e)if(n.length>e)n.splice(e);else for(;n.length<e;)n.push("");for(;s<n.length;s++)n[s]=n[s].trim().replace(m.slashPipe,"|");return n}function A(l,e,t){let n=l.length;if(n===0)return"";let s=0;for(;s<n;){let i=l.charAt(n-s-1);if(i===e&&!t)s++;else if(i!==e&&t)s++;else break}return l.slice(0,n-s)}function de(l,e){if(l.indexOf(e[1])===-1)return-1;let t=0;for(let n=0;n<l.length;n++)if(l[n]==="\\")n++;else if(l[n]===e[0])t++;else if(l[n]===e[1]&&(t--,t<0))return n;return t>0?-2:-1}function me(l,e,t,n,s){let i=e.href,r=e.title||null,o=l[1].replace(s.other.outputLinkReplace,"$1");n.state.inLink=!0;let a={type:l[0].charAt(0)==="!"?"image":"link",raw:t,href:i,title:r,text:o,tokens:n.inlineTokens(o)};return n.state.inLink=!1,a}function rt(l,e,t){let n=l.match(t.other.indentCodeCompensation);if(n===null)return e;let s=n[1];return e.split("\n").map(i=>{let r=i.match(t.other.beginningSpace);if(r===null)return i;let[o]=r;return o.length>=s.length?i.slice(s.length):i}).join("\n")}var S=class{options;rules;lexer;constructor(e){this.options=e||w}space(e){let t=this.rules.block.newline.exec(e);if(t&&t[0].length>0)return{type:"space",raw:t[0]}}code(e){let t=this.rules.block.code.exec(e);if(t){let n=t[0].replace(this.rules.other.codeRemoveIndent,"");return{type:"code",raw:t[0],codeBlockStyle:"indented",text:this.options.pedantic?n:A(n,"\n")}}}fences(e){let t=this.rules.block.fences.exec(e);if(t){let n=t[0],s=rt(n,t[3]||"",this.rules);return{type:"code",raw:n,lang:t[2]?t[2].trim().replace(this.rules.inline.anyPunctuation,"$1"):t[2],text:s}}}heading(e){let t=this.rules.block.heading.exec(e);if(t){let n=t[2].trim();if(this.rules.other.endingHash.test(n)){let s=A(n,"#");(this.options.pedantic||!s||this.rules.other.endingSpaceChar.test(s))&&(n=s.trim())}return{type:"heading",raw:t[0],depth:t[1].length,text:n,tokens:this.lexer.inline(n)}}}hr(e){let t=this.rules.block.hr.exec(e);if(t)return{type:"hr",raw:A(t[0],"\n")}}blockquote(e){let t=this.rules.block.blockquote.exec(e);if(t){let n=A(t[0],"\n").split("\n"),s="",i="",r=[];for(;n.length>0;){let o=!1,a=[],c;for(c=0;c<n.length;c++)if(this.rules.other.blockquoteStart.test(n[c]))a.push(n[c]),o=!0;else if(!o)a.push(n[c]);else break;n=n.slice(c);let p=a.join("\n"),u=p.replace(this.rules.other.blockquoteSetextReplace,"\n    $1").replace(this.rules.other.blockquoteSetextReplace2,"");s=s?`${s}\n${p}`:p,i=i?`${i}\n${u}`:u;let d=this.lexer.state.top;if(this.lexer.state.top=!0,this.lexer.blockTokens(u,r,!0),this.lexer.state.top=d,n.length===0)break;let g=r.at(-1);if(g?.type==="code")break;if(g?.type==="blockquote"){let T=g,f=T.raw+"\n"+n.join("\n"),y=this.blockquote(f);r[r.length-1]=y,s=s.substring(0,s.length-T.raw.length)+y.raw,i=i.substring(0,i.length-T.text.length)+y.text;break}else if(g?.type==="list"){let T=g,f=T.raw+"\n"+n.join("\n"),y=this.list(f);r[r.length-1]=y,s=s.substring(0,s.length-g.raw.length)+y.raw,i=i.substring(0,i.length-T.raw.length)+y.raw,n=f.substring(r.at(-1).raw.length).split("\n");continue}}return{type:"blockquote",raw:s,tokens:r,text:i}}}list(e){let t=this.rules.block.list.exec(e);if(t){let n=t[1].trim(),s=n.length>1,i={type:"list",raw:"",ordered:s,start:s?+n.slice(0,-1):"",loose:!1,items:[]};n=s?`\\d{1,9}\\${n.slice(-1)}`:`\\${n}`,this.options.pedantic&&(n=s?n:"[*+-]");let r=this.rules.other.listItemRegex(n),o=!1;for(;e;){let c=!1,p="",u="";if(!(t=r.exec(e))||this.rules.block.hr.test(e))break;p=t[0],e=e.substring(p.length);let d=t[2].split("\n",1)[0].replace(this.rules.other.listReplaceTabs,Z=>" ".repeat(3*Z.length)),g=e.split("\n",1)[0],T=!d.trim(),f=0;if(this.options.pedantic?(f=2,u=d.trimStart()):T?f=t[1].length+1:(f=t[2].search(this.rules.other.nonSpaceChar),f=f>4?1:f,u=d.slice(f),f+=t[1].length),T&&this.rules.other.blankLine.test(g)&&(p+=g+"\n",e=e.substring(g.length+1),c=!0),!c){let Z=this.rules.other.nextBulletRegex(f),te=this.rules.other.hrRegex(f),ne=this.rules.other.fencesBeginRegex(f),se=this.rules.other.headingBeginRegex(f),xe=this.rules.other.htmlBeginRegex(f);for(;e;){let G=e.split("\n",1)[0],C;if(g=G,this.options.pedantic?(g=g.replace(this.rules.other.listReplaceNesting,"  "),C=g):C=g.replace(this.rules.other.tabCharGlobal,"    "),ne.test(g)||se.test(g)||xe.test(g)||Z.test(g)||te.test(g))break;if(C.search(this.rules.other.nonSpaceChar)>=f||!g.trim())u+="\n"+C.slice(f);else{if(T||d.replace(this.rules.other.tabCharGlobal,"    ").search(this.rules.other.nonSpaceChar)>=4||ne.test(d)||se.test(d)||te.test(d))break;u+="\n"+g}!T&&!g.trim()&&(T=!0),p+=G+"\n",e=e.substring(G.length+1),d=C.slice(f)}}i.loose||(o?i.loose=!0:this.rules.other.doubleBlankLine.test(p)&&(o=!0));let y=null,ee;this.options.gfm&&(y=this.rules.other.listIsTask.exec(u),y&&(ee=y[0]!=="[ ] ",u=u.replace(this.rules.other.listReplaceTask,""))),i.items.push({type:"list_item",raw:p,task:!!y,checked:ee,loose:!1,text:u,tokens:[]}),i.raw+=p}let a=i.items.at(-1);if(a)a.raw=a.raw.trimEnd(),a.text=a.text.trimEnd();else return;i.raw=i.raw.trimEnd();for(let c=0;c<i.items.length;c++)if(this.lexer.state.top=!1,i.items[c].tokens=this.lexer.blockTokens(i.items[c].text,[]),!i.loose){let p=i.items[c].tokens.filter(d=>d.type==="space"),u=p.length>0&&p.some(d=>this.rules.other.anyLine.test(d.raw));i.loose=u}if(i.loose)for(let c=0;c<i.items.length;c++)i.items[c].loose=!0;return i}}html(e){let t=this.rules.block.html.exec(e);if(t)return{type:"html",block:!0,raw:t[0],pre:t[1]==="pre"||t[1]==="script"||t[1]==="style",text:t[0]}}def(e){let t=this.rules.block.def.exec(e);if(t){let n=t[1].toLowerCase().replace(this.rules.other.multipleSpaceGlobal," "),s=t[2]?t[2].replace(this.rules.other.hrefBrackets,"$1").replace(this.rules.inline.anyPunctuation,"$1"):"",i=t[3]?t[3].substring(1,t[3].length-1).replace(this.rules.inline.anyPunctuation,"$1"):t[3];return{type:"def",tag:n,raw:t[0],href:s,title:i}}}table(e){let t=this.rules.block.table.exec(e);if(!t||!this.rules.other.tableDelimiter.test(t[2]))return;let n=Y(t[1]),s=t[2].replace(this.rules.other.tableAlignChars,"").split("|"),i=t[3]?.trim()?t[3].replace(this.rules.other.tableRowBlankLine,"").split("\n"):[],r={type:"table",raw:t[0],header:[],align:[],rows:[]};if(n.length===s.length){for(let o of s)this.rules.other.tableAlignRight.test(o)?r.align.push("right"):this.rules.other.tableAlignCenter.test(o)?r.align.push("center"):this.rules.other.tableAlignLeft.test(o)?r.align.push("left"):r.align.push(null);for(let o=0;o<n.length;o++)r.header.push({text:n[o],tokens:this.lexer.inline(n[o]),header:!0,align:r.align[o]});for(let o of i)r.rows.push(Y(o,r.header.length).map((a,c)=>({text:a,tokens:this.lexer.inline(a),header:!1,align:r.align[c]})));return r}}lheading(e){let t=this.rules.block.lheading.exec(e);if(t)return{type:"heading",raw:t[0],depth:t[2].charAt(0)==="="?1:2,text:t[1],tokens:this.lexer.inline(t[1])}}paragraph(e){let t=this.rules.block.paragraph.exec(e);if(t){let n=t[1].charAt(t[1].length-1)==="\n"?t[1].slice(0,-1):t[1];return{type:"paragraph",raw:t[0],text:n,tokens:this.lexer.inline(n)}}}text(e){let t=this.rules.block.text.exec(e);if(t)return{type:"text",raw:t[0],text:t[0],tokens:this.lexer.inline(t[0])}}escape(e){let t=this.rules.inline.escape.exec(e);if(t)return{type:"escape",raw:t[0],text:t[1]}}tag(e){let t=this.rules.inline.tag.exec(e);if(t)return!this.lexer.state.inLink&&this.rules.other.startATag.test(t[0])?this.lexer.state.inLink=!0:this.lexer.state.inLink&&this.rules.other.endATag.test(t[0])&&(this.lexer.state.inLink=!1),!this.lexer.state.inRawBlock&&this.rules.other.startPreScriptTag.test(t[0])?this.lexer.state.inRawBlock=!0:this.lexer.state.inRawBlock&&this.rules.other.endPreScriptTag.test(t[0])&&(this.lexer.state.inRawBlock=!1),{type:"html",raw:t[0],inLink:this.lexer.state.inLink,inRawBlock:this.lexer.state.inRawBlock,block:!1,text:t[0]}}link(e){let t=this.rules.inline.link.exec(e);if(t){let n=t[2].trim();if(!this.options.pedantic&&this.rules.other.startAngleBracket.test(n)){if(!this.rules.other.endAngleBracket.test(n))return;let r=A(n.slice(0,-1),"\\");if((n.length-r.length)%2===0)return}else{let r=de(t[2],"()");if(r===-2)return;if(r>-1){let a=(t[0].indexOf("!")===0?5:4)+t[1].length+r;t[2]=t[2].substring(0,r),t[0]=t[0].substring(0,a).trim(),t[3]=""}}let s=t[2],i="";if(this.options.pedantic){let r=this.rules.other.pedanticHrefTitle.exec(s);r&&(s=r[1],i=r[3])}else i=t[3]?t[3].slice(1,-1):"";return s=s.trim(),this.rules.other.startAngleBracket.test(s)&&(this.options.pedantic&&!this.rules.other.endAngleBracket.test(n)?s=s.slice(1):s=s.slice(1,-1)),me(t,{href:s&&s.replace(this.rules.inline.anyPunctuation,"$1"),title:i&&i.replace(this.rules.inline.anyPunctuation,"$1")},t[0],this.lexer,this.rules)}}reflink(e,t){let n;if((n=this.rules.inline.reflink.exec(e))||(n=this.rules.inline.nolink.exec(e))){let s=(n[2]||n[1]).replace(this.rules.other.multipleSpaceGlobal," "),i=t[s.toLowerCase()];if(!i){let r=n[0].charAt(0);return{type:"text",raw:r,text:r}}return me(n,i,n[0],this.lexer,this.rules)}}emStrong(e,t,n=""){let s=this.rules.inline.emStrongLDelim.exec(e);if(!s||s[3]&&n.match(this.rules.other.unicodeAlphaNumeric))return;if(!(s[1]||s[2]||"")||!n||this.rules.inline.punctuation.exec(n)){let r=[...s[0]].length-1,o,a,c=r,p=0,u=s[0][0]==="*"?this.rules.inline.emStrongRDelimAst:this.rules.inline.emStrongRDelimUnd;for(u.lastIndex=0,t=t.slice(-1*e.length+r);(s=u.exec(t))!=null;){if(o=s[1]||s[2]||s[3]||s[4]||s[5]||s[6],!o)continue;if(a=[...o].length,s[3]||s[4]){c+=a;continue}else if((s[5]||s[6])&&r%3&&!((r+a)%3)){p+=a;continue}if(c-=a,c>0)continue;a=Math.min(a,a+c+p);let d=[...s[0]][0].length,g=e.slice(0,r+s.index+d+a);if(Math.min(r,a)%2){let f=g.slice(1,-1);return{type:"em",raw:g,text:f,tokens:this.lexer.inlineTokens(f)}}let T=g.slice(2,-2);return{type:"strong",raw:g,text:T,tokens:this.lexer.inlineTokens(T)}}}}codespan(e){let t=this.rules.inline.code.exec(e);if(t){let n=t[2].replace(this.rules.other.newLineCharGlobal," "),s=this.rules.other.nonSpaceChar.test(n),i=this.rules.other.startingSpaceChar.test(n)&&this.rules.other.endingSpaceChar.test(n);return s&&i&&(n=n.substring(1,n.length-1)),{type:"codespan",raw:t[0],text:n}}}br(e){let t=this.rules.inline.br.exec(e);if(t)return{type:"br",raw:t[0]}}del(e){let t=this.rules.inline.del.exec(e);if(t)return{type:"del",raw:t[0],text:t[2],tokens:this.lexer.inlineTokens(t[2])}}autolink(e){let t=this.rules.inline.autolink.exec(e);if(t){let n,s;return t[2]==="@"?(n=t[1],s="mailto:"+n):(n=t[1],s=n),{type:"link",raw:t[0],text:n,href:s,tokens:[{type:"text",raw:n,text:n}]}}}url(e){let t;if(t=this.rules.inline.url.exec(e)){let n,s;if(t[2]==="@")n=t[0],s="mailto:"+n;else{let i;do i=t[0],t[0]=this.rules.inline._backpedal.exec(t[0])?.[0]??"";while(i!==t[0]);n=t[0],t[1]==="www."?s="http://"+t[0]:s=t[0]}return{type:"link",raw:t[0],text:n,href:s,tokens:[{type:"text",raw:n,text:n}]}}}inlineText(e){let t=this.rules.inline.text.exec(e);if(t){let n=this.lexer.state.inRawBlock;return{type:"text",raw:t[0],text:t[0],escaped:n}}}};var x=class l{tokens;options;state;tokenizer;inlineQueue;constructor(e){this.tokens=[],this.tokens.links=Object.create(null),this.options=e||w,this.options.tokenizer=this.options.tokenizer||new S,this.tokenizer=this.options.tokenizer,this.tokenizer.options=this.options,this.tokenizer.lexer=this,this.inlineQueue=[],this.state={inLink:!1,inRawBlock:!1,top:!0};let t={other:m,block:B.normal,inline:P.normal};this.options.pedantic?(t.block=B.pedantic,t.inline=P.pedantic):this.options.gfm&&(t.block=B.gfm,this.options.breaks?t.inline=P.breaks:t.inline=P.gfm),this.tokenizer.rules=t}static get rules(){return{block:B,inline:P}}static lex(e,t){return new l(t).lex(e)}static lexInline(e,t){return new l(t).inlineTokens(e)}lex(e){e=e.replace(m.carriageReturn,"\n"),this.blockTokens(e,this.tokens);for(let t=0;t<this.inlineQueue.length;t++){let n=this.inlineQueue[t];this.inlineTokens(n.src,n.tokens)}return this.inlineQueue=[],this.tokens}blockTokens(e,t=[],n=!1){for(this.options.pedantic&&(e=e.replace(m.tabCharGlobal,"    ").replace(m.spaceLine,""));e;){let s;if(this.options.extensions?.block?.some(r=>(s=r.call({lexer:this},e,t))?(e=e.substring(s.raw.length),t.push(s),!0):!1))continue;if(s=this.tokenizer.space(e)){e=e.substring(s.raw.length);let r=t.at(-1);s.raw.length===1&&r!==void 0?r.raw+="\n":t.push(s);continue}if(s=this.tokenizer.code(e)){e=e.substring(s.raw.length);let r=t.at(-1);r?.type==="paragraph"||r?.type==="text"?(r.raw+="\n"+s.raw,r.text+="\n"+s.text,this.inlineQueue.at(-1).src=r.text):t.push(s);continue}if(s=this.tokenizer.fences(e)){e=e.substring(s.raw.length),t.push(s);continue}if(s=this.tokenizer.heading(e)){e=e.substring(s.raw.length),t.push(s);continue}if(s=this.tokenizer.hr(e)){e=e.substring(s.raw.length),t.push(s);continue}if(s=this.tokenizer.blockquote(e)){e=e.substring(s.raw.length),t.push(s);continue}if(s=this.tokenizer.list(e)){e=e.substring(s.raw.length),t.push(s);continue}if(s=this.tokenizer.html(e)){e=e.substring(s.raw.length),t.push(s);continue}if(s=this.tokenizer.def(e)){e=e.substring(s.raw.length);let r=t.at(-1);r?.type==="paragraph"||r?.type==="text"?(r.raw+="\n"+s.raw,r.text+="\n"+s.raw,this.inlineQueue.at(-1).src=r.text):this.tokens.links[s.tag]||(this.tokens.links[s.tag]={href:s.href,title:s.title});continue}if(s=this.tokenizer.table(e)){e=e.substring(s.raw.length),t.push(s);continue}if(s=this.tokenizer.lheading(e)){e=e.substring(s.raw.length),t.push(s);continue}let i=e;if(this.options.extensions?.startBlock){let r=1/0,o=e.slice(1),a;this.options.extensions.startBlock.forEach(c=>{a=c.call({lexer:this},o),typeof a=="number"&&a>=0&&(r=Math.min(r,a))}),r<1/0&&r>=0&&(i=e.substring(0,r+1))}if(this.state.top&&(s=this.tokenizer.paragraph(i))){let r=t.at(-1);n&&r?.type==="paragraph"?(r.raw+="\n"+s.raw,r.text+="\n"+s.text,this.inlineQueue.pop(),this.inlineQueue.at(-1).src=r.text):t.push(s),n=i.length!==e.length,e=e.substring(s.raw.length);continue}if(s=this.tokenizer.text(e)){e=e.substring(s.raw.length);let r=t.at(-1);r?.type==="text"?(r.raw+="\n"+s.raw,r.text+="\n"+s.text,this.inlineQueue.pop(),this.inlineQueue.at(-1).src=r.text):t.push(s);continue}if(e){let r="Infinite loop on byte: "+e.charCodeAt(0);if(this.options.silent){console.error(r);break}else throw new Error(r)}}return this.state.top=!0,t}inline(e,t=[]){return this.inlineQueue.push({src:e,tokens:t}),t}inlineTokens(e,t=[]){let n=e,s=null;if(this.tokens.links){let o=Object.keys(this.tokens.links);if(o.length>0)for(;(s=this.tokenizer.rules.inline.reflinkSearch.exec(n))!=null;)o.includes(s[0].slice(s[0].lastIndexOf("[")+1,-1))&&(n=n.slice(0,s.index)+"["+"a".repeat(s[0].length-2)+"]"+n.slice(this.tokenizer.rules.inline.reflinkSearch.lastIndex))}for(;(s=this.tokenizer.rules.inline.anyPunctuation.exec(n))!=null;)n=n.slice(0,s.index)+"++"+n.slice(this.tokenizer.rules.inline.anyPunctuation.lastIndex);for(;(s=this.tokenizer.rules.inline.blockSkip.exec(n))!=null;)n=n.slice(0,s.index)+"["+"a".repeat(s[0].length-2)+"]"+n.slice(this.tokenizer.rules.inline.blockSkip.lastIndex);let i=!1,r="";for(;e;){i||(r=""),i=!1;let o;if(this.options.extensions?.inline?.some(c=>(o=c.call({lexer:this},e,t))?(e=e.substring(o.raw.length),t.push(o),!0):!1))continue;if(o=this.tokenizer.escape(e)){e=e.substring(o.raw.length),t.push(o);continue}if(o=this.tokenizer.tag(e)){e=e.substring(o.raw.length),t.push(o);continue}if(o=this.tokenizer.link(e)){e=e.substring(o.raw.length),t.push(o);continue}if(o=this.tokenizer.reflink(e,this.tokens.links)){e=e.substring(o.raw.length);let c=t.at(-1);o.type==="text"&&c?.type==="text"?(c.raw+=o.raw,c.text+=o.text):t.push(o);continue}if(o=this.tokenizer.emStrong(e,n,r)){e=e.substring(o.raw.length),t.push(o);continue}if(o=this.tokenizer.codespan(e)){e=e.substring(o.raw.length),t.push(o);continue}if(o=this.tokenizer.br(e)){e=e.substring(o.raw.length),t.push(o);continue}if(o=this.tokenizer.del(e)){e=e.substring(o.raw.length),t.push(o);continue}if(o=this.tokenizer.autolink(e)){e=e.substring(o.raw.length),t.push(o);continue}if(!this.state.inLink&&(o=this.tokenizer.url(e))){e=e.substring(o.raw.length),t.push(o);continue}let a=e;if(this.options.extensions?.startInline){let c=1/0,p=e.slice(1),u;this.options.extensions.startInline.forEach(d=>{u=d.call({lexer:this},p),typeof u=="number"&&u>=0&&(c=Math.min(c,u))}),c<1/0&&c>=0&&(a=e.substring(0,c+1))}if(o=this.tokenizer.inlineText(a)){e=e.substring(o.raw.length),o.raw.slice(-1)!=="_"&&(r=o.raw.slice(-1)),i=!0;let c=t.at(-1);c?.type==="text"?(c.raw+=o.raw,c.text+=o.text):t.push(o);continue}if(e){let c="Infinite loop on byte: "+e.charCodeAt(0);if(this.options.silent){console.error(c);break}else throw new Error(c)}}return t}};var $=class{options;parser;constructor(e){this.options=e||w}space(e){return""}code({text:e,lang:t,escaped:n}){let s=(t||"").match(m.notSpaceStart)?.[0],i=e.replace(m.endingNewline,"")+"\n";return s?'<pre><code class="language-'+R(s)+'">'+(n?i:R(i,!0))+"</code></pre>\n":"<pre><code>"+(n?i:R(i,!0))+"</code></pre>\n"}blockquote({tokens:e}){return`<blockquote>\n${this.parser.parse(e)}</blockquote>\n`}html({text:e}){return e}heading({tokens:e,depth:t}){return`<h${t}>${this.parser.parseInline(e)}</h${t}>\n`}hr(e){return"<hr>\n"}list(e){let t=e.ordered,n=e.start,s="";for(let o=0;o<e.items.length;o++){let a=e.items[o];s+=this.listitem(a)}let i=t?"ol":"ul",r=t&&n!==1?' start="'+n+'"':"";return"<"+i+r+">\n"+s+"</"+i+">\n"}listitem(e){let t="";if(e.task){let n=this.checkbox({checked:!!e.checked});e.loose?e.tokens[0]?.type==="paragraph"?(e.tokens[0].text=n+" "+e.tokens[0].text,e.tokens[0].tokens&&e.tokens[0].tokens.length>0&&e.tokens[0].tokens[0].type==="text"&&(e.tokens[0].tokens[0].text=n+" "+R(e.tokens[0].tokens[0].text),e.tokens[0].tokens[0].escaped=!0)):e.tokens.unshift({type:"text",raw:n+" ",text:n+" ",escaped:!0}):t+=n+" "}return t+=this.parser.parse(e.tokens,!!e.loose),`<li>${t}</li>\n`}checkbox({checked:e}){return"<input "+(e?'checked="" ':"")+'disabled="" type="checkbox">'}paragraph({tokens:e}){return`<p>${this.parser.parseInline(e)}</p>\n`}table(e){let t="",n="";for(let i=0;i<e.header.length;i++)n+=this.tablecell(e.header[i]);t+=this.tablerow({text:n});let s="";for(let i=0;i<e.rows.length;i++){let r=e.rows[i];n="";for(let o=0;o<r.length;o++)n+=this.tablecell(r[o]);s+=this.tablerow({text:n})}return s&&(s=`<tbody>${s}</tbody>`),"<table>\n<thead>\n"+t+"</thead>\n"+s+"</table>\n"}tablerow({text:e}){return`<tr>\n${e}</tr>\n`}tablecell(e){let t=this.parser.parseInline(e.tokens),n=e.header?"th":"td";return(e.align?`<${n} align="${e.align}">`:`<${n}>`)+t+`</${n}>\n`}strong({tokens:e}){return`<strong>${this.parser.parseInline(e)}</strong>`}em({tokens:e}){return`<em>${this.parser.parseInline(e)}</em>`}codespan({text:e}){return`<code>${R(e,!0)}</code>`}br(e){return"<br>"}del({tokens:e}){return`<del>${this.parser.parseInline(e)}</del>`}link({href:e,title:t,tokens:n}){let s=this.parser.parseInline(n),i=V(e);if(i===null)return s;e=i;let r='<a href="'+e+'"';return t&&(r+=' title="'+R(t)+'"'),r+=">"+s+"</a>",r}image({href:e,title:t,text:n,tokens:s}){s&&(n=this.parser.parseInline(s,this.parser.textRenderer));let i=V(e);if(i===null)return R(n);e=i;let r=`<img src="${e}" alt="${n}"`;return t&&(r+=` title="${R(t)}"`),r+=">",r}text(e){return"tokens"in e&&e.tokens?this.parser.parseInline(e.tokens):"escaped"in e&&e.escaped?e.text:R(e.text)}};var _=class{strong({text:e}){return e}em({text:e}){return e}codespan({text:e}){return e}del({text:e}){return e}html({text:e}){return e}text({text:e}){return e}link({text:e}){return""+e}image({text:e}){return""+e}br(){return""}};var b=class l{options;renderer;textRenderer;constructor(e){this.options=e||w,this.options.renderer=this.options.renderer||new $,this.renderer=this.options.renderer,this.renderer.options=this.options,this.renderer.parser=this,this.textRenderer=new _}static parse(e,t){return new l(t).parse(e)}static parseInline(e,t){return new l(t).parseInline(e)}parse(e,t=!0){let n="";for(let s=0;s<e.length;s++){let i=e[s];if(this.options.extensions?.renderers?.[i.type]){let o=i,a=this.options.extensions.renderers[o.type].call({parser:this},o);if(a!==!1||!["space","hr","heading","code","table","blockquote","list","html","paragraph","text"].includes(o.type)){n+=a||"";continue}}let r=i;switch(r.type){case"space":{n+=this.renderer.space(r);continue}case"hr":{n+=this.renderer.hr(r);continue}case"heading":{n+=this.renderer.heading(r);continue}case"code":{n+=this.renderer.code(r);continue}case"table":{n+=this.renderer.table(r);continue}case"blockquote":{n+=this.renderer.blockquote(r);continue}case"list":{n+=this.renderer.list(r);continue}case"html":{n+=this.renderer.html(r);continue}case"paragraph":{n+=this.renderer.paragraph(r);continue}case"text":{let o=r,a=this.renderer.text(o);for(;s+1<e.length&&e[s+1].type==="text";)o=e[++s],a+="\n"+this.renderer.text(o);t?n+=this.renderer.paragraph({type:"paragraph",raw:a,text:a,tokens:[{type:"text",raw:a,text:a,escaped:!0}]}):n+=a;continue}default:{let o='Token with "'+r.type+'" type was not found.';if(this.options.silent)return console.error(o),"";throw new Error(o)}}}return n}parseInline(e,t=this.renderer){let n="";for(let s=0;s<e.length;s++){let i=e[s];if(this.options.extensions?.renderers?.[i.type]){let o=this.options.extensions.renderers[i.type].call({parser:this},i);if(o!==!1||!["escape","html","link","image","strong","em","codespan","br","del","text"].includes(i.type)){n+=o||"";continue}}let r=i;switch(r.type){case"escape":{n+=t.text(r);break}case"html":{n+=t.html(r);break}case"link":{n+=t.link(r);break}case"image":{n+=t.image(r);break}case"strong":{n+=t.strong(r);break}case"em":{n+=t.em(r);break}case"codespan":{n+=t.codespan(r);break}case"br":{n+=t.br(r);break}case"del":{n+=t.del(r);break}case"text":{n+=t.text(r);break}default:{let o='Token with "'+r.type+'" type was not found.';if(this.options.silent)return console.error(o),"";throw new Error(o)}}}return n}};var L=class{options;block;constructor(e){this.options=e||w}static passThroughHooks=new Set(["preprocess","postprocess","processAllTokens"]);preprocess(e){return e}postprocess(e){return e}processAllTokens(e){return e}provideLexer(){return this.block?x.lex:x.lexInline}provideParser(){return this.block?b.parse:b.parseInline}};var E=class{defaults=z();options=this.setOptions;parse=this.parseMarkdown(!0);parseInline=this.parseMarkdown(!1);Parser=b;Renderer=$;TextRenderer=_;Lexer=x;Tokenizer=S;Hooks=L;constructor(...e){this.use(...e)}walkTokens(e,t){let n=[];for(let s of e)switch(n=n.concat(t.call(this,s)),s.type){case"table":{let i=s;for(let r of i.header)n=n.concat(this.walkTokens(r.tokens,t));for(let r of i.rows)for(let o of r)n=n.concat(this.walkTokens(o.tokens,t));break}case"list":{let i=s;n=n.concat(this.walkTokens(i.items,t));break}default:{let i=s;this.defaults.extensions?.childTokens?.[i.type]?this.defaults.extensions.childTokens[i.type].forEach(r=>{let o=i[r].flat(1/0);n=n.concat(this.walkTokens(o,t))}):i.tokens&&(n=n.concat(this.walkTokens(i.tokens,t)))}}return n}use(...e){let t=this.defaults.extensions||{renderers:{},childTokens:{}};return e.forEach(n=>{let s={...n};if(s.async=this.defaults.async||s.async||!1,n.extensions&&(n.extensions.forEach(i=>{if(!i.name)throw new Error("extension name required");if("renderer"in i){let r=t.renderers[i.name];r?t.renderers[i.name]=function(...o){let a=i.renderer.apply(this,o);return a===!1&&(a=r.apply(this,o)),a}:t.renderers[i.name]=i.renderer}if("tokenizer"in i){if(!i.level||i.level!=="block"&&i.level!=="inline")throw new Error("extension level must be 'block' or 'inline'");let r=t[i.level];r?r.unshift(i.tokenizer):t[i.level]=[i.tokenizer],i.start&&(i.level==="block"?t.startBlock?t.startBlock.push(i.start):t.startBlock=[i.start]:i.level==="inline"&&(t.startInline?t.startInline.push(i.start):t.startInline=[i.start]))}"childTokens"in i&&i.childTokens&&(t.childTokens[i.name]=i.childTokens)}),s.extensions=t),n.renderer){let i=this.defaults.renderer||new $(this.defaults);for(let r in n.renderer){if(!(r in i))throw new Error(`renderer '${r}' does not exist`);if(["options","parser"].includes(r))continue;let o=r,a=n.renderer[o],c=i[o];i[o]=(...p)=>{let u=a.apply(i,p);return u===!1&&(u=c.apply(i,p)),u||""}}s.renderer=i}if(n.tokenizer){let i=this.defaults.tokenizer||new S(this.defaults);for(let r in n.tokenizer){if(!(r in i))throw new Error(`tokenizer '${r}' does not exist`);if(["options","rules","lexer"].includes(r))continue;let o=r,a=n.tokenizer[o],c=i[o];i[o]=(...p)=>{let u=a.apply(i,p);return u===!1&&(u=c.apply(i,p)),u}}s.tokenizer=i}if(n.hooks){let i=this.defaults.hooks||new L;for(let r in n.hooks){if(!(r in i))throw new Error(`hook '${r}' does not exist`);if(["options","block"].includes(r))continue;let o=r,a=n.hooks[o],c=i[o];L.passThroughHooks.has(r)?i[o]=p=>{if(this.defaults.async)return Promise.resolve(a.call(i,p)).then(d=>c.call(i,d));let u=a.call(i,p);return c.call(i,u)}:i[o]=(...p)=>{let u=a.apply(i,p);return u===!1&&(u=c.apply(i,p)),u}}s.hooks=i}if(n.walkTokens){let i=this.defaults.walkTokens,r=n.walkTokens;s.walkTokens=function(o){let a=[];return a.push(r.call(this,o)),i&&(a=a.concat(i.call(this,o))),a}}this.defaults={...this.defaults,...s}}),this}setOptions(e){return this.defaults={...this.defaults,...e},this}lexer(e,t){return x.lex(e,t??this.defaults)}parser(e,t){return b.parse(e,t??this.defaults)}parseMarkdown(e){return(n,s)=>{let i={...s},r={...this.defaults,...i},o=this.onError(!!r.silent,!!r.async);if(this.defaults.async===!0&&i.async===!1)return o(new Error("marked(): The async option was set to true by an extension. Remove async: false from the parse options object to return a Promise."));if(typeof n>"u"||n===null)return o(new Error("marked(): input parameter is undefined or null"));if(typeof n!="string")return o(new Error("marked(): input parameter is of type "+Object.prototype.toString.call(n)+", string expected"));r.hooks&&(r.hooks.options=r,r.hooks.block=e);let a=r.hooks?r.hooks.provideLexer():e?x.lex:x.lexInline,c=r.hooks?r.hooks.provideParser():e?b.parse:b.parseInline;if(r.async)return Promise.resolve(r.hooks?r.hooks.preprocess(n):n).then(p=>a(p,r)).then(p=>r.hooks?r.hooks.processAllTokens(p):p).then(p=>r.walkTokens?Promise.all(this.walkTokens(p,r.walkTokens)).then(()=>p):p).then(p=>c(p,r)).then(p=>r.hooks?r.hooks.postprocess(p):p).catch(o);try{r.hooks&&(n=r.hooks.preprocess(n));let p=a(n,r);r.hooks&&(p=r.hooks.processAllTokens(p)),r.walkTokens&&this.walkTokens(p,r.walkTokens);let u=c(p,r);return r.hooks&&(u=r.hooks.postprocess(u)),u}catch(p){return o(p)}}}onError(e,t){return n=>{if(n.message+="\nPlease report this to https://github.com/markedjs/marked.",e){let s="<p>An error occurred:</p><pre>"+R(n.message+"",!0)+"</pre>";return t?Promise.resolve(s):s}if(t)return Promise.reject(n);throw n}}};var M=new E;function k(l,e){return M.parse(l,e)}k.options=k.setOptions=function(l){return M.setOptions(l),k.defaults=M.defaults,N(k.defaults),k};k.getDefaults=z;k.defaults=w;k.use=function(...l){return M.use(...l),k.defaults=M.defaults,N(k.defaults),k};k.walkTokens=function(l,e){return M.walkTokens(l,e)};k.parseInline=M.parseInline;k.Parser=b;k.parser=b.parse;k.Renderer=$;k.TextRenderer=_;k.Lexer=x;k.lexer=x.lex;k.Tokenizer=S;k.Hooks=L;k.parse=k;var it=k.options,ot=k.setOptions,lt=k.use,at=k.walkTokens,ct=k.parseInline,pt=k,ut=b.parse,ht=x.lex;
+if(__exports != exports)module.exports = exports;return module.exports}));
+</script>
+<style>
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --sidebar-w: 290px;
+  --accent: #4a6fa5;
+  --accent-hover: #3d5d8a;
+  --accent-light: #e8eef7;
+  --bg: #ffffff;
+  --bg-sidebar: #f5f6f7;
+  --bg-ctrl: #ffffff;
+  --bg-hover: rgba(0,0,0,0.04);
+  --bg-code: #f6f8fa;
+  --bg-alt: #fafbfc;
+  --border: #e1e4e8;
+  --text: #24292e;
+  --text-muted: #6a737d;
+  --danger: #cb2431;
+  --danger-bg: #ffeef0;
+  --green: #2ea043;
+  --green-bg: #edfbf3;
+  --group-a: #2ea043;
+  --group-a-bg: #edfbf3;
+  --group-b: #6f42c1;
+  --group-b-bg: #f0ecfd;
+}
+html[data-theme="sepia"] {
+  --bg: #f9f5ef; --bg-sidebar: #ede8e0; --bg-ctrl: #f9f5ef;
+  --bg-hover: rgba(0,0,0,0.04); --bg-code: #e8e2d8; --bg-alt: #f2ece3;
+  --border: #d5cdc0; --text: #3b2f1e; --text-muted: #7d6e5a;
+  --accent: #7a5c2e; --accent-hover: #614a24; --accent-light: #ecdfc9;
+  --group-a: #5a7a2e; --group-a-bg: #edf2d5;
+  --group-b: #7a4a7a; --group-b-bg: #f2e5f2;
+}
+html[data-theme="dusk"] {
+  --bg: #1e2233; --bg-sidebar: #171b2b; --bg-ctrl: #252a3d;
+  --bg-hover: rgba(255,255,255,0.05); --bg-code: #2a2f45; --bg-alt: #232840;
+  --border: #343a54; --text: #d0d4e8; --text-muted: #7e86a8;
+  --accent: #7b9fd4; --accent-hover: #9ab6e2; --accent-light: #2a3354;
+  --group-a: #5cb87a; --group-a-bg: #1e3028;
+  --group-b: #a78be0; --group-b-bg: #2d2544;
+}
+html[data-theme="dark"] {
+  --bg: #1a1b1e; --bg-sidebar: #131416; --bg-ctrl: #22252a;
+  --bg-hover: rgba(255,255,255,0.05); --bg-code: #2a2d35; --bg-alt: #1f2228;
+  --border: #30363d; --text: #e1e4e8; --text-muted: #8b949e;
+  --accent: #5c8dd4; --accent-hover: #79a3e0; --accent-light: #1c2a3f;
+  --group-a: #3fb950; --group-a-bg: #1b2f1e;
+  --group-b: #a371f7; --group-b-bg: #2a1f3a;
+}
+
+html, body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; color: var(--text); background: var(--bg); }
+
+#app { display: grid; grid-template-columns: var(--sidebar-w) 1fr; height: 100vh; overflow: hidden; }
+
+/* ── Sidebar ── */
+#sidebar { display: flex; flex-direction: column; background: var(--bg-sidebar); border-right: 1px solid var(--border); overflow: hidden; }
+
+#sidebar-hdr { display: flex; align-items: center; gap: 6px; padding: 10px 12px 8px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+#app-name { font-weight: 700; font-size: 13px; letter-spacing: 0.02em; flex: 1; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#save-status { font-size: 11px; padding: 2px 7px; border-radius: 10px; white-space: nowrap; background: var(--bg-ctrl); border: 1px solid var(--border); color: var(--text-muted); }
+#save-status.dirty { background: #fff3cd; border-color: #ffc107; color: #856404; }
+html[data-theme="dark"] #save-status.dirty, html[data-theme="dusk"] #save-status.dirty { background: #3d3000; border-color: #8b6914; color: #ffc107; }
+#save-status.saving { color: var(--accent); }
+#save-status.saved { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+#save-status.error { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+
+#btn-save-hdr { font-size: 11px; padding: 3px 8px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 4px; color: var(--text); cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+#btn-save-hdr:hover { background: var(--bg-hover); }
+
+#theme-row { display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+#theme-row span { font-size: 11px; color: var(--text-muted); flex: 1; }
+.theme-btn { width: 16px; height: 16px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; padding: 0; outline-offset: 2px; }
+.theme-btn.active { border-color: var(--accent); }
+
+#cycle-stats { padding: 10px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; font-size: 12px; }
+.stat-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+.stat-label { color: var(--text-muted); min-width: 60px; }
+.stat-val { font-weight: 600; color: var(--text); }
+.progress-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s; }
+.progress-bar-fill.over { background: var(--green); }
+.progress-bar-fill.warn { background: #f59e0b; }
+.cycle-dates { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+.cycle-dates button { font-size: 10px; padding: 1px 5px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 3px; cursor: pointer; color: var(--text-muted); }
+.cycle-dates button:hover { color: var(--accent); }
+
+#sidebar-search { padding: 8px 10px 6px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+#search-input { width: 100%; padding: 5px 8px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg-ctrl); color: var(--text); font-size: 12px; outline: none; }
+#search-input:focus { border-color: var(--accent); }
+#filter-row { display: flex; gap: 4px; margin-top: 5px; }
+.filter-btn { font-size: 11px; padding: 2px 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-ctrl); color: var(--text-muted); cursor: pointer; }
+.filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.filter-btn:hover:not(.active) { background: var(--bg-hover); }
+
+#entry-list { flex: 1; overflow-y: auto; padding: 6px 0; }
+.entry-card { padding: 8px 12px; cursor: pointer; border-left: 3px solid transparent; transition: background 0.1s; }
+.entry-card:hover { background: var(--bg-hover); }
+.entry-card.active { background: var(--accent-light); border-left-color: var(--accent); }
+.ec-title { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+.ec-meta { display: flex; gap: 6px; align-items: center; font-size: 11px; color: var(--text-muted); }
+.ec-date { flex-shrink: 0; }
+.ec-type-badge { padding: 1px 5px; border-radius: 3px; font-size: 10px; font-weight: 600; letter-spacing: 0.03em; }
+.badge-a { background: var(--group-a-bg); color: var(--group-a); }
+.badge-b { background: var(--group-b-bg); color: var(--group-b); }
+.ec-cpe { font-weight: 600; }
+.ec-xscript { margin-left: auto; flex-shrink: 0; }
+.ic-check { color: var(--green); }
+.ic-pending { color: var(--text-muted); }
+
+#btn-new { margin: 8px 10px; padding: 7px; background: var(--accent); color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; flex-shrink: 0; }
+#btn-new:hover { background: var(--accent-hover); }
+
+/* ── Main ── */
+#main { overflow-y: auto; background: var(--bg); display: flex; flex-direction: column; }
+#main-content { flex: 1; padding: 24px 28px; max-width: 820px; width: 100%; }
+
+/* Dashboard */
+.dash-heading { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+.dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.dash-card { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+.dash-card-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 10px; }
+.dash-big-num { font-size: 32px; font-weight: 700; color: var(--accent); line-height: 1; }
+.dash-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.dash-progress { margin-top: 10px; }
+.dash-progress-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin-top: 4px; }
+.dash-progress-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.4s; }
+.dash-progress-fill.complete { background: var(--green); }
+.progress-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); }
+
+.domain-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+.domain-item { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+.domain-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
+.domain-dot.covered { background: var(--accent); }
+.domain-name { color: var(--text-muted); flex: 1; }
+.domain-count { font-weight: 600; color: var(--text); }
+
+.settings-form { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+.settings-form h3 { font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+.settings-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+.form-field { display: flex; flex-direction: column; gap: 4px; }
+.form-field label { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+.form-field input, .form-field select, .form-field textarea { padding: 6px 8px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg-ctrl); color: var(--text); font-size: 13px; outline: none; font-family: inherit; }
+.form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-color: var(--accent); }
+
+/* Entry Form / View */
+.entry-hdr { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 14px; }
+.entry-hdr-title { flex: 1; font-size: 20px; font-weight: 700; color: var(--text); word-break: break-word; }
+.entry-hdr-title input { width: 100%; font-size: 20px; font-weight: 700; border: none; background: transparent; color: var(--text); outline: none; border-bottom: 2px solid var(--border); padding-bottom: 2px; font-family: inherit; }
+.entry-hdr-title input:focus { border-bottom-color: var(--accent); }
+.btn-row { display: flex; gap: 6px; flex-shrink: 0; margin-top: 4px; }
+.btn { padding: 5px 12px; border-radius: 5px; font-size: 12px; cursor: pointer; border: 1px solid var(--border); background: var(--bg-ctrl); color: var(--text); font-family: inherit; }
+.btn:hover { background: var(--bg-hover); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn-danger { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+.btn-danger:hover { background: var(--danger); color: #fff; }
+
+.fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.field-full { grid-column: 1 / -1; }
+.field-label { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; display: block; }
+.field-value { font-size: 13px; color: var(--text); }
+.field-input { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg-ctrl); color: var(--text); font-size: 13px; outline: none; font-family: inherit; }
+.field-input:focus { border-color: var(--accent); }
+select.field-input { appearance: auto; }
+.field-hidden { display: none; }
+
+.domains-section { margin-bottom: 16px; }
+.domains-section .field-label { margin-bottom: 8px; }
+.domain-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.domain-pill { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; border: 1px solid var(--border); background: var(--bg-ctrl); color: var(--text-muted); cursor: pointer; user-select: none; transition: all 0.1s; }
+.domain-pill.checked { background: var(--accent-light); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.domain-pill input { display: none; }
+
+.summary-section { margin-bottom: 16px; }
+.summary-section .field-label { margin-bottom: 6px; }
+.summary-section textarea { width: 100%; min-height: 100px; padding: 8px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg-ctrl); color: var(--text); font-size: 13px; outline: none; font-family: inherit; resize: vertical; line-height: 1.5; }
+.summary-section textarea:focus { border-color: var(--accent); }
+.summary-rendered { font-size: 13px; line-height: 1.7; color: var(--text); }
+.summary-rendered p { margin-bottom: 0.7em; }
+.summary-rendered p:last-child { margin-bottom: 0; }
+.summary-rendered code { background: var(--bg-code); padding: 1px 4px; border-radius: 3px; font-size: 12px; }
+.summary-rendered pre { background: var(--bg-code); padding: 10px; border-radius: 5px; overflow-x: auto; margin-bottom: 0.7em; }
+.summary-rendered ul, .summary-rendered ol { padding-left: 20px; margin-bottom: 0.7em; }
+.summary-rendered h1, .summary-rendered h2, .summary-rendered h3 { margin-top: 0.8em; margin-bottom: 0.3em; font-size: 15px; }
+
+.proof-section { margin-bottom: 16px; }
+.proof-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.proof-ref { font-size: 12px; color: var(--text-muted); font-style: italic; }
+.proof-ref.has-file { color: var(--accent); font-style: normal; font-weight: 500; }
+.proof-ref-item { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--accent); background: var(--accent-light); border: 1px solid var(--accent); padding: 2px 6px; border-radius: 4px; }
+.proof-ref-remove { background: none; border: none; cursor: pointer; color: var(--accent); font-size: 13px; padding: 0 1px; line-height: 1; opacity: 0.7; }
+.proof-ref-remove:hover { opacity: 1; }
+
+.transcript-section { margin-bottom: 20px; border: 2px solid var(--border); border-radius: 8px; padding: 12px 16px; background: var(--bg-alt); }
+.transcript-section.done { border-color: var(--green); background: var(--green-bg); }
+.transcript-label { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; font-size: 14px; font-weight: 500; }
+.transcript-label input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--green); cursor: pointer; flex-shrink: 0; }
+.transcript-label .xscript-text { color: var(--text); }
+.transcript-label .xscript-text.done { color: var(--green); }
+
+.view-badge { display: inline-flex; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; }
+.view-badge.grp-a { background: var(--group-a-bg); color: var(--group-a); }
+.view-badge.grp-b { background: var(--group-b-bg); color: var(--group-b); }
+.view-meta-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+.view-meta-item { font-size: 12px; color: var(--text-muted); }
+.view-meta-item strong { color: var(--text); font-weight: 600; }
+
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+.empty-state p { font-size: 15px; margin-bottom: 8px; }
+.empty-state small { font-size: 12px; }
+
+.settings-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.settings-modal { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 24px; min-width: 340px; max-width: 480px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+.settings-modal h2 { font-size: 16px; font-weight: 700; margin-bottom: 18px; }
+.settings-modal .form-field { margin-bottom: 14px; }
+.settings-modal .form-field label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
+.settings-modal .form-field input { width: 100%; padding: 7px 9px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg-ctrl); color: var(--text); font-size: 13px; font-family: inherit; outline: none; }
+.settings-modal .form-field input:focus { border-color: var(--accent); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div id="sidebar-hdr">
+      <span id="app-name">CISSP CPE Tracker</span>
+      <span id="save-status">Saved</span>
+      <button id="btn-save-hdr" title="Save file (Ctrl+S)">Save</button>
+    </div>
+    <div id="theme-row">
+      <span>Theme</span>
+      <button class="theme-btn" data-theme="light" title="Light" style="background:#ffffff;border:2px solid #ccc"></button>
+      <button class="theme-btn" data-theme="sepia" title="Sepia" style="background:#f9f5ef;border:2px solid #ccc"></button>
+      <button class="theme-btn" data-theme="dusk"  title="Dusk"  style="background:#2d3142;border:2px solid #555"></button>
+      <button class="theme-btn" data-theme="dark"  title="Dark"  style="background:#1a1b1e;border:2px solid #555"></button>
+    </div>
+    <div id="cycle-stats"></div>
+    <div id="sidebar-search">
+      <input id="search-input" type="search" placeholder="Search entries...">
+      <div id="filter-row">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="pending">Pending ✓</button>
+        <button class="filter-btn" data-filter="a">Group A</button>
+        <button class="filter-btn" data-filter="b">Group B</button>
+      </div>
+    </div>
+    <div id="entry-list"></div>
+    <button id="btn-new">+ New Entry</button>
+  </aside>
+  <main id="main">
+    <div id="main-content"></div>
+  </main>
+</div>
+<script id="tiddlers-data" type="application/json">{}</script>
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────────
+
+const CPE_TYPES = {
+  education_security: { label: 'Higher Education (Security)',     group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  training_isc2:      { label: 'ISC\u00b2 Official Training',     group: 'A', showPresenter: true,  showOrg: false, showYear: false, showUrl: true  },
+  training_vendor:    { label: 'Vendor/Third-Party Training',     group: 'A', showPresenter: true,  showOrg: true,  showYear: false, showUrl: true  },
+  webinar:            { label: 'Webinar/Online Training',         group: 'A', showPresenter: true,  showOrg: true,  showYear: false, showUrl: true  },
+  seminar:            { label: 'Seminar/Conference Session',      group: 'A', showPresenter: true,  showOrg: true,  showYear: false, showUrl: false },
+  self_study:         { label: 'Self-Study',                      group: 'A', showPresenter: false, showOrg: true,  showYear: true,  showUrl: true  },
+  work_experience:    { label: 'Security Work Experience',        group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  writing:            { label: 'Writing/Authoring (Security)',    group: 'A', showPresenter: false, showOrg: true,  showYear: true,  showUrl: true  },
+  instructor:         { label: 'Instructor/Presenter',            group: 'A', showPresenter: true,  showOrg: true,  showYear: false, showUrl: false },
+  exam_dev:           { label: 'Exam Item Development',           group: 'A', showPresenter: false, showOrg: false, showYear: false, showUrl: false },
+  research:           { label: 'Research',                        group: 'A', showPresenter: false, showOrg: true,  showYear: true,  showUrl: true  },
+  volunteer_security: { label: 'Volunteer Work (Security)',       group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  education_other:    { label: 'Higher Education (Non-Security)', group: 'B', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  professional_dev:   { label: 'Professional Development',        group: 'B', showPresenter: true,  showOrg: true,  showYear: false, showUrl: true  },
+  volunteer_other:    { label: 'Volunteer Work (Non-Security)',   group: 'B', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+};
+
+const DOMAINS = [
+  { id: 'srm',   label: 'Security & Risk Management',         short: 'SRM'   },
+  { id: 'asset', label: 'Asset Security',                     short: 'Asset' },
+  { id: 'arch',  label: 'Security Architecture & Engineering',short: 'Arch'  },
+  { id: 'net',   label: 'Communication & Network Security',   short: 'Net'   },
+  { id: 'iam',   label: 'Identity & Access Management',       short: 'IAM'   },
+  { id: 'sat',   label: 'Security Assessment & Testing',      short: 'SAT'   },
+  { id: 'ops',   label: 'Security Operations',                short: 'Ops'   },
+  { id: 'sds',   label: 'Software Development Security',      short: 'SDS'   },
+];
+
+const LS_KEY   = 'cissp-cpe-data';
+const LS_THEME = 'cissp-cpe-theme';
+
+// ── State ──────────────────────────────────────────────────────────────────────
+
+let data = { entries: [], settings: { cycleStart: '', cpeGoal: 120, groupBMax: 30 } };
+let activeId   = null;
+let editMode   = false;
+let isNewEntry = false;
+let isDirty    = false;
+let fileHandle = null;
+let originalHtml = '';
+let searchQuery  = '';
+let activeFilter = 'all';
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+// Format a YYYY-MM or YYYY-MM-DD string as "Jul 2024"
+function fmtDate(iso) {
+  if (!iso) return '';
+  // Normalise to YYYY-MM for display
+  const ym = iso.slice(0, 7); // "YYYY-MM"
+  const [y, m] = ym.split('-').map(Number);
+  if (!y || !m) return iso;
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return (months[m - 1] || '?') + ' ' + y;
+}
+
+// Return current month as YYYY-MM
+function currentMonth() {
+  return new Date().toISOString().slice(0, 7);
+}
+
+function slug(str) {
+  return (str || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
+}
+
+// Add 3 years to a YYYY-MM string
+function addThreeYears(ym) {
+  if (!ym) return '';
+  const [y, m] = ym.split('-').map(Number);
+  // Subtract one month so "Jul 2024" cycle ends "Jun 2027"
+  let endY = y + 3, endM = m - 1;
+  if (endM === 0) { endM = 12; endY--; }
+  return endY + '-' + String(endM).padStart(2, '0');
+}
+
+function getStats() {
+  const entries  = data.entries;
+  const settings = data.settings;
+  const cycleStart = settings.cycleStart || '';
+  const cycleEnd   = addThreeYears(cycleStart);
+
+  let totalA = 0, totalB = 0, transcribed = 0;
+  const domainCounts = {};
+  DOMAINS.forEach(d => domainCounts[d.id] = 0);
+
+  entries.forEach(e => {
+    const t = CPE_TYPES[e.type];
+    const n = parseFloat(e.cpeCount) || 0;
+    if (t && t.group === 'A') totalA += n;
+    if (t && t.group === 'B') totalB += n;
+    if (e.transcript) transcribed++;
+    (e.domains || []).forEach(d => {
+      if (domainCounts[d] !== undefined) domainCounts[d] += n;
+    });
+  });
+
+  const groupBMax    = settings.groupBMax || 30;
+  const groupBCapped = Math.min(totalB, groupBMax);
+  const total = totalA + groupBCapped;
+  const goal  = settings.cpeGoal || 120;
+
+  return { totalA, totalB, groupBCapped, groupBMax, total, goal, transcribed, domainCounts, cycleStart, cycleEnd };
+}
+
+// ── Data persistence ──────────────────────────────────────────────────────────
+
+function serializeData() {
+  // Escape <\/script sequences so the HTML parser won't close the script tag early
+  return JSON.stringify(data, null, 2).replace(/<\/script/gi, '<\\/script');
+}
+
+function saveToLocalStorage() {
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
+
+function migrateEntry(e) {
+  // Migrate proofRef (string) → proofRefs (array)
+  if (e.proofRef && !e.proofRefs) {
+    e.proofRefs = e.proofRef ? [e.proofRef] : [];
+    delete e.proofRef;
+  }
+  if (!e.proofRefs) e.proofRefs = [];
+  // Migrate full dates (YYYY-MM-DD) → month (YYYY-MM)
+  if (e.dateFrom && e.dateFrom.length > 7) e.dateFrom = e.dateFrom.slice(0, 7);
+  if (e.dateTo   && e.dateTo.length   > 7) e.dateTo   = e.dateTo.slice(0, 7);
+  return e;
+}
+
+function migrateSettings(s) {
+  if (s.cycleStart && s.cycleStart.length > 7) s.cycleStart = s.cycleStart.slice(0, 7);
+  return s;
+}
+
+function loadData() {
+  // 1. Try embedded JSON
+  const el = document.getElementById('tiddlers-data');
+  let raw = el ? el.textContent.trim() : '';
+  if (raw && raw !== '{}' && raw.length > 2) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.entries) {
+        data = parsed;
+        data.entries  = data.entries.map(migrateEntry);
+        data.settings = migrateSettings(data.settings || {});
+        return;
+      }
+    } catch(e) { /* fall through */ }
+  }
+  // 2. Try localStorage
+  const ls = localStorage.getItem(LS_KEY);
+  if (ls) {
+    try {
+      const parsed = JSON.parse(ls);
+      if (parsed && parsed.entries) {
+        data = parsed;
+        data.entries  = data.entries.map(migrateEntry);
+        data.settings = migrateSettings(data.settings || {});
+        return;
+      }
+    } catch(e) { /* fall through */ }
+  }
+  // 3. Defaults
+  data = { entries: [], settings: { cycleStart: '', cpeGoal: 120, groupBMax: 30 } };
+}
+
+// ── File save ─────────────────────────────────────────────────────────────────
+
+async function cacheOriginalHtml() {
+  try {
+    const res = await fetch(location.href, { cache: 'no-store' });
+    if (!res.ok) throw new Error('fetch failed');
+    originalHtml = await res.text();
+  } catch(e) {
+    originalHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  }
+}
+
+function buildUpdatedHtml() {
+  const html = originalHtml;
+  if (!html) throw new Error('Original HTML not cached yet. Try again in a moment.');
+  const marker   = '<script id="tiddlers-data"';
+  const start    = html.indexOf(marker);
+  if (start === -1) throw new Error('tiddlers-data marker not found in cached HTML.');
+  const tagEnd   = html.indexOf('>', start) + 1;
+  const closeTag = '<' + '/script>';
+  const closeIdx = html.indexOf(closeTag, tagEnd);
+  if (closeIdx === -1) throw new Error('Could not find closing tag for tiddlers-data.');
+  return html.slice(0, tagEnd) + '\n' + serializeData() + '\n' + html.slice(closeIdx);
+}
+
+function setSaveStatus(state) {
+  const el = document.getElementById('save-status');
+  if (!el) return;
+  el.className = '';
+  if (state === 'dirty')       { el.textContent = 'Unsaved'; el.className = 'dirty'; isDirty = true; }
+  else if (state === 'saving') { el.textContent = 'Saving\u2026'; el.className = 'saving'; }
+  else if (state === 'saved')  { el.textContent = 'Saved'; el.className = 'saved'; isDirty = false;
+    setTimeout(() => { const e = document.getElementById('save-status'); if (e && e.className==='saved') { e.textContent='Saved'; e.className=''; } }, 2500);
+  }
+  else if (state === 'downloaded') { el.textContent = 'Downloaded'; el.className = 'saved'; isDirty = false;
+    setTimeout(() => { const e = document.getElementById('save-status'); if (e && e.className==='saved') { e.textContent='Saved'; e.className=''; } }, 2500);
+  }
+  else if (state === 'error')  { el.textContent = 'Error'; el.className = 'error'; }
+  else { el.textContent = 'Saved'; el.className = ''; isDirty = false; }
+}
+
+async function saveFile() {
+  setSaveStatus('saving');
+  try {
+    const html = buildUpdatedHtml();
+    if (!fileHandle) {
+      fileHandle = await window.showSaveFilePicker({
+        suggestedName: location.pathname.split('/').pop() || 'cpe-tracker.html',
+        types: [{ description: 'HTML file', accept: { 'text/html': ['.html'] } }]
+      });
+    }
+    const writable = await fileHandle.createWritable();
+    await writable.write(html);
+    await writable.close();
+    originalHtml = html;
+    const domEl = document.getElementById('tiddlers-data');
+    if (domEl) domEl.textContent = '\n' + serializeData() + '\n';
+    setSaveStatus('saved');
+  } catch(e) {
+    if (e && e.name === 'AbortError') setSaveStatus('idle');
+    else { setSaveStatus('error'); console.error(e); }
+  }
+}
+
+function triggerFallbackDownload() {
+  setSaveStatus('saving');
+  try {
+    const html = buildUpdatedHtml();
+    const blob = new Blob([html], { type: 'text/html' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = location.pathname.split('/').pop() || 'cpe-tracker.html';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    setSaveStatus('downloaded');
+  } catch(e) { setSaveStatus('error'); console.error(e); }
+}
+
+function saveOrDownload() {
+  if (editMode) collectFormAndSave(false);
+  if (typeof window.showSaveFilePicker === 'function') saveFile();
+  else triggerFallbackDownload();
+}
+
+// ── Proof files ───────────────────────────────────────────────────────────────
+
+async function saveProofBlob(blob, suggestedName) {
+  if (typeof window.showSaveFilePicker === 'function') {
+    const ext = suggestedName.split('.').pop();
+    try {
+      const fh = await window.showSaveFilePicker({
+        suggestedName: suggestedName,
+        types: [{ description: 'Proof file', accept: { '*/*': ['.' + ext] } }]
+      });
+      const writable = await fh.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      return fh.name || suggestedName;
+    } catch(e) {
+      if (e && e.name === 'AbortError') return null;
+      throw e;
+    }
+  } else {
+    const url = URL.createObjectURL(blob);
+    const a   = document.createElement('a');
+    a.href = url; a.download = suggestedName;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    return suggestedName;
+  }
+}
+
+function proofSuggestedName(entry, file) {
+  const ext      = file.name ? file.name.split('.').pop() : (file.type.split('/')[1] || 'png');
+  const datePart = (entry.dateFrom || currentMonth()).slice(0, 7).replace('-', '-');
+  const typePart = entry.type || 'cpe';
+  const titlePart = slug(entry.title || 'untitled');
+  return 'cpe-' + datePart + '-' + typePart + '-' + titlePart + '.' + ext;
+}
+
+async function attachProofFile(entry) {
+  const input = document.createElement('input');
+  input.type  = 'file';
+  input.accept = 'image/*,.pdf,.doc,.docx,.txt';
+  input.multiple = true;
+  input.onchange = async () => {
+    for (const file of Array.from(input.files)) {
+      const name = proofSuggestedName(entry, file);
+      try {
+        const saved = await saveProofBlob(file, name);
+        if (saved) addProofRef(saved);
+      } catch(e) { console.error(e); }
+    }
+  };
+  input.click();
+}
+
+// Handle paste event: capture image(s) from clipboard
+async function handlePaste(e) {
+  if (!editMode) return;
+  const items = (e.clipboardData || {}).items;
+  if (!items) return;
+  let handled = false;
+  for (const item of Array.from(items)) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      handled = true;
+      const file    = item.getAsFile();
+      if (!file) continue;
+      const entry   = collectFormData();
+      const name    = proofSuggestedName(entry, file);
+      try {
+        const saved = await saveProofBlob(file, name);
+        if (saved) addProofRef(saved);
+      } catch(err) { console.error(err); }
+    }
+  }
+}
+
+function addProofRef(name) {
+  // Add to the live hidden list in the form
+  const listEl = document.getElementById('proof-refs-list');
+  if (!listEl) return;
+  const existing = Array.from(listEl.querySelectorAll('.proof-ref-item')).map(el => el.dataset.name);
+  if (existing.includes(name)) return;
+  const item = document.createElement('span');
+  item.className = 'proof-ref-item has-file';
+  item.dataset.name = name;
+  item.innerHTML = escHtml(name) + ' <button class="proof-ref-remove" title="Remove">\u00d7</button>';
+  item.querySelector('.proof-ref-remove').addEventListener('click', () => item.remove());
+  listEl.appendChild(item);
+  updateProofRefsHidden();
+}
+
+function updateProofRefsHidden() {
+  const listEl   = document.getElementById('proof-refs-list');
+  const hiddenEl = document.getElementById('proof-refs-hidden');
+  if (!listEl || !hiddenEl) return;
+  const names = Array.from(listEl.querySelectorAll('.proof-ref-item')).map(el => el.dataset.name);
+  hiddenEl.value = JSON.stringify(names);
+}
+
+// ── Import (CSV & PDF) ────────────────────────────────────────────────────────
+
+// ── CSV helpers ───────────────────────────────────────────────────────────────
+
+function parseCsvLine(line) {
+  const cols = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') {
+      if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+      else inQ = !inQ;
+    } else if (c === ',' && !inQ) {
+      cols.push(cur); cur = '';
+    } else {
+      cur += c;
+    }
+  }
+  cols.push(cur);
+  return cols.map(s => s.trim());
+}
+
+function parseCsv(text) {
+  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim());
+  if (!lines.length) return { headers: [], rows: [] };
+  const headers = parseCsvLine(lines[0]);
+  const rows    = lines.slice(1).map(l => parseCsvLine(l));
+  return { headers, rows };
+}
+
+function autoDetectMappings(headers) {
+  const h = headers.map(s => s.toLowerCase().replace(/[\s_-]+/g, ''));
+  const find = (...terms) => {
+    for (const t of terms) { const i = h.findIndex(x => x.includes(t)); if (i >= 0) return i; }
+    return -1;
+  };
+  return {
+    title:      find('title', 'activity', 'name', 'description'),
+    dateFrom:   find('date', 'activitydate', 'completiondate', 'startdate'),
+    dateTo:     find('enddate', 'dateto'),
+    cpeCount:   find('credit', 'cpe', 'hours', 'points'),
+    type:       find('type', 'category', 'activitytype'),
+    presenter:  find('presenter', 'instructor', 'speaker', 'author'),
+    org:        find('organization', 'provider', 'sponsor', 'company'),
+    transcript: find('status', 'submitted', 'transcript'),
+    summary:    find('summary', 'description', 'notes'),
+  };
+}
+
+function mapCsvType(raw) {
+  if (!raw) return 'webinar';
+  const r = raw.toLowerCase();
+  if (r.includes('webinar') || r.includes('online'))      return 'webinar';
+  if (r.includes('seminar') || r.includes('conference'))  return 'seminar';
+  if (r.includes('training') && r.includes('isc'))        return 'training_isc2';
+  if (r.includes('training') || r.includes('vendor'))     return 'training_vendor';
+  if (r.includes('self') || r.includes('study'))          return 'self_study';
+  if (r.includes('work') || r.includes('experience'))     return 'work_experience';
+  if (r.includes('education') || r.includes('college') || r.includes('university')) return 'education_security';
+  if (r.includes('writing') || r.includes('author'))      return 'writing';
+  if (r.includes('instructor') || r.includes('teach'))    return 'instructor';
+  if (r.includes('research'))                             return 'research';
+  if (r.includes('volunteer'))                            return 'volunteer_security';
+  return 'webinar';
+}
+
+function parseDateToMonth(raw) {
+  if (!raw) return '';
+  const isoMatch = raw.match(/^(\d{4})-(\d{2})/);
+  if (isoMatch) return isoMatch[1] + '-' + isoMatch[2];
+  const usMatch = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (usMatch) return usMatch[3] + '-' + usMatch[1].padStart(2, '0');
+  const euMatch = raw.match(/^(\d{1,2})[-.](\d{1,2})[-.](\d{4})/);
+  if (euMatch) return euMatch[3] + '-' + euMatch[2].padStart(2, '0');
+  const months = {jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',
+                  jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12'};
+  const mMatch = raw.toLowerCase().match(/([a-z]{3})[a-z]*\s+(\d{4})/);
+  if (mMatch && months[mMatch[1]]) return mMatch[2] + '-' + months[mMatch[1]];
+  return '';
+}
+
+// ── PDF helpers ───────────────────────────────────────────────────────────────
+
+async function loadPdfJs() {
+  if (window.pdfjsLib) return window.pdfjsLib;
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload = () => {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      resolve(window.pdfjsLib);
+    };
+    s.onerror = () => reject(new Error('Failed to load PDF.js. Check your internet connection.'));
+    document.head.appendChild(s);
+  });
+}
+
+const PDF_MONTHS = {jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',
+                    jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12'};
+
+// "15-Dec-2025" → "2025-12"
+function parsePdfDate(str) {
+  const m = (str || '').match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/);
+  if (m) {
+    const mo = PDF_MONTHS[m[2].toLowerCase()];
+    if (mo) return m[3] + '-' + mo;
+  }
+  return parseDateToMonth(str);
+}
+
+// "Jul 1, 2024" → "2024-07"
+function parsePdfHeaderDate(str) {
+  const m = (str || '').match(/([A-Za-z]{3})[a-z]*\s+\d+,?\s*(\d{4})/);
+  if (m && PDF_MONTHS[m[1].toLowerCase()]) return m[2] + '-' + PDF_MONTHS[m[1].toLowerCase()];
+  return '';
+}
+
+function mapPdfCpeType(typeStr, group) {
+  const t = (typeStr || '').toLowerCase();
+  if (group === 'B') {
+    if (t.includes('membership') || t.includes('channel') || t.includes('professional')) return 'professional_dev';
+    if (t.includes('education') || t.includes('seminar') || t.includes('courses')) return 'education_other';
+    return 'professional_dev';
+  }
+  // Group A — map ISC2 PDF type strings to our keys
+  if (t.includes('isc2') || t.includes('isc\u00b2')) {
+    if (t.includes('infosecurity') || t.includes('magazine')) return 'self_study';
+    return 'training_isc2';  // briefings, webinars, quizzes, PDI, JTA, spotlights
+  }
+  if (t.includes('digitell'))                                               return 'webinar';
+  if (t.includes('knowledge vault'))                                        return 'self_study';
+  if (t.includes('online webinar') || t.includes('podcast') || t.includes('online material')) return 'webinar';
+  if (t.includes('industry conference'))                                    return 'seminar';
+  if (t.includes('courses and seminars') || t.includes('courses & seminars')) return 'seminar';
+  if (t.includes('vendor presentation'))                                    return 'training_vendor';
+  if (t.includes('association') && t.includes('meeting'))                  return 'seminar';
+  if (t.includes('writing') || t.includes('author'))                       return 'writing';
+  if (t.includes('volunteer'))                                              return 'volunteer_security';
+  if (t.includes('work experience') || t.includes('employment'))           return 'work_experience';
+  return 'webinar';
+}
+
+async function parsePdfTranscript(arrayBuffer) {
+  const pdfjsLib = await loadPdfJs();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+  // Collect all text items across pages with their x/y positions
+  const allItems = [];
+  let maxPageH = 792;  // US Letter default
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const vp   = page.getViewport({ scale: 1 });
+    maxPageH   = Math.max(maxPageH, vp.height);
+    const tc   = await page.getTextContent();
+    for (const item of tc.items) {
+      const text = (item.str || '').trim();
+      if (!text) continue;
+      allItems.push({ text, x: item.transform[4], y: item.transform[5], page: p, pageH: vp.height });
+    }
+  }
+
+  // Convert to document-order Y (0=top of page 1, increases downward)
+  allItems.forEach(i => { i.docY = (i.page - 1) * maxPageH + (i.pageH - i.y); });
+
+  // Sort top→bottom, left→right within same line
+  allItems.sort((a, b) => {
+    const dy = a.docY - b.docY;
+    return Math.abs(dy) > 3 ? dy : a.x - b.x;
+  });
+
+  // Group into lines (items within 4pt vertically)
+  const lines = [];
+  for (const item of allItems) {
+    const last = lines[lines.length - 1];
+    if (last && Math.abs(item.docY - last[0].docY) <= 4) last.push(item);
+    else lines.push([item]);
+  }
+
+  // Auto-detect column positions from the header row
+  let dateColX = 55, descColX = 145, typeColX = 345, creditColX = 510;
+  for (const line of lines) {
+    const full = line.map(i => i.text).join(' ');
+    if (full.includes('Activity Date') && full.includes('Activity Description') && full.includes('CPE Type')) {
+      for (const item of line) {
+        const t = item.text;
+        if (t === 'Activity Date' || t === 'Activity')    dateColX   = item.x;
+        if (t === 'Activity Description' || t === 'Description') descColX = item.x;
+        if (t === 'CPE Type' || t === 'CPE')              typeColX   = item.x;
+        if (t === 'Credit')                               creditColX = item.x;
+      }
+      break;
+    }
+  }
+
+  const mid1 = (dateColX + descColX) / 2;
+  const mid2 = (descColX + typeColX) / 2;
+  const mid3 = (typeColX + creditColX) / 2;
+  const getCol = x => x < mid1 ? 'date' : x < mid2 ? 'desc' : x < mid3 ? 'type' : 'credit';
+
+  const DATE_RE = /^\d{1,2}-[A-Za-z]{3}-\d{4}$/;
+
+  let currentGroup = 'A';
+  let currentEntry = null;
+  let cycleStartMonth = '';
+  const entries = [];
+
+  for (const line of lines) {
+    const lineText = line.map(i => i.text).join(' ');
+
+    // Skip structural lines
+    if (/Official CPE Transcript|Activity Date.*Credit|CPE progress|Candidate and Member Services/.test(lineText)) continue;
+    if (/^Total Group [AB] Credits/.test(lineText)) {
+      if (currentEntry) { entries.push(currentEntry); currentEntry = null; }
+      continue;
+    }
+    if (lineText.includes('Group A Credits')) { currentGroup = 'A'; continue; }
+    if (lineText.includes('Group B Credits')) {
+      if (currentEntry) { entries.push(currentEntry); currentEntry = null; }
+      currentGroup = 'B'; continue;
+    }
+    if (lineText.includes('Candidate and Member Services') || lineText.includes('625 N Washington')) break;
+
+    // Cycle dates
+    const startM = lineText.match(/Start date:\s*(.+)/);
+    if (startM) { cycleStartMonth = parsePdfHeaderDate(startM[1]); continue; }
+    if (lineText.match(/^End date:|^Member |^Certification awarded|^CPE progress|^190%|^\d+% /)) continue;
+
+    const dateItem = line.find(i => DATE_RE.test(i.text) && getCol(i.x) === 'date');
+
+    if (dateItem) {
+      if (currentEntry) entries.push(currentEntry);
+      const descText   = line.filter(i => getCol(i.x) === 'desc').map(i => i.text).join(' ');
+      const typeText   = line.filter(i => getCol(i.x) === 'type').map(i => i.text).join(' ');
+      const creditText = line.filter(i => getCol(i.x) === 'credit').map(i => i.text).join('');
+      currentEntry = {
+        dateStr: dateItem.text,
+        desc:    descText,
+        type:    typeText,
+        credit:  parseFloat(creditText) || 0,
+        group:   currentGroup,
+        gotCredit: !!(parseFloat(creditText) || 0),
+      };
+    } else if (currentEntry) {
+      for (const item of line) {
+        const col = getCol(item.x);
+        if (col === 'desc') currentEntry.desc += ' ' + item.text;
+        else if (col === 'type') currentEntry.type += ' ' + item.text;
+        else if (col === 'credit' && !currentEntry.gotCredit) {
+          const n = parseFloat(item.text);
+          if (!isNaN(n) && n > 0) { currentEntry.credit = n; currentEntry.gotCredit = true; }
+        }
+      }
+    }
+  }
+  if (currentEntry) entries.push(currentEntry);
+
+  return {
+    cycleStartMonth,
+    entries: entries.map(e => ({
+      id:           uid(),
+      created:      new Date().toISOString(),
+      modified:     new Date().toISOString(),
+      title:        e.desc.trim(),
+      type:         mapPdfCpeType(e.type.trim(), e.group),
+      dateFrom:     parsePdfDate(e.dateStr),
+      dateTo:       parsePdfDate(e.dateStr),
+      cpeCount:     e.credit,
+      presenter:    '',
+      org:          '',
+      yearPublished:'',
+      url:          '',
+      summary:      '',
+      proofRefs:    [],
+      transcript:   true,
+      domains:      [],
+    })),
+  };
+}
+
+// ── Import modal router ───────────────────────────────────────────────────────
+
+function showImportModal() {
+  const input = document.createElement('input');
+  input.type   = 'file';
+  input.accept = '.csv,.pdf,text/csv,application/pdf';
+  input.onchange = async () => {
+    const file = input.files[0];
+    if (!file) return;
+    const ext = file.name.split('.').pop().toLowerCase();
+
+    if (ext === 'pdf') {
+      const loading = document.createElement('div');
+      loading.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
+        'background:var(--bg-ctrl);border:1px solid var(--border);color:var(--text);' +
+        'padding:16px 24px;border-radius:8px;font-size:13px;z-index:300;' +
+        'box-shadow:0 4px 16px rgba(0,0,0,0.2);text-align:center';
+      loading.innerHTML = '<div style="margin-bottom:6px">Parsing PDF\u2026</div>' +
+        '<div style="font-size:11px;color:var(--text-muted)">(loading PDF.js from CDN)</div>';
+      document.body.appendChild(loading);
+      try {
+        const result = await parsePdfTranscript(await file.arrayBuffer());
+        loading.remove();
+        if (!result.entries.length) {
+          alert('No CPE entries found. Make sure this is an ISC\u00b2 CPE transcript PDF.');
+          return;
+        }
+        showPdfImportSummary(result, file.name);
+      } catch(e) {
+        loading.remove();
+        alert('Error reading PDF: ' + e.message);
+        console.error(e);
+      }
+    } else {
+      const reader = new FileReader();
+      reader.onload = ev => showImportPreview(ev.target.result, file.name);
+      reader.readAsText(file);
+    }
+  };
+  input.click();
+}
+
+function showPdfImportSummary(result, filename) {
+  const { entries: imp, cycleStartMonth } = result;
+  const grpA = imp.filter(e => (CPE_TYPES[e.type] || {}).group === 'A').length;
+  const grpB = imp.length - grpA;
+  const totalCpe = imp.reduce((s, e) => s + (e.cpeCount || 0), 0);
+
+  const overlay = document.createElement('div');
+  overlay.className = 'settings-modal-overlay';
+  overlay.innerHTML =
+    '<div class="settings-modal">' +
+      '<h2>Import ISC\u00b2 Transcript</h2>' +
+      '<p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">' + escHtml(filename) + '</p>' +
+      '<div style="background:var(--bg-alt);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:14px">' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px">' +
+          '<div><div style="font-size:11px;color:var(--text-muted)">Entries found</div><div style="font-size:22px;font-weight:700;color:var(--accent)">' + imp.length + '</div></div>' +
+          '<div><div style="font-size:11px;color:var(--text-muted)">Total CPEs</div><div style="font-size:22px;font-weight:700;color:var(--accent)">' + totalCpe.toFixed(2) + '</div></div>' +
+          '<div><div style="font-size:11px;color:var(--group-a);font-weight:600">GROUP A</div><div style="font-weight:600">' + grpA + ' entries</div></div>' +
+          '<div><div style="font-size:11px;color:var(--group-b);font-weight:600">GROUP B</div><div style="font-weight:600">' + grpB + ' entries</div></div>' +
+        '</div>' +
+        (cycleStartMonth
+          ? '<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--text-muted)">Cycle start detected: <strong style="color:var(--text)">' + fmtDate(cycleStartMonth) + '</strong></div>'
+          : '') +
+      '</div>' +
+      '<p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">All entries will be marked as <strong>added to transcript</strong>. You can add proof files, domains, and summaries afterwards.</p>' +
+      (cycleStartMonth
+        ? '<label style="font-size:12px;display:flex;align-items:center;gap:6px;margin-bottom:14px;cursor:pointer"><input type="checkbox" id="imp-set-cycle" checked> Set cycle start to ' + fmtDate(cycleStartMonth) + '</label>'
+        : '') +
+      '<div class="modal-actions">' +
+        '<button class="btn" id="pdf-imp-cancel">Cancel</button>' +
+        '<button class="btn btn-primary" id="pdf-imp-confirm">Import ' + imp.length + ' entries</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.getElementById('pdf-imp-cancel').addEventListener('click', () => overlay.remove());
+  document.getElementById('pdf-imp-confirm').addEventListener('click', () => {
+    const setCycleCb = document.getElementById('imp-set-cycle');
+    if (cycleStartMonth && setCycleCb && setCycleCb.checked) {
+      data.settings.cycleStart = cycleStartMonth;
+    }
+    // Skip duplicates (same title + date)
+    const seen = new Set(data.entries.map(e => e.title + '\x00' + e.dateFrom));
+    const fresh = imp.filter(e => !seen.has(e.title + '\x00' + e.dateFrom));
+    const skipped = imp.length - fresh.length;
+
+    data.entries = data.entries.concat(fresh);
+    saveToLocalStorage();
+    setSaveStatus('dirty');
+    overlay.remove();
+    renderAll();
+
+    const msg = fresh.length + ' entries imported' + (skipped ? ' \u2014 ' + skipped + ' duplicates skipped' : '');
+    const notice = document.createElement('div');
+    notice.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;' +
+      'padding:8px 18px;border-radius:6px;font-size:13px;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,0.3)';
+    notice.textContent = msg;
+    document.body.appendChild(notice);
+    setTimeout(() => notice.remove(), 3500);
+  });
+}
+
+function showImportPreview(csvText, filename) {
+  const { headers, rows } = parseCsv(csvText);
+  if (!rows.length) { alert('No data rows found in the CSV.'); return; }
+
+  const mappings = autoDetectMappings(headers);
+  const colOpts  = (selected) =>
+    '<option value="-1">(not mapped)</option>' +
+    headers.map((h, i) => '<option value="' + i + '"' + (i === selected ? ' selected' : '') + '>' + escHtml(h) + '</option>').join('');
+
+  const FIELD_LABELS = [
+    ['title','Title'],['dateFrom','Date (From)'],['dateTo','Date (To)'],
+    ['cpeCount','CPE Credits'],['type','CPE Type'],['presenter','Presenter / Author'],
+    ['org','Organization'],['transcript','Status / Transcript'],['summary','Summary'],
+  ];
+
+  const mapRows = FIELD_LABELS.map(([key, label]) =>
+    '<tr><td style="padding:4px 8px;font-size:12px;color:var(--text-muted)">' + label + '</td>' +
+    '<td style="padding:4px 8px"><select class="field-input" style="font-size:12px;padding:3px 5px" data-field="' + key + '">' +
+      colOpts(mappings[key]) + '</select></td></tr>'
+  ).join('');
+
+  const previewRows = rows.slice(0, 5).map(r =>
+    '<tr>' + headers.map((_, i) => '<td style="padding:2px 6px;font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + escHtml(r[i]||'') + '">' + escHtml(r[i]||'') + '</td>').join('') + '</tr>'
+  ).join('');
+
+  const overlay = document.createElement('div');
+  overlay.className = 'settings-modal-overlay';
+  overlay.style.cssText = 'align-items:flex-start;padding-top:40px';
+  overlay.innerHTML =
+    '<div class="settings-modal" style="min-width:560px;max-width:700px;max-height:80vh;overflow-y:auto">' +
+      '<h2>Import CSV \u2013 ' + escHtml(filename) + '</h2>' +
+      '<p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">Found <strong>' + rows.length + '</strong> rows. Map columns to CPE fields:</p>' +
+      '<table style="width:100%;border-collapse:collapse;margin-bottom:16px"><tbody>' + mapRows + '</tbody></table>' +
+      '<details style="margin-bottom:16px"><summary style="font-size:12px;color:var(--text-muted);cursor:pointer">Preview first ' + Math.min(5,rows.length) + ' rows</summary>' +
+        '<div style="overflow-x:auto;margin-top:8px"><table style="border-collapse:collapse;font-size:11px">' +
+          '<thead><tr>' + headers.map(h => '<th style="padding:2px 6px;border-bottom:1px solid var(--border);text-align:left">' + escHtml(h) + '</th>').join('') + '</tr></thead>' +
+          '<tbody>' + previewRows + '</tbody></table></div>' +
+      '</details>' +
+      '<div class="modal-actions">' +
+        '<button class="btn" id="imp-cancel">Cancel</button>' +
+        '<button class="btn btn-primary" id="imp-confirm">Import ' + rows.length + ' entries</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.getElementById('imp-cancel').addEventListener('click', () => overlay.remove());
+
+  document.getElementById('imp-confirm').addEventListener('click', () => {
+    const m = {};
+    overlay.querySelectorAll('select[data-field]').forEach(sel => { m[sel.dataset.field] = parseInt(sel.value); });
+    const get = (row, idx) => (idx >= 0 && idx < row.length) ? (row[idx]||'').trim() : '';
+
+    const imported = rows.map(row => {
+      const statusRaw = get(row, m.transcript).toLowerCase();
+      return {
+        id: uid(), created: new Date().toISOString(), modified: new Date().toISOString(),
+        title:        get(row, m.title)    || 'Untitled',
+        type:         mapCsvType(get(row, m.type)),
+        dateFrom:     parseDateToMonth(get(row, m.dateFrom)),
+        dateTo:       parseDateToMonth(get(row, m.dateTo)),
+        cpeCount:     parseFloat(get(row, m.cpeCount)) || 0,
+        presenter:    get(row, m.presenter),
+        org:          get(row, m.org),
+        yearPublished:'', url:'', summary: get(row, m.summary),
+        proofRefs:    [],
+        transcript:   statusRaw.includes('submit') || statusRaw.includes('approved') || statusRaw === 'yes',
+        domains:      [],
+      };
+    });
+
+    data.entries = data.entries.concat(imported);
+    saveToLocalStorage(); setSaveStatus('dirty'); overlay.remove(); renderAll();
+    const notice = document.createElement('div');
+    notice.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:8px 18px;border-radius:6px;font-size:13px;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,0.3)';
+    notice.textContent = 'Imported ' + imported.length + ' entries';
+    document.body.appendChild(notice);
+    setTimeout(() => notice.remove(), 3000);
+  });
+}
+
+
+// ── Theme ─────────────────────────────────────────────────────────────────────
+
+function setTheme(name) {
+  document.documentElement.dataset.theme = name === 'light' ? '' : name;
+  localStorage.setItem(LS_THEME, name);
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.theme === name);
+  });
+}
+
+// ── Rendering: Sidebar ────────────────────────────────────────────────────────
+
+function renderCycleStats() {
+  const el = document.getElementById('cycle-stats');
+  if (!el) return;
+  const s = getStats();
+  const totalPct = Math.min(100, s.goal ? (s.total / s.goal * 100) : 0);
+  const cycleStr = s.cycleStart
+    ? fmtDate(s.cycleStart) + ' \u2013 ' + fmtDate(s.cycleEnd)
+    : 'Cycle not set';
+  el.innerHTML =
+    '<div class="cycle-dates">' + cycleStr +
+      ' <button id="btn-settings" title="Settings">\u2699</button></div>' +
+    '<div class="stat-row">' +
+      '<span class="stat-label">Total</span>' +
+      '<span class="stat-val">' + s.total.toFixed(s.total % 1 ? 1 : 0) + ' / ' + s.goal + '</span>' +
+      '<div class="progress-bar-wrap"><div class="progress-bar-fill' + (s.total >= s.goal ? ' over' : '') + '" style="width:' + totalPct + '%"></div></div>' +
+    '</div>' +
+    '<div class="stat-row">' +
+      '<span class="stat-label" style="color:var(--group-a)">A</span>' +
+      '<span class="stat-val">' + s.totalA.toFixed(s.totalA % 1 ? 1 : 0) + '</span>' +
+      '<span class="stat-label" style="color:var(--group-b);margin-left:10px">B</span>' +
+      '<span class="stat-val">' + s.totalB.toFixed(s.totalB % 1 ? 1 : 0) + ' / ' + s.groupBMax + '</span>' +
+    '</div>' +
+    '<div class="stat-row">' +
+      '<span class="stat-label">\u2713 Xscript</span>' +
+      '<span class="stat-val">' + s.transcribed + ' / ' + data.entries.length + '</span>' +
+    '</div>';
+
+  document.getElementById('btn-settings').addEventListener('click', showSettingsModal);
+}
+
+function renderEntryList() {
+  const el = document.getElementById('entry-list');
+  if (!el) return;
+  const q = searchQuery.toLowerCase();
+
+  let entries = data.entries.filter(e => {
+    if (q) {
+      const hay = ((e.title || '') + ' ' + (e.type || '') + ' ' + (e.presenter || '') + ' ' + (e.org || '')).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    if (activeFilter === 'pending') return !e.transcript;
+    if (activeFilter === 'a') { const t = CPE_TYPES[e.type]; return t && t.group === 'A'; }
+    if (activeFilter === 'b') { const t = CPE_TYPES[e.type]; return t && t.group === 'B'; }
+    return true;
+  });
+
+  entries.sort((a, b) => {
+    const da = a.dateFrom || a.created || '';
+    const db = b.dateFrom || b.created || '';
+    return db.localeCompare(da);
+  });
+
+  if (!entries.length) {
+    el.innerHTML = '<div style="padding:16px 12px;font-size:12px;color:var(--text-muted)">No entries found.</div>';
+    return;
+  }
+
+  el.innerHTML = entries.map(e => {
+    const t   = CPE_TYPES[e.type];
+    const grp = t ? t.group : '?';
+    const cpe = parseFloat(e.cpeCount) || 0;
+    const dateStr = e.dateFrom ? fmtDate(e.dateFrom) : '';
+    const isActive = e.id === activeId;
+    return '<div class="entry-card' + (isActive ? ' active' : '') + '" data-id="' + e.id + '">' +
+      '<div class="ec-title">' + escHtml(e.title || 'Untitled') + '</div>' +
+      '<div class="ec-meta">' +
+        '<span class="ec-date">' + dateStr + '</span>' +
+        '<span class="ec-type-badge badge-' + grp.toLowerCase() + '">' + grp + '</span>' +
+        '<span class="ec-cpe">' + cpe + ' CPE' + (cpe !== 1 ? 's' : '') + '</span>' +
+        '<span class="ec-xscript">' + (e.transcript ? '<span class="ic-check">\u2713</span>' : '<span class="ic-pending">\u25cb</span>') + '</span>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  el.querySelectorAll('.entry-card').forEach(card => {
+    card.addEventListener('click', () => openEntry(card.dataset.id));
+  });
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Rendering: Main area ──────────────────────────────────────────────────────
+
+function renderMain() {
+  if (editMode) { renderEditForm(); return; }
+  if (activeId) {
+    const entry = data.entries.find(e => e.id === activeId);
+    if (entry) { renderEntryView(entry); return; }
+  }
+  renderDashboard();
+}
+
+function renderDashboard() {
+  const el = document.getElementById('main-content');
+  if (!el) return;
+  const s = getStats();
+  const totalPct = Math.min(100, s.goal ? (s.total / s.goal * 100) : 0);
+  const bPct     = Math.min(100, s.groupBMax ? (s.totalB / s.groupBMax * 100) : 0);
+
+  const cycleLabel = s.cycleStart
+    ? fmtDate(s.cycleStart) + ' \u2013 ' + fmtDate(s.cycleEnd)
+    : 'Not configured (\u2699 set in sidebar)';
+
+  const domainRows = DOMAINS.map(d => {
+    const c = s.domainCounts[d.id] || 0;
+    return '<div class="domain-item">' +
+      '<div class="domain-dot' + (c > 0 ? ' covered' : '') + '"></div>' +
+      '<span class="domain-name">' + escHtml(d.label) + '</span>' +
+      '<span class="domain-count">' + (c > 0 ? c.toFixed(c % 1 ? 1 : 0) : '\u2013') + '</span>' +
+    '</div>';
+  }).join('');
+
+  el.innerHTML =
+    '<div class="dash-heading">CPE Dashboard' +
+      (s.total >= s.goal ? ' <span style="font-size:14px;color:var(--green)">\u2705 Goal Met!</span>' : '') +
+    '</div>' +
+    '<div class="dash-grid">' +
+      '<div class="dash-card">' +
+        '<div class="dash-card-title">Total CPEs</div>' +
+        '<div class="dash-big-num">' + s.total.toFixed(s.total % 1 ? 1 : 0) + '</div>' +
+        '<div class="dash-sub">of ' + s.goal + ' required &bull; ' + cycleLabel + '</div>' +
+        '<div class="dash-progress">' +
+          '<div class="progress-label"><span>Progress</span><span>' + totalPct.toFixed(0) + '%</span></div>' +
+          '<div class="dash-progress-bar"><div class="dash-progress-fill' + (totalPct >= 100 ? ' complete' : '') + '" style="width:' + totalPct + '%"></div></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="dash-card">' +
+        '<div class="dash-card-title">Group Breakdown</div>' +
+        '<div style="display:flex;gap:16px;margin-bottom:10px">' +
+          '<div><div style="font-size:11px;color:var(--group-a);font-weight:600">GROUP A</div>' +
+            '<div style="font-size:22px;font-weight:700;color:var(--group-a)">' + s.totalA.toFixed(s.totalA % 1 ? 1 : 0) + '</div>' +
+            '<div style="font-size:11px;color:var(--text-muted)">CPEs</div></div>' +
+          '<div><div style="font-size:11px;color:var(--group-b);font-weight:600">GROUP B</div>' +
+            '<div style="font-size:22px;font-weight:700;color:var(--group-b)">' + s.totalB.toFixed(s.totalB % 1 ? 1 : 0) + '</div>' +
+            '<div style="font-size:11px;color:var(--text-muted)">max ' + s.groupBMax + ' credited</div></div>' +
+        '</div>' +
+        '<div class="dash-sub" style="margin-bottom:4px">Group B credited: ' + s.groupBCapped.toFixed(s.groupBCapped % 1 ? 1 : 0) + ' / ' + s.groupBMax + '</div>' +
+        '<div class="dash-progress-bar"><div class="dash-progress-fill' + (bPct >= 100 ? ' complete' : '') + '" style="width:' + bPct + '%"></div></div>' +
+      '</div>' +
+      '<div class="dash-card">' +
+        '<div class="dash-card-title">Transcript Status</div>' +
+        '<div class="dash-big-num" style="color:var(--green)">' + s.transcribed + '</div>' +
+        '<div class="dash-sub">of ' + data.entries.length + ' entries added to transcript</div>' +
+        '<div style="margin-top:8px;font-size:12px;color:var(--text-muted)">' +
+          (data.entries.length - s.transcribed) + ' pending submission' +
+        '</div>' +
+      '</div>' +
+      '<div class="dash-card">' +
+        '<div class="dash-card-title">Domain Coverage</div>' +
+        '<div class="domain-grid">' + domainRows + '</div>' +
+      '</div>' +
+    '</div>';
+}
+
+function renderEntryView(entry) {
+  const el = document.getElementById('main-content');
+  if (!el) return;
+  const t = CPE_TYPES[entry.type] || {};
+  const grp = t.group || '?';
+  const typeLabel = t.label || entry.type;
+
+  const domainsHtml = DOMAINS.map(d => {
+    const active = (entry.domains || []).includes(d.id);
+    return '<span class="domain-pill' + (active ? ' checked' : '') + '">' + escHtml(d.label) + '</span>';
+  }).join('');
+
+  const summaryHtml = entry.summary
+    ? '<div class="summary-rendered">' + marked.parse(entry.summary) + '</div>'
+    : '<span style="color:var(--text-muted);font-size:12px">No summary.</span>';
+
+  let conditionalFields = '';
+  if (entry.presenter)    conditionalFields += '<div><span class="field-label">Presenter / Author</span><div class="field-value">' + escHtml(entry.presenter) + '</div></div>';
+  if (entry.org)          conditionalFields += '<div><span class="field-label">Organization / Publisher</span><div class="field-value">' + escHtml(entry.org) + '</div></div>';
+  if (entry.yearPublished)conditionalFields += '<div><span class="field-label">Year Published</span><div class="field-value">' + escHtml(String(entry.yearPublished)) + '</div></div>';
+  if (entry.url)          conditionalFields += '<div><span class="field-label">URL</span><div class="field-value"><a href="' + escHtml(entry.url) + '" target="_blank" rel="noopener">' + escHtml(entry.url) + '</a></div></div>';
+
+  const proofRefs = entry.proofRefs || [];
+  const proofHtml = proofRefs.length
+    ? proofRefs.map(r => '<span class="proof-ref has-file">' + escHtml(r) + '</span>').join('')
+    : '<span class="proof-ref">No proof files attached</span>';
+
+  const dateRange = (entry.dateFrom ? fmtDate(entry.dateFrom) : '') +
+    (entry.dateTo && entry.dateTo !== entry.dateFrom ? ' \u2013 ' + fmtDate(entry.dateTo) : '');
+
+  el.innerHTML =
+    '<div class="entry-hdr">' +
+      '<div class="entry-hdr-title">' + escHtml(entry.title || 'Untitled') + '</div>' +
+      '<div class="btn-row">' +
+        '<button class="btn btn-primary" id="btn-edit-entry">Edit</button>' +
+        '<button class="btn btn-danger" id="btn-delete-entry">Delete</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="view-meta-row">' +
+      '<span class="view-badge grp-' + grp.toLowerCase() + '">Group ' + grp + '</span>' +
+      '<span class="view-meta-item"><strong>' + escHtml(typeLabel) + '</strong></span>' +
+      (dateRange ? '<span class="view-meta-item">' + dateRange + '</span>' : '') +
+      '<span class="view-meta-item" style="font-size:15px;font-weight:700;color:var(--accent)">' + (parseFloat(entry.cpeCount) || 0) + ' CPEs</span>' +
+    '</div>' +
+    (conditionalFields ? '<div class="fields-grid" style="margin-bottom:16px">' + conditionalFields + '</div>' : '') +
+    '<div class="domains-section">' +
+      '<span class="field-label">CISSP Domains</span>' +
+      '<div class="domain-pills">' + domainsHtml + '</div>' +
+    '</div>' +
+    '<div class="summary-section">' +
+      '<span class="field-label">Summary</span>' + summaryHtml +
+    '</div>' +
+    '<div class="proof-section">' +
+      '<span class="field-label">Proof Files</span>' +
+      '<div class="proof-row" style="flex-wrap:wrap;gap:6px">' + proofHtml + '</div>' +
+    '</div>' +
+    '<div class="transcript-section' + (entry.transcript ? ' done' : '') + '">' +
+      '<span class="transcript-label">' +
+        (entry.transcript
+          ? '\u2705 <span class="xscript-text done">Added to official ISC\u00b2 transcript</span>'
+          : '\u25cb <span class="xscript-text">Not yet added to ISC\u00b2 transcript</span>') +
+      '</span>' +
+    '</div>';
+
+  document.getElementById('btn-edit-entry').addEventListener('click', () => { editMode = true; isNewEntry = false; renderEditForm(); });
+  document.getElementById('btn-delete-entry').addEventListener('click', () => deleteEntry(entry.id));
+}
+
+function renderEditForm() {
+  const el = document.getElementById('main-content');
+  if (!el) return;
+
+  const entry = isNewEntry ? null : data.entries.find(e => e.id === activeId);
+  const cm    = currentMonth();
+  const v     = entry || { type: 'webinar', dateFrom: cm, dateTo: cm, cpeCount: 1, proofRefs: [] };
+  const existingRefs = v.proofRefs || [];
+
+  const typeOpts = Object.entries(CPE_TYPES).map(([k, t]) =>
+    '<option value="' + k + '"' + (v.type === k ? ' selected' : '') + '>[' + t.group + '] ' + escHtml(t.label) + '</option>'
+  ).join('');
+
+  const domainPills = DOMAINS.map(d => {
+    const checked = (v.domains || []).includes(d.id);
+    return '<label class="domain-pill' + (checked ? ' checked' : '') + '" data-domain="' + d.id + '">' +
+      '<input type="checkbox" value="' + d.id + '"' + (checked ? ' checked' : '') + '>' +
+      escHtml(d.label) +
+    '</label>';
+  }).join('');
+
+  const proofItemsHtml = existingRefs.map(r =>
+    '<span class="proof-ref-item has-file" data-name="' + escHtml(r) + '">' +
+      escHtml(r) + ' <button class="proof-ref-remove" title="Remove">\u00d7</button>' +
+    '</span>'
+  ).join('');
+
+  el.innerHTML =
+    '<div class="entry-hdr">' +
+      '<div class="entry-hdr-title"><input type="text" id="f-title" placeholder="Entry title..." value="' + escHtml(v.title || '') + '"></div>' +
+      '<div class="btn-row">' +
+        '<button class="btn btn-primary" id="btn-save-entry">Save Entry</button>' +
+        '<button class="btn" id="btn-cancel-edit">Cancel</button>' +
+        (!isNewEntry ? '<button class="btn btn-danger" id="btn-delete-edit">Delete</button>' : '') +
+      '</div>' +
+    '</div>' +
+    '<div class="fields-grid">' +
+      '<div class="field-full"><label class="field-label">CPE Type</label>' +
+        '<select class="field-input" id="f-type">' + typeOpts + '</select></div>' +
+      '<div><label class="field-label">Date From (month)</label>' +
+        '<input type="month" class="field-input" id="f-date-from" value="' + (v.dateFrom || '') + '"></div>' +
+      '<div><label class="field-label">Date To (month)</label>' +
+        '<input type="month" class="field-input" id="f-date-to" value="' + (v.dateTo || '') + '"></div>' +
+      '<div><label class="field-label">CPE Credits</label>' +
+        '<input type="number" class="field-input" id="f-cpe" min="0" step="0.5" value="' + (v.cpeCount || '') + '"></div>' +
+      '<div id="f-presenter-wrap"><label class="field-label">Presenter / Instructor</label>' +
+        '<input type="text" class="field-input" id="f-presenter" value="' + escHtml(v.presenter || '') + '"></div>' +
+      '<div id="f-org-wrap"><label class="field-label">Organization / Publisher</label>' +
+        '<input type="text" class="field-input" id="f-org" value="' + escHtml(v.org || '') + '"></div>' +
+      '<div id="f-year-wrap"><label class="field-label">Year Published</label>' +
+        '<input type="number" class="field-input" id="f-year" min="1990" max="2099" value="' + (v.yearPublished || '') + '"></div>' +
+      '<div id="f-url-wrap"><label class="field-label">URL (optional)</label>' +
+        '<input type="url" class="field-input" id="f-url" placeholder="https://..." value="' + escHtml(v.url || '') + '"></div>' +
+    '</div>' +
+    '<div class="domains-section">' +
+      '<span class="field-label">CISSP Domains Covered</span>' +
+      '<div class="domain-pills" id="domain-pills-edit">' + domainPills + '</div>' +
+    '</div>' +
+    '<div class="summary-section">' +
+      '<span class="field-label">Summary (Markdown supported)</span>' +
+      '<textarea id="f-summary" placeholder="Describe what was covered...">' + escHtml(v.summary || '') + '</textarea>' +
+    '</div>' +
+    '<div class="proof-section">' +
+      '<span class="field-label">Proof Files</span>' +
+      '<input type="hidden" id="proof-refs-hidden" value="' + escHtml(JSON.stringify(existingRefs)) + '">' +
+      '<div id="proof-refs-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">' + proofItemsHtml + '</div>' +
+      '<div class="proof-row">' +
+        '<button class="btn" id="btn-attach-proof">Attach File\u2026</button>' +
+        '<span style="font-size:11px;color:var(--text-muted);margin-left:8px">or paste screenshots (Ctrl+V / Cmd+V) anywhere on the page</span>' +
+      '</div>' +
+      '<div id="paste-hint" style="margin-top:6px;font-size:11px;color:var(--text-muted);font-style:italic"></div>' +
+    '</div>' +
+    '<div class="transcript-section' + (v.transcript ? ' done' : '') + '" id="transcript-section">' +
+      '<label class="transcript-label">' +
+        '<input type="checkbox" id="f-transcript"' + (v.transcript ? ' checked' : '') + '>' +
+        '<span class="xscript-text' + (v.transcript ? ' done' : '') + '" id="xscript-text-label">' +
+          (v.transcript ? 'Added to official ISC\u00b2 transcript' : 'Add to official ISC\u00b2 transcript') +
+        '</span>' +
+      '</label>' +
+    '</div>';
+
+  updateConditionalFields();
+  document.getElementById('f-type').addEventListener('change', updateConditionalFields);
+
+  // Domain pill toggles
+  document.querySelectorAll('#domain-pills-edit .domain-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      const cb = pill.querySelector('input[type="checkbox"]');
+      cb.checked = !cb.checked;
+      pill.classList.toggle('checked', cb.checked);
+    });
+    pill.querySelector('input').addEventListener('click', e => e.stopPropagation());
+  });
+
+  // Transcript toggle
+  const xscriptCb = document.getElementById('f-transcript');
+  const xscriptSec = document.getElementById('transcript-section');
+  const xscriptLbl = document.getElementById('xscript-text-label');
+  xscriptCb.addEventListener('change', () => {
+    const done = xscriptCb.checked;
+    xscriptSec.classList.toggle('done', done);
+    xscriptLbl.classList.toggle('done', done);
+    xscriptLbl.textContent = done ? 'Added to official ISC\u00b2 transcript' : 'Add to official ISC\u00b2 transcript';
+  });
+
+  // Wire existing remove buttons
+  document.querySelectorAll('.proof-ref-item .proof-ref-remove').forEach(btn => {
+    btn.addEventListener('click', () => { btn.closest('.proof-ref-item').remove(); updateProofRefsHidden(); });
+  });
+
+  document.getElementById('btn-attach-proof').addEventListener('click', () => attachProofFile(collectFormData()));
+  document.getElementById('btn-save-entry').addEventListener('click', () => collectFormAndSave(true));
+  document.getElementById('btn-cancel-edit').addEventListener('click', cancelEdit);
+  if (!isNewEntry) {
+    document.getElementById('btn-delete-edit').addEventListener('click', () => deleteEntry(activeId));
+  }
+}
+
+function updateConditionalFields() {
+  const typeVal = (document.getElementById('f-type') || {}).value;
+  const t = CPE_TYPES[typeVal] || {};
+  const setVis = (id, show) => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('field-hidden', !show);
+  };
+  setVis('f-presenter-wrap', !!t.showPresenter);
+  setVis('f-org-wrap',       !!t.showOrg);
+  setVis('f-year-wrap',      !!t.showYear);
+  setVis('f-url-wrap',       !!t.showUrl);
+}
+
+function collectFormData() {
+  const domains = [];
+  document.querySelectorAll('#domain-pills-edit input[type="checkbox"]:checked').forEach(cb => domains.push(cb.value));
+  let proofRefs = [];
+  try {
+    const hiddenEl = document.getElementById('proof-refs-hidden');
+    if (hiddenEl) proofRefs = JSON.parse(hiddenEl.value) || [];
+  } catch(e) {}
+  return {
+    title:         (document.getElementById('f-title')     || {}).value || '',
+    type:          (document.getElementById('f-type')      || {}).value || 'webinar',
+    dateFrom:      (document.getElementById('f-date-from') || {}).value || '',
+    dateTo:        (document.getElementById('f-date-to')   || {}).value || '',
+    cpeCount:      parseFloat((document.getElementById('f-cpe') || {}).value) || 0,
+    presenter:     (document.getElementById('f-presenter') || {}).value || '',
+    org:           (document.getElementById('f-org')       || {}).value || '',
+    yearPublished: (document.getElementById('f-year')      || {}).value || '',
+    url:           (document.getElementById('f-url')       || {}).value || '',
+    summary:       (document.getElementById('f-summary')   || {}).value || '',
+    proofRefs:     proofRefs,
+    transcript:    !!(document.getElementById('f-transcript') || {}).checked,
+    domains:       domains,
+  };
+}
+
+function collectFormAndSave(exitEdit) {
+  const formData = collectFormData();
+  const now = new Date().toISOString();
+
+  if (isNewEntry) {
+    const newEntry = { id: uid(), created: now, modified: now, ...formData };
+    data.entries.push(newEntry);
+    activeId = newEntry.id;
+  } else {
+    const idx = data.entries.findIndex(e => e.id === activeId);
+    if (idx >= 0) data.entries[idx] = { ...data.entries[idx], ...formData, modified: now };
+  }
+
+  saveToLocalStorage();
+  setSaveStatus('dirty');
+
+  if (exitEdit) { editMode = false; isNewEntry = false; }
+  renderAll();
+}
+
+function cancelEdit() {
+  editMode = false;
+  isNewEntry = false;
+  renderMain();
+}
+
+// ── Entry actions ─────────────────────────────────────────────────────────────
+
+function openEntry(id) {
+  if (editMode && !confirm('Discard unsaved changes?')) return;
+  editMode = false; isNewEntry = false;
+  activeId = id;
+  renderEntryList();
+  renderMain();
+}
+
+function newEntry() {
+  activeId = null; editMode = true; isNewEntry = true;
+  renderEntryList();
+  renderMain();
+}
+
+function deleteEntry(id) {
+  if (!confirm('Delete this entry?')) return;
+  data.entries = data.entries.filter(e => e.id !== id);
+  if (activeId === id) activeId = null;
+  editMode = false; isNewEntry = false;
+  saveToLocalStorage();
+  setSaveStatus('dirty');
+  renderAll();
+}
+
+// ── Settings modal ────────────────────────────────────────────────────────────
+
+function showSettingsModal() {
+  const overlay = document.createElement('div');
+  overlay.className = 'settings-modal-overlay';
+  overlay.innerHTML =
+    '<div class="settings-modal">' +
+      '<h2>Cycle Settings</h2>' +
+      '<div class="form-field"><label>Cycle Start (month)</label>' +
+        '<input type="month" id="sm-cycle-start" value="' + (data.settings.cycleStart || '') + '"></div>' +
+      '<div class="form-field"><label>CPE Goal (total for cycle)</label>' +
+        '<input type="number" id="sm-goal" value="' + (data.settings.cpeGoal || 120) + '" min="1"></div>' +
+      '<div class="form-field"><label>Group B Max Credits</label>' +
+        '<input type="number" id="sm-group-b-max" value="' + (data.settings.groupBMax || 30) + '" min="1"></div>' +
+      '<p style="font-size:11px;color:var(--text-muted);margin-top:8px">Cycle end is auto-calculated as 36 months after start (e.g. Jul 2024 \u2192 Jun 2027).</p>' +
+      '<div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--border)">' +
+        '<p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Share a blank copy with someone else:</p>' +
+        '<button class="btn btn-danger" id="sm-reset">Clear all entries &amp; reset\u2026</button>' +
+      '</div>' +
+      '<div class="modal-actions">' +
+        '<button class="btn" id="sm-cancel">Cancel</button>' +
+        '<button class="btn btn-primary" id="sm-save">Save</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(overlay);
+  document.getElementById('sm-cancel').addEventListener('click', () => overlay.remove());
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.getElementById('sm-save').addEventListener('click', () => {
+    data.settings.cycleStart = document.getElementById('sm-cycle-start').value || '';
+    data.settings.cpeGoal    = parseInt(document.getElementById('sm-goal').value) || 120;
+    data.settings.groupBMax  = parseInt(document.getElementById('sm-group-b-max').value) || 30;
+    saveToLocalStorage();
+    setSaveStatus('dirty');
+    overlay.remove();
+    renderAll();
+  });
+  document.getElementById('sm-reset').addEventListener('click', () => {
+    if (!confirm('Delete ALL entries and reset settings? This cannot be undone.\n\nSave the file after resetting to share a blank copy.')) return;
+    data.entries = [];
+    data.settings = { cycleStart: '', cpeGoal: 120, groupBMax: 30 };
+    activeId = null; editMode = false; isNewEntry = false;
+    saveToLocalStorage();
+    setSaveStatus('dirty');
+    overlay.remove();
+    renderAll();
+  });
+}
+
+// ── Full render ───────────────────────────────────────────────────────────────
+
+function renderAll() {
+  renderCycleStats();
+  renderEntryList();
+  renderMain();
+}
+
+// ── Wire events ───────────────────────────────────────────────────────────────
+
+function wireEvents() {
+  document.getElementById('btn-new').addEventListener('click', newEntry);
+  document.getElementById('btn-save-hdr').addEventListener('click', saveOrDownload);
+
+  // Import button — guard against duplicate injection (outerHTML fallback bakes it into saved HTML)
+  if (!document.getElementById('btn-import')) {
+    const importBtn = document.createElement('button');
+    importBtn.id = 'btn-import';
+    importBtn.title = 'Import ISC² transcript (PDF or CSV)';
+    importBtn.textContent = 'Import';
+    importBtn.style.cssText = 'font-size:11px;padding:3px 8px;background:var(--bg-ctrl);border:1px solid var(--border);border-radius:4px;color:var(--text);cursor:pointer;white-space:nowrap;flex-shrink:0';
+    importBtn.addEventListener('mouseover', () => { importBtn.style.background = 'var(--bg-hover)'; });
+    importBtn.addEventListener('mouseout',  () => { importBtn.style.background = 'var(--bg-ctrl)'; });
+    importBtn.addEventListener('click', showImportModal);
+    const hdr = document.getElementById('sidebar-hdr');
+    if (hdr) hdr.insertBefore(importBtn, document.getElementById('btn-save-hdr'));
+  } else {
+    document.getElementById('btn-import').addEventListener('click', showImportModal);
+  }
+
+  document.getElementById('search-input').addEventListener('input', e => {
+    searchQuery = e.target.value;
+    renderEntryList();
+  });
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeFilter = btn.dataset.filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b === btn));
+      renderEntryList();
+    });
+  });
+
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.addEventListener('click', () => setTheme(btn.dataset.theme));
+  });
+
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      saveOrDownload();
+    }
+  });
+
+  // Paste image handler (active only when edit form is open)
+  document.addEventListener('paste', handlePaste);
+
+  window.addEventListener('beforeunload', e => {
+    if (isDirty) { e.preventDefault(); e.returnValue = ''; }
+  });
+}
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────────
+
+async function bootstrap() {
+  loadData();
+  const savedTheme = localStorage.getItem(LS_THEME) || 'light';
+  setTheme(savedTheme);
+  wireEvents();
+  renderAll();
+  cacheOriginalHtml();
+}
+
+bootstrap();
+</script>
+</body>
+</html>

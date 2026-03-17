@@ -1,0 +1,76 @@
+<h2>Main page structure: how should live vs. reference content split?</h2>
+<p class="subtitle">You want live "pulse check" content on the main view and static links elsewhere. Which structure fits best?</p>
+
+<div class="options">
+
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Tabs across the top</h3>
+      <p><strong>Tab 1 – Morning Briefing</strong> (default): KEV/CVEs, RSS news stories, filtered Reddit, regulations panel. Everything live.</p>
+      <p style="margin-top:6px;"><strong>Tab 2 – Resources</strong>: The current "news" link tiles, vendor patch links, threat intel lookups, CVE lookup tool.</p>
+      <div class="mockup" style="margin-top:10px;">
+        <div class="mockup-header">Preview</div>
+        <div class="mockup-body" style="padding:12px;">
+          <div style="display:flex;gap:0;border-bottom:2px solid #5c8dd4;margin-bottom:12px;">
+            <div style="padding:6px 16px;background:#5c8dd4;color:#fff;font-size:12px;font-weight:600;border-radius:4px 4px 0 0;">📰 Morning Briefing</div>
+            <div style="padding:6px 16px;color:#8b949e;font-size:12px;border-radius:4px 4px 0 0;">🔗 Resources</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div style="background:#22252a;border:1px solid #30363d;border-radius:6px;padding:8px;font-size:11px;color:#8b949e;">🔴 CISA KEV (live)</div>
+            <div style="background:#22252a;border:1px solid #30363d;border-radius:6px;padding:8px;font-size:11px;color:#8b949e;">⚠️ Critical CVEs (live)</div>
+            <div style="background:#22252a;border:1px solid #30363d;border-radius:6px;padding:8px;font-size:11px;color:#8b949e;">📰 Security News (RSS)</div>
+            <div style="background:#22252a;border:1px solid #30363d;border-radius:6px;padding:8px;font-size:11px;color:#8b949e;">💬 Reddit (filtered)</div>
+            <div style="background:#22252a;border:1px solid #30363d;border-radius:6px;padding:8px;font-size:11px;color:#8b949e;grid-column:1/-1;">📋 Regulations (state + federal)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Keep single page, replace link panels with live content</h3>
+      <p>No tabs. The "Banking Security News" link grid becomes an RSS stories panel. The vendor patch links move into a collapsible section at the bottom. Everything on one scrollable page.</p>
+      <div class="mockup" style="margin-top:10px;">
+        <div class="mockup-header">Preview</div>
+        <div class="mockup-body" style="padding:12px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div style="background:#22252a;border:1px solid #30363d;border-radius:6px;padding:8px;font-size:11px;color:#8b949e;">🔴 CISA KEV (live)</div>
+            <div style="background:#22252a;border:1px solid #30363d;border-radius:6px;padding:8px;font-size:11px;color:#8b949e;">⚠️ Critical CVEs (live)</div>
+            <div style="background:#22252a;border:1px solid #30363d;border-radius:6px;padding:8px;font-size:11px;color:#8b949e;">📰 Security News (RSS → stories)</div>
+            <div style="background:#22252a;border:1px solid #30363d;border-radius:6px;padding:8px;font-size:11px;color:#8b949e;">💬 Reddit (filtered)</div>
+            <div style="background:#22252a;border:1px solid #30363d;border-radius:6px;padding:8px;font-size:11px;color:#8b949e;grid-column:1/-1;">📋 Regulations</div>
+            <div style="background:#22252a;border:1px solid #30363d;border-radius:6px;padding:8px;font-size:11px;color:#8b949e;grid-column:1/-1;opacity:0.5;">▾ Reference Links (collapsed)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Tabs + sidebar nav (wider layout)</h3>
+      <p>Left sidebar with icon nav (Briefing / Resources / Threat Intel). Main content area shows the selected section. More room per panel since no grid cramping.</p>
+      <div class="mockup" style="margin-top:10px;">
+        <div class="mockup-header">Preview</div>
+        <div class="mockup-body" style="padding:12px;display:flex;gap:8px;">
+          <div style="width:80px;background:#1f2228;border:1px solid #30363d;border-radius:6px;padding:8px;font-size:10px;color:#8b949e;display:flex;flex-direction:column;gap:8px;">
+            <div style="color:#5c8dd4;font-weight:600;">📰 Brief</div>
+            <div>🔗 Links</div>
+            <div>🔍 Intel</div>
+          </div>
+          <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div style="background:#22252a;border:1px solid #30363d;border-radius:6px;padding:8px;font-size:11px;color:#8b949e;">🔴 KEV</div>
+            <div style="background:#22252a;border:1px solid #30363d;border-radius:6px;padding:8px;font-size:11px;color:#8b949e;">⚠️ CVEs</div>
+            <div style="background:#22252a;border:1px solid #30363d;border-radius:6px;padding:8px;font-size:11px;color:#8b949e;">📰 RSS News</div>
+            <div style="background:#22252a;border:1px solid #30363d;border-radius:6px;padding:8px;font-size:11px;color:#8b949e;">💬 Reddit</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

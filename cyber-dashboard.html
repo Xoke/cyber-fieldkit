@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cyber Dashboard</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; }
+
+html[data-theme="light"] {
+  --bg: #fff; --bg-alt: #fafbfc; --bg-ctrl: #fff; --bg-hover: rgba(0,0,0,0.04);
+  --border: #e1e4e8; --text: #24292e; --text-muted: #6a737d;
+  --accent: #4a6fa5; --accent-hover: #3d5d8a; --accent-light: #e8eef7;
+}
+html[data-theme="sepia"] {
+  --bg: #f9f5ef; --bg-alt: #f2ece3; --bg-ctrl: #f9f5ef; --bg-hover: rgba(0,0,0,0.04);
+  --border: #d5cdc0; --text: #3b2f1e; --text-muted: #7d6e5a;
+  --accent: #7a5c2e; --accent-hover: #614a24; --accent-light: #ecdfc9;
+}
+html[data-theme="dusk"] {
+  --bg: #1e2233; --bg-alt: #232840; --bg-ctrl: #252a3d; --bg-hover: rgba(255,255,255,0.05);
+  --border: #343a54; --text: #d0d4e8; --text-muted: #7e86a8;
+  --accent: #7b9fd4; --accent-hover: #9ab6e2; --accent-light: #2a3354;
+}
+html[data-theme="dark"] {
+  --bg: #1a1b1e; --bg-alt: #1f2228; --bg-ctrl: #22252a; --bg-hover: rgba(255,255,255,0.05);
+  --border: #30363d; --text: #e1e4e8; --text-muted: #8b949e;
+  --accent: #5c8dd4; --accent-hover: #79a3e0; --accent-light: #1c2a3f;
+}
+
+:root {
+  --critical: #e53e3e;
+  --high: #dd6b20;
+  --medium: #d69e2e;
+  --low: #38a169;
+  --critical-bg: rgba(229,62,62,0.08);
+  --high-bg: rgba(221,107,32,0.08);
+}
+
+body { background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* Header */
+#header {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; padding: 0 20px; height: 46px;
+  background: var(--bg-alt); border-bottom: 1px solid var(--border);
+  gap: 12px; flex-shrink: 0;
+}
+#app-name { font-weight: 700; font-size: 15px; }
+#last-updated { font-size: 12px; color: var(--text-muted); flex: 1; }
+#refresh-all-btn {
+  padding: 5px 12px; background: var(--accent); color: #fff;
+  border: none; border-radius: 5px; font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: background 0.15s;
+}
+#refresh-all-btn:hover { background: var(--accent-hover); }
+.theme-btn {
+  width: 16px; height: 16px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; padding: 0; outline: none;
+  transition: transform 0.1s;
+}
+.theme-btn:hover { transform: scale(1.2); }
+.theme-btn.active { border-color: var(--text); }
+.theme-btn[data-t="light"] { background: #fff; box-shadow: 0 0 0 1px #ccc; }
+.theme-btn[data-t="sepia"] { background: #c8a97e; }
+.theme-btn[data-t="dusk"]  { background: #4a5580; }
+.theme-btn[data-t="dark"]  { background: #2a2d35; box-shadow: 0 0 0 1px #555; }
+
+/* Grid */
+#content { padding: 20px; }
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.col-span-2 { grid-column: 1 / -1; }
+
+@media (max-width: 860px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .col-span-2 { grid-column: 1; }
+}
+
+/* Panel card */
+.panel {
+  background: var(--bg-alt); border: 1px solid var(--border);
+  border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;
+}
+.panel-header {
+  display: flex; align-items: center; padding: 10px 14px;
+  border-bottom: 1px solid var(--border); gap: 8px; flex-shrink: 0;
+}
+.panel-title { font-size: 13px; font-weight: 600; flex: 1; }
+.panel-header-links { display: flex; align-items: center; gap: 6px; }
+.panel-link {
+  font-size: 11px; color: var(--accent); text-decoration: none; white-space: nowrap;
+}
+.panel-link:hover { text-decoration: underline; }
+.panel-refresh {
+  padding: 3px 8px; background: var(--bg-ctrl); color: var(--text-muted);
+  border: 1px solid var(--border); border-radius: 4px; font-size: 11px;
+  cursor: pointer; transition: color 0.15s, background 0.15s;
+}
+.panel-refresh:hover { color: var(--text); background: var(--bg-hover); }
+.panel-body {
+  padding: 10px 14px; overflow-y: auto; max-height: 340px; flex: 1;
+}
+.panel-body.no-scroll { overflow-y: visible; max-height: none; }
+
+/* States */
+.loading-state, .error-state { padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
+.error-state { color: var(--critical); }
+.error-link { color: var(--accent); font-size: 12px; margin-top: 6px; display: block; text-decoration: none; }
+.error-link:hover { text-decoration: underline; }
+.spinner {
+  display: inline-block; width: 16px; height: 16px;
+  border: 2px solid var(--border); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Feed items */
+.feed-list { list-style: none; }
+.feed-item {
+  padding: 6px 0; border-bottom: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.feed-item:last-child { border-bottom: none; }
+.feed-item.banking-relevant { background: var(--accent-light); border-left: 3px solid var(--accent); padding-left: 8px; margin-left: -14px; padding-left: 11px; }
+.reddit-sub { font-size: 10px; padding: 1px 5px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 3px; color: var(--text-muted); }
+.feed-item-title {
+  font-size: 13px; color: var(--text); text-decoration: none; line-height: 1.4;
+}
+.feed-item-title:hover { color: var(--accent); }
+.feed-item-meta { font-size: 11px; color: var(--text-muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.feed-item-meta a { color: var(--text-muted); text-decoration: none; }
+.feed-item-meta a:hover { color: var(--accent); }
+
+/* CVSS badge */
+.cvss-badge {
+  display: inline-block; padding: 1px 6px; border-radius: 3px;
+  font-size: 11px; font-weight: 600; color: #fff;
+}
+.badge-critical { background: var(--critical); }
+.badge-high { background: var(--high); }
+.badge-medium { background: var(--medium); }
+.badge-low { background: var(--low); }
+
+/* KEV due date */
+.due-overdue { color: var(--critical); font-weight: 600; }
+.due-soon { color: var(--high); font-weight: 600; }
+.due-ok { color: var(--text-muted); }
+
+/* Link grid (news panel) */
+.link-section { margin-bottom: 14px; }
+.link-section-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--text-muted); margin-bottom: 8px; padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+}
+.link-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.link-tile {
+  padding: 5px 11px; background: var(--accent-light); color: var(--accent);
+  border: 1px solid var(--border); border-radius: 4px; font-size: 12px; font-weight: 500;
+  text-decoration: none; white-space: nowrap; transition: background 0.12s, color 0.12s;
+}
+.link-tile:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* Threat Intel */
+.ti-input-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.ti-input {
+  flex: 1; min-width: 200px; padding: 7px 10px;
+  background: var(--bg-ctrl); border: 1px solid var(--border);
+  border-radius: 5px; color: var(--text); font-size: 13px; outline: none;
+  font-family: inherit; transition: border-color 0.15s;
+}
+.ti-input:focus { border-color: var(--accent); }
+.ti-select {
+  padding: 7px 10px; background: var(--bg-ctrl); border: 1px solid var(--border);
+  border-radius: 5px; color: var(--text); font-size: 13px; outline: none;
+  font-family: inherit; cursor: pointer;
+}
+.btn-primary {
+  padding: 7px 14px; background: var(--accent); color: #fff;
+  border: none; border-radius: 5px; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: background 0.15s; white-space: nowrap;
+}
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-secondary {
+  padding: 7px 12px; background: var(--bg-ctrl); color: var(--text);
+  border: 1px solid var(--border); border-radius: 5px; font-size: 13px;
+  cursor: pointer; transition: background 0.15s;
+}
+.btn-secondary:hover { background: var(--bg-hover); }
+.svc-group { margin-bottom: 10px; }
+.svc-group-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--text-muted); margin-bottom: 6px;
+}
+.svc-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+.svc-btn {
+  padding: 5px 12px; background: var(--accent-light); color: var(--accent);
+  border: 1px solid var(--border); border-radius: 4px; font-size: 12px;
+  font-weight: 500; cursor: pointer; transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+.svc-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.svc-open-all {
+  padding: 5px 12px; background: var(--accent); color: #fff;
+  border: none; border-radius: 4px; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: background 0.15s;
+}
+.svc-open-all:hover { background: var(--accent-hover); }
+
+/* CVE Lookup */
+.cve-input-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.cve-result {
+  background: var(--bg-ctrl); border: 1px solid var(--border);
+  border-radius: 6px; padding: 12px; margin-top: 8px;
+}
+.cve-result-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.cve-id { font-size: 15px; font-weight: 700; }
+.cve-desc { font-size: 13px; color: var(--text); line-height: 1.5; margin-bottom: 10px; }
+.cve-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+.cve-links { display: flex; flex-wrap: wrap; gap: 6px; }
+.cve-link {
+  padding: 4px 10px; background: var(--accent-light); color: var(--accent);
+  border: 1px solid var(--border); border-radius: 4px; font-size: 12px;
+  text-decoration: none; font-weight: 500; transition: background 0.12s, color 0.12s;
+}
+.cve-link:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* Vendor links */
+.vendor-section { margin-bottom: 12px; }
+.vendor-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--text-muted); margin-bottom: 7px; padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+}
+.vendor-links { display: flex; flex-wrap: wrap; gap: 6px; }
+.vendor-link {
+  padding: 4px 10px; background: var(--accent-light); color: var(--accent);
+  border: 1px solid var(--border); border-radius: 4px; font-size: 12px;
+  text-decoration: none; font-weight: 500; transition: background 0.12s, color 0.12s;
+}
+.vendor-link:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* Patch Tuesday */
+.pt-main { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+.pt-countdown { font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+.pt-last { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+.pt-link {
+  font-size: 12px; color: var(--accent); text-decoration: none;
+}
+.pt-link:hover { text-decoration: underline; }
+
+/* Software match highlight */
+.feed-item.sw-match { background: rgba(214,158,46,0.1); border-left: 3px solid var(--medium); padding-left: 11px; margin-left: -14px; }
+
+/* Settings */
+#settings-btn {
+  width: 28px; height: 28px; background: var(--bg-ctrl); border: 1px solid var(--border);
+  border-radius: 5px; color: var(--text-muted); font-size: 15px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: color 0.15s, background 0.15s;
+}
+#settings-btn:hover { color: var(--text); background: var(--bg-hover); }
+#settings-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200;
+  display: none; justify-content: flex-end;
+}
+#settings-overlay.open { display: flex; }
+#settings-panel {
+  width: 340px; max-width: 100vw;
+  background: var(--bg-alt); border-left: 1px solid var(--border);
+  height: 100%; overflow-y: auto; display: flex; flex-direction: column;
+  box-shadow: -4px 0 20px rgba(0,0,0,0.3);
+}
+#settings-head {
+  display: flex; align-items: center; padding: 14px 16px;
+  border-bottom: 1px solid var(--border); gap: 8px; flex-shrink: 0;
+}
+#settings-head h2 { font-size: 14px; font-weight: 700; flex: 1; }
+#settings-close { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--text-muted); line-height: 1; padding: 2px 4px; }
+#settings-close:hover { color: var(--text); }
+.settings-body { padding: 16px; flex: 1; display: flex; flex-direction: column; gap: 18px; }
+.settings-section-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-muted); margin-bottom: 8px; padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+}
+.settings-select {
+  width: 100%; padding: 7px 10px; background: var(--bg-ctrl); border: 1px solid var(--border);
+  border-radius: 5px; color: var(--text); font-size: 13px; font-family: inherit;
+  cursor: pointer; outline: none; transition: border-color 0.15s;
+}
+.settings-select:focus { border-color: var(--accent); }
+.check-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.check-item { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+.check-item input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; flex-shrink: 0; }
+.chip-wrap {
+  display: flex; flex-wrap: wrap; gap: 5px; padding: 6px;
+  background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 5px;
+  min-height: 38px; align-items: flex-start; cursor: text;
+}
+.chip-wrap:focus-within { border-color: var(--accent); }
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 7px; background: var(--accent-light); color: var(--accent);
+  border: 1px solid var(--border); border-radius: 12px; font-size: 12px; white-space: nowrap;
+}
+.chip-remove { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 13px; line-height: 1; padding: 0 1px; }
+.chip-remove:hover { color: var(--critical); }
+.chip-input { border: none; outline: none; background: none; color: var(--text); font-size: 12px; font-family: inherit; min-width: 100px; flex: 1; }
+.settings-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.settings-actions { display: flex; gap: 8px; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div id="app-name">Cyber Dashboard</div>
+  <div id="last-updated">Last updated: —</div>
+  <button id="refresh-all-btn" onclick="refreshAll()">↻ Refresh All</button>
+  <button class="theme-btn" data-t="light"  title="Light"></button>
+  <button class="theme-btn" data-t="sepia"  title="Sepia"></button>
+  <button class="theme-btn" data-t="dusk"   title="Dusk"></button>
+  <button class="theme-btn" data-t="dark"   title="Dark"></button>
+  <button id="settings-btn" onclick="openSettings()" title="Settings">⚙</button>
+</div>
+
+<div id="content">
+<div class="dashboard-grid">
+
+  <!-- Row 1: CISA KEV | NVD Critical CVEs -->
+  <div class="panel" id="panel-kev">
+    <div class="panel-header">
+      <span class="panel-title">CISA Known Exploited Vulnerabilities</span>
+      <div class="panel-header-links">
+        <a class="panel-link" href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" target="_blank" rel="noopener">View all ↗</a>
+        <button class="panel-refresh" onclick="loadKEV()">↻ Refresh</button>
+      </div>
+    </div>
+    <div class="panel-body" id="kev-body"><div class="loading-state"><span class="spinner"></span>Loading…</div></div>
+  </div>
+
+  <div class="panel" id="panel-nvd">
+    <div class="panel-header">
+      <span class="panel-title">NVD Recent Critical CVEs</span>
+      <div class="panel-header-links">
+        <a class="panel-link" href="https://nvd.nist.gov/vuln/search" target="_blank" rel="noopener">Search NVD ↗</a>
+        <button class="panel-refresh" onclick="loadNVD()">↻ Refresh</button>
+      </div>
+    </div>
+    <div class="panel-body" id="nvd-body"><div class="loading-state"><span class="spinner"></span>Loading…</div></div>
+  </div>
+
+  <!-- Row 2: r/netsec | News & Community -->
+  <div class="panel" id="panel-reddit">
+    <div class="panel-header">
+      <span class="panel-title">Security Community <span id="reddit-kw-label" style="font-weight:400;color:var(--accent);font-size:11px;">★ = industry relevant</span></span>
+      <div class="panel-header-links">
+        <a class="panel-link" href="https://www.reddit.com/r/netsec/" target="_blank" rel="noopener">r/netsec ↗</a>
+        <a class="panel-link" href="https://www.reddit.com/r/cybersecurity/" target="_blank" rel="noopener">r/cybersecurity ↗</a>
+        <button class="panel-refresh" onclick="loadReddit()">↻ Refresh</button>
+      </div>
+    </div>
+    <div class="panel-body" id="reddit-body"><div class="loading-state"><span class="spinner"></span>Loading…</div></div>
+  </div>
+
+  <div class="panel" id="panel-news">
+    <div class="panel-header">
+      <span class="panel-title" id="news-title">Security News</span>
+    </div>
+    <div class="panel-body no-scroll" id="news-body"></div>
+  </div>
+
+  <!-- Row 3: Threat Intel Lookup (full width) -->
+  <div class="panel col-span-2" id="panel-ti">
+    <div class="panel-header">
+      <span class="panel-title">Threat Intel Lookup</span>
+    </div>
+    <div class="panel-body no-scroll" id="ti-body">
+      <div class="ti-input-row">
+        <input class="ti-input" id="ti-val" type="text" placeholder="IP, domain, hash, or URL…" autocomplete="off" oninput="tiDetect()" onkeydown="if(event.key==='Enter')tiDetect()">
+        <select class="ti-select" id="ti-type" onchange="tiRender()">
+          <option value="ip">IP</option>
+          <option value="domain">Domain</option>
+          <option value="hash">Hash</option>
+          <option value="url">URL</option>
+        </select>
+        <button class="btn-primary" onclick="tiDetect()">Detect</button>
+      </div>
+      <div id="ti-services"></div>
+    </div>
+  </div>
+
+  <!-- Row 4: CVE Lookup | Vendor Patch Pages -->
+  <div class="panel" id="panel-cve">
+    <div class="panel-header">
+      <span class="panel-title">CVE Lookup</span>
+    </div>
+    <div class="panel-body no-scroll" id="cve-body">
+      <div class="cve-input-row">
+        <input class="ti-input" id="cve-input" type="text" placeholder="CVE-2024-12345" autocomplete="off" onkeydown="if(event.key==='Enter')lookupCVE()">
+        <button class="btn-primary" onclick="lookupCVE()">Look Up</button>
+        <button class="btn-secondary" onclick="clearCVE()">Clear</button>
+      </div>
+      <div id="cve-result"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-vendor">
+    <div class="panel-header">
+      <span class="panel-title">Vendor Patch Pages</span>
+    </div>
+    <div class="panel-body no-scroll">
+      <div class="vendor-section">
+        <div class="vendor-label">Microsoft</div>
+        <div class="vendor-links">
+          <a class="vendor-link" href="https://msrc.microsoft.com/update-guide/" target="_blank" rel="noopener">Security Update Guide</a>
+          <a class="vendor-link" href="https://msrc.microsoft.com/blog/" target="_blank" rel="noopener">MSRC Blog</a>
+        </div>
+      </div>
+      <div class="vendor-section">
+        <div class="vendor-label">Network</div>
+        <div class="vendor-links">
+          <a class="vendor-link" href="https://sec.cloudapps.cisco.com/security/center/publicationListing.x" target="_blank" rel="noopener">Cisco Advisories</a>
+          <a class="vendor-link" href="https://security.paloaltonetworks.com/" target="_blank" rel="noopener">Palo Alto</a>
+          <a class="vendor-link" href="https://www.fortiguard.com/psirt" target="_blank" rel="noopener">Fortinet</a>
+        </div>
+      </div>
+      <div class="vendor-section">
+        <div class="vendor-label">OS / Platform</div>
+        <div class="vendor-links">
+          <a class="vendor-link" href="https://support.apple.com/en-us/HT201222" target="_blank" rel="noopener">Apple Security</a>
+          <a class="vendor-link" href="https://chromereleases.googleblog.com/" target="_blank" rel="noopener">Chrome Releases</a>
+          <a class="vendor-link" href="https://www.mozilla.org/en-US/security/advisories/" target="_blank" rel="noopener">Mozilla Security</a>
+        </div>
+      </div>
+      <div class="vendor-section">
+        <div class="vendor-label">Other</div>
+        <div class="vendor-links">
+          <a class="vendor-link" href="https://support.broadcom.com/web/ecx/security-advisory" target="_blank" rel="noopener">VMware/Broadcom</a>
+          <a class="vendor-link" href="https://support.sap.com/en/my-support/security-notes.html" target="_blank" rel="noopener">SAP Security Notes</a>
+          <a class="vendor-link" href="https://www.oracle.com/security-alerts/" target="_blank" rel="noopener">Oracle</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 5: Patch Tuesday Countdown | (placeholder filled with quick stats) -->
+  <div class="panel" id="panel-pt">
+    <div class="panel-header">
+      <span class="panel-title">Patch Tuesday Countdown</span>
+    </div>
+    <div class="panel-body no-scroll" id="pt-body"></div>
+  </div>
+
+  <div class="panel" id="panel-refs">
+    <div class="panel-header">
+      <span class="panel-title" id="refs-title">Regulatory Quick Reference</span>
+    </div>
+    <div class="panel-body no-scroll" id="refs-body"></div>
+  </div>
+
+</div><!-- .dashboard-grid -->
+</div><!-- #content -->
+
+<div id="settings-overlay" onclick="if(event.target===this)closeSettings()">
+  <div id="settings-panel">
+    <div id="settings-head">
+      <h2>⚙ Dashboard Settings</h2>
+      <button id="settings-close" onclick="closeSettings()" title="Close">✕</button>
+    </div>
+    <div class="settings-body">
+      <div class="settings-section">
+        <div class="settings-section-label">Industry</div>
+        <select class="settings-select" id="s-industry">
+          <option value="banking">Financial Services / Banking</option>
+          <option value="healthcare">Healthcare</option>
+          <option value="retail">Retail / E-commerce</option>
+          <option value="technology">Technology</option>
+          <option value="legal">Legal / Professional Services</option>
+          <option value="government">Government / Public Sector</option>
+        </select>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-label">States (select all that apply)</div>
+        <div class="check-grid" id="s-states">
+          <label class="check-item"><input type="checkbox" value="CA"> California</label>
+          <label class="check-item"><input type="checkbox" value="NV"> Nevada</label>
+          <label class="check-item"><input type="checkbox" value="NY"> New York</label>
+          <label class="check-item"><input type="checkbox" value="TX"> Texas</label>
+          <label class="check-item"><input type="checkbox" value="FL"> Florida</label>
+          <label class="check-item"><input type="checkbox" value="CO"> Colorado</label>
+          <label class="check-item"><input type="checkbox" value="WA"> Washington</label>
+          <label class="check-item"><input type="checkbox" value="IL"> Illinois</label>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-label">Software / Systems in Use</div>
+        <div class="chip-wrap" id="s-chips" onclick="document.getElementById('s-sw-input').focus()">
+          <input class="chip-input" id="s-sw-input" type="text" placeholder="Type name, press Enter…" onkeydown="chipKeydown(event)">
+        </div>
+        <div class="settings-hint">Matching KEV and CVE entries will be highlighted ⚡</div>
+      </div>
+      <div class="settings-actions">
+        <button class="btn-primary" onclick="applySettings()">Save &amp; Apply</button>
+        <button class="btn-secondary" onclick="closeSettings()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Theme ───────────────────────────────────────────────────────────────────
+const THEME_KEY = 'cyber-dash-theme';
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem(THEME_KEY, t);
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.t === t));
+}
+document.querySelectorAll('.theme-btn').forEach(b => b.addEventListener('click', () => applyTheme(b.dataset.t)));
+applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+
+// ─── Settings Data ────────────────────────────────────────────────────────────
+const SETTINGS_KEY = 'cyber-dash-settings';
+const DEFAULT_SETTINGS = { industry: 'banking', states: ['CA', 'NV'], software: [] };
+
+const PROFILE_DATA = {
+  industries: {
+    banking: {
+      label: 'Financial Services / Banking',
+      kwPattern: /\b(bank|financ|credit.?union|payment|swift|wire.?fraud|fraud|fdic|occ\b|ffiec|glba|cfpb|fintech|lending|mortgage|breach.?notif|ransomware|phish|community.?bank|data.?breach)\b/i,
+      newsTitle: 'Banking Security News',
+      news: [
+        { label: 'Banking & Financial Security', links: [
+          { name: 'BankInfoSecurity', url: 'https://www.bankinfosecurity.com/' },
+          { name: 'ABA Cybersecurity', url: 'https://www.aba.com/banking-topics/risk/cybersecurity' },
+          { name: 'FS-ISAC', url: 'https://www.fsisac.com/knowledge' },
+          { name: 'Krebs on Security', url: 'https://krebsonsecurity.com/' },
+          { name: 'American Banker', url: 'https://www.americanbanker.com/tag/cybersecurity' },
+          { name: 'Bank Director', url: 'https://www.bankdirector.com/issues/risk/' },
+        ]},
+        { label: 'Infosec News', links: [
+          { name: 'Bleeping Computer', url: 'https://www.bleepingcomputer.com/' },
+          { name: 'Dark Reading', url: 'https://www.darkreading.com/' },
+          { name: 'SANS ISC', url: 'https://isc.sans.edu/' },
+          { name: 'Risky Business', url: 'https://risky.biz/' },
+        ]},
+        { label: 'Federal Banking Regulators', links: [
+          { name: 'FFIEC Cyber', url: 'https://www.ffiec.gov/press/cybersecurity.htm' },
+          { name: 'OCC Alerts', url: 'https://www.occ.gov/news-issuances/alerts/index-alerts.html' },
+          { name: 'FDIC FILs', url: 'https://www.fdic.gov/news/financial-institution-letters/' },
+          { name: 'CFPB Guidance', url: 'https://www.consumerfinance.gov/policy-compliance/guidance/' },
+        ]},
+      ],
+      federalRegs: [{ label: 'Federal Banking Rules',
+        html: `<strong style="color:var(--text);">GLBA Safeguards Rule (FTC, 16 CFR §314)</strong> — notify FTC within <strong style="color:var(--critical);">30 days</strong> of discovering breach affecting <strong style="color:var(--text);">500+ customers</strong>. Updated enforcement 2023.<br><strong style="color:var(--text);">OCC/FDIC/Fed Notification Rule</strong> — notify primary federal regulator within <strong style="color:var(--critical);">36 hours</strong> of a "computer-security incident."`,
+        links: [
+          { name: 'FTC Safeguards Rule', url: 'https://www.ftc.gov/legal-library/browse/rules/safeguards-rule' },
+          { name: 'FFIEC Cyber Guidance', url: 'https://www.ffiec.gov/press/cybersecurity.htm' },
+          { name: 'OCC Cybersecurity', url: 'https://www.occ.gov/topics/supervision-and-examination/cybersecurity/index-cybersecurity.html' },
+          { name: 'FDIC Notification', url: 'https://www.fdic.gov/regulations/applications/financial-institution-notification.html' },
+        ]
+      }]
+    },
+    healthcare: {
+      label: 'Healthcare',
+      kwPattern: /\b(health|hospital|hipaa|phi\b|ehr\b|emr\b|patient|medical|clinical|ransomware|phish|data.?breach|breach.?notif|hhs\b|cms\b|fda\b|telehealth|insurance)\b/i,
+      newsTitle: 'Healthcare Security News',
+      news: [
+        { label: 'Healthcare Security', links: [
+          { name: 'Health Security', url: 'https://www.healthcareinfosecurity.com/' },
+          { name: 'HIPAA Journal', url: 'https://www.hipaajournal.com/' },
+          { name: 'Dark Reading', url: 'https://www.darkreading.com/' },
+          { name: 'Bleeping Computer', url: 'https://www.bleepingcomputer.com/' },
+        ]},
+        { label: 'Infosec News', links: [
+          { name: 'Krebs on Security', url: 'https://krebsonsecurity.com/' },
+          { name: 'SANS ISC', url: 'https://isc.sans.edu/' },
+          { name: 'Risky Business', url: 'https://risky.biz/' },
+        ]},
+        { label: 'Federal Health Regulators', links: [
+          { name: 'HHS OCR', url: 'https://www.hhs.gov/hipaa/for-professionals/breach-notification/index.html' },
+          { name: 'HHS 405(d)', url: 'https://405d.hhs.gov/' },
+          { name: 'CISA Health', url: 'https://www.cisa.gov/topics/critical-infrastructure-security-and-resilience/critical-infrastructure-sectors/healthcare-and-public-health-sector' },
+          { name: 'FDA Cybersecurity', url: 'https://www.fda.gov/medical-devices/digital-health-center-excellence/cybersecurity' },
+        ]},
+      ],
+      federalRegs: [{ label: 'HIPAA Breach Notification',
+        html: `<strong style="color:var(--text);">HIPAA Breach Notification Rule (45 CFR §§164.400–414)</strong> — notify affected individuals within <strong style="color:var(--critical);">60 days</strong> of discovery. Notify HHS and media if breach affects <strong style="color:var(--text);">500+ individuals</strong> in a state. Small breaches logged and reported annually.`,
+        links: [
+          { name: 'HHS OCR Breach Portal', url: 'https://ocrportal.hhs.gov/ocr/breach/wizard.jsf' },
+          { name: 'HIPAA Breach Rule', url: 'https://www.hhs.gov/hipaa/for-professionals/breach-notification/index.html' },
+        ]
+      }]
+    },
+    retail: {
+      label: 'Retail / E-commerce',
+      kwPattern: /\b(retail|e.?commerce|pci\b|pci.?dss|payment.?card|skimming|magecart|pos\b|point.?of.?sale|credit.?card|debit.?card|customer.?data|ftc|data.?breach|ransomware|phish)\b/i,
+      newsTitle: 'Retail Security News',
+      news: [
+        { label: 'Retail & Payment Security', links: [
+          { name: 'SC Magazine', url: 'https://www.scmagazine.com/' },
+          { name: 'Bleeping Computer', url: 'https://www.bleepingcomputer.com/' },
+          { name: 'Dark Reading', url: 'https://www.darkreading.com/' },
+          { name: 'Krebs on Security', url: 'https://krebsonsecurity.com/' },
+        ]},
+        { label: 'Payment Security', links: [
+          { name: 'PCI SSC News', url: 'https://www.pcisecuritystandards.org/news/' },
+          { name: 'Visa Security', url: 'https://www.visa.com/splisting/searchGrsp.do' },
+        ]},
+        { label: 'Regulators', links: [
+          { name: 'FTC Consumer Info', url: 'https://www.ftc.gov/news-events/news/press-releases' },
+          { name: 'CISA Alerts', url: 'https://www.cisa.gov/news-events/cybersecurity-advisories' },
+        ]},
+      ],
+      federalRegs: [{ label: 'Federal Retail / Payment Rules',
+        html: `<strong style="color:var(--text);">FTC Act §5</strong> — unfair or deceptive acts; FTC can enforce data security practices. No specific federal breach timeline for general retail.<br><strong style="color:var(--text);">PCI DSS v4.0</strong> — contractually required by card brands. Mandatory reporting upon confirmed cardholder data breach.`,
+        links: [
+          { name: 'FTC Data Security', url: 'https://www.ftc.gov/tips-advice/business-center/privacy-and-security/data-security' },
+          { name: 'PCI SSC', url: 'https://www.pcisecuritystandards.org/' },
+        ]
+      }]
+    },
+    technology: {
+      label: 'Technology',
+      kwPattern: /\b(cloud|api\b|saas\b|supply.?chain|zero.?day|exploit|cisa|vulnerability|ransomware|phish|data.?breach|oauth|authentication|encryption|container|kubernetes|docker)\b/i,
+      newsTitle: 'Tech Security News',
+      news: [
+        { label: 'Security News', links: [
+          { name: 'The Hacker News', url: 'https://thehackernews.com/' },
+          { name: 'Bleeping Computer', url: 'https://www.bleepingcomputer.com/' },
+          { name: 'Dark Reading', url: 'https://www.darkreading.com/' },
+          { name: 'Krebs on Security', url: 'https://krebsonsecurity.com/' },
+          { name: 'SANS ISC', url: 'https://isc.sans.edu/' },
+        ]},
+        { label: 'Vendor Intelligence', links: [
+          { name: 'GitHub Security', url: 'https://github.blog/tag/security/' },
+          { name: 'Google Project Zero', url: 'https://googleprojectzero.blogspot.com/' },
+          { name: 'Microsoft Security', url: 'https://www.microsoft.com/en-us/security/blog/' },
+        ]},
+        { label: 'Standards & Advisories', links: [
+          { name: 'CISA Advisories', url: 'https://www.cisa.gov/news-events/cybersecurity-advisories' },
+          { name: 'NIST NVD', url: 'https://nvd.nist.gov/' },
+        ]},
+      ],
+      federalRegs: [{ label: 'Applicable Frameworks',
+        html: `<strong style="color:var(--text);">NIST CSF 2.0</strong> — voluntary framework; widely referenced in contracts and insurance requirements.<br><strong style="color:var(--text);">SEC Cyber Disclosure Rule</strong> — public companies must disclose material incidents within <strong style="color:var(--critical);">4 business days</strong> of materiality determination (eff. Dec 2023).`,
+        links: [
+          { name: 'NIST CSF 2.0', url: 'https://www.nist.gov/cyberframework' },
+          { name: 'SEC Cyber Rule', url: 'https://www.sec.gov/rules/final/2023/33-11216.pdf' },
+          { name: 'CISA Resources', url: 'https://www.cisa.gov/resources-tools' },
+        ]
+      }]
+    },
+    legal: {
+      label: 'Legal / Professional Services',
+      kwPattern: /\b(law.?firm|legal|attorney|counsel|confidential|client.?data|matter|bar\b|aba\b|malpractice|ransomware|phish|data.?breach|privilege)\b/i,
+      newsTitle: 'Legal Sector Security News',
+      news: [
+        { label: 'Legal & Professional Security', links: [
+          { name: 'Law.com Technology', url: 'https://www.law.com/legaltechnews/' },
+          { name: 'ABA TechReport', url: 'https://www.americanbar.org/groups/law_practice/publications/techreport/' },
+          { name: 'Bleeping Computer', url: 'https://www.bleepingcomputer.com/' },
+          { name: 'Dark Reading', url: 'https://www.darkreading.com/' },
+        ]},
+        { label: 'Infosec News', links: [
+          { name: 'Krebs on Security', url: 'https://krebsonsecurity.com/' },
+          { name: 'SANS ISC', url: 'https://isc.sans.edu/' },
+        ]},
+        { label: 'Standards', links: [
+          { name: 'ABA Cybersecurity', url: 'https://www.americanbar.org/groups/law_practice/resources/cybersecurity/' },
+          { name: 'CISA Advisories', url: 'https://www.cisa.gov/news-events/cybersecurity-advisories' },
+        ]},
+      ],
+      federalRegs: [{ label: 'Applicable Requirements',
+        html: `<strong style="color:var(--text);">ABA Model Rule 1.6(c)</strong> — attorneys must make "reasonable efforts" to prevent unauthorized disclosure of client information.<br><strong style="color:var(--text);">FTC Safeguards Rule</strong> — may apply to firms qualifying as "financial institutions" under GLBA (e.g., tax prep, real estate settlements).`,
+        links: [
+          { name: 'ABA Formal Opinion 477', url: 'https://www.americanbar.org/content/dam/aba/administrative/professional_responsibility/aba_formal_opinion_477.pdf' },
+          { name: 'FTC Safeguards', url: 'https://www.ftc.gov/legal-library/browse/rules/safeguards-rule' },
+        ]
+      }]
+    },
+    government: {
+      label: 'Government / Public Sector',
+      kwPattern: /\b(government|federal|state.?agency|municipal|city\b|county|fisma|fedramp|nist|cisa|critical.?infrastructure|dod\b|ransomware|phish|data.?breach|nation.?state)\b/i,
+      newsTitle: 'Government Security News',
+      news: [
+        { label: 'Government Security', links: [
+          { name: 'FedScoop', url: 'https://fedscoop.com/technology/cybersecurity/' },
+          { name: 'StateScoop', url: 'https://statescoop.com/cybersecurity/' },
+          { name: 'GCN', url: 'https://gcn.com/cybersecurity/' },
+          { name: 'Dark Reading', url: 'https://www.darkreading.com/' },
+        ]},
+        { label: 'Infosec News', links: [
+          { name: 'Krebs on Security', url: 'https://krebsonsecurity.com/' },
+          { name: 'SANS ISC', url: 'https://isc.sans.edu/' },
+          { name: 'Bleeping Computer', url: 'https://www.bleepingcomputer.com/' },
+        ]},
+        { label: 'Federal Resources', links: [
+          { name: 'CISA Advisories', url: 'https://www.cisa.gov/news-events/cybersecurity-advisories' },
+          { name: 'NIST SP 800 Series', url: 'https://csrc.nist.gov/publications/sp800' },
+          { name: 'OMB M-22-09 (ZTA)', url: 'https://www.whitehouse.gov/wp-content/uploads/2022/01/M-22-09.pdf' },
+        ]},
+      ],
+      federalRegs: [{ label: 'Federal Cyber Requirements',
+        html: `<strong style="color:var(--text);">FISMA 2014</strong> — federal agencies must implement NIST-based security controls and report incidents to US-CERT.<br><strong style="color:var(--text);">OMB M-22-09 (Zero Trust)</strong> — agencies must achieve specific ZTA goals by end of FY2024.<br><strong style="color:var(--text);">CISA Binding Operational Directives (BOD)</strong> — mandatory for federal civilian agencies; best practice for state/local.`,
+        links: [
+          { name: 'CISA BODs', url: 'https://www.cisa.gov/binding-operational-directives' },
+          { name: 'FISMA', url: 'https://csrc.nist.gov/topics/laws-and-regulations/laws/fisma' },
+          { name: 'FedRAMP', url: 'https://www.fedramp.gov/' },
+        ]
+      }]
+    }
+  },
+  states: {
+    CA: { label: 'California Breach Notification',
+      html: `<strong style="color:var(--text);">Civil Code §1798.82</strong> — notify "in the most expedient time possible, without unreasonable delay." Notify CA AG if breach affects <strong style="color:var(--text);">500+ CA residents</strong>.<br><strong style="color:var(--text);">AB 1130 (signed Oct 2024, eff. Jan 1 2026)</strong> — adds neural data &amp; genetic data to covered PI.`,
+      links: [
+        { name: 'CA AG — Report a Breach', url: 'https://oag.ca.gov/privacy/databreach/reporting' },
+        { name: 'CA Breach List', url: 'https://oag.ca.gov/privacy/databreach/list' },
+        { name: '§1798.82 Text', url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1798.82.&lawCode=CIV' },
+      ]
+    },
+    NV: { label: 'Nevada Breach Notification',
+      html: `<strong style="color:var(--text);">NRS 603A</strong> — notify "in the most expedient time possible." No specific day limit. Notify NV AG if breach affects NV residents; written notice required.`,
+      links: [
+        { name: 'NV AG — Privacy', url: 'https://ag.nv.gov/About/Privacy_-_Security/Privacy/' },
+        { name: 'NRS 603A Text', url: 'https://www.leg.state.nv.us/NRS/NRS-603A.html' },
+      ]
+    },
+    NY: { label: 'New York Breach Notification',
+      html: `<strong style="color:var(--text);">SHIELD Act (Gen. Bus. §899-aa)</strong> — notify "in the most expedient time possible." Notify NY AG, DFS (financial/insurance), or DOH (health) as applicable.<br><strong style="color:var(--text);">NY DFS Part 500</strong> — financial institutions licensed in NY must notify DFS within <strong style="color:var(--critical);">72 hours</strong> of a cybersecurity event.`,
+      links: [
+        { name: 'NY AG — Breach Reporting', url: 'https://ag.ny.gov/resources/individuals/data-breach-reporting' },
+        { name: 'NY DFS Part 500', url: 'https://www.dfs.ny.gov/industry_guidance/cybersecurity' },
+      ]
+    },
+    TX: { label: 'Texas Breach Notification',
+      html: `<strong style="color:var(--text);">Tex. Bus. &amp; Com. Code §521.053</strong> — notify affected individuals "as quickly as possible." Notify TX AG if breach affects <strong style="color:var(--text);">250+ TX residents</strong> within 30 days.`,
+      links: [
+        { name: 'TX AG — Data Breach', url: 'https://www.texasattorneygeneral.gov/consumer-protection/data-security-breaches' },
+      ]
+    },
+    FL: { label: 'Florida Breach Notification',
+      html: `<strong style="color:var(--text);">FL Stat. §501.171</strong> — notify affected individuals within <strong style="color:var(--critical);">30 days</strong>. Notify FDACS and FL AG if breach affects <strong style="color:var(--text);">500+ FL residents</strong>.`,
+      links: [
+        { name: 'FL FDACS — Breach Notification', url: 'https://www.fdacs.gov/Consumer-Resources/Data-Breach' },
+      ]
+    },
+    CO: { label: 'Colorado Breach Notification',
+      html: `<strong style="color:var(--text);">CRS §6-1-716</strong> — notify within <strong style="color:var(--critical);">30 days</strong>. Notify CO AG if breach affects <strong style="color:var(--text);">500+ CO residents</strong>.<br><strong style="color:var(--text);">CO Privacy Act (CPA)</strong> — eff. July 1, 2023; applies to controllers processing data of 100,000+ consumers.`,
+      links: [
+        { name: 'CO AG — Data Breach Reporting', url: 'https://coag.gov/resources/data-breach-reporting/' },
+      ]
+    },
+    WA: { label: 'Washington Breach Notification',
+      html: `<strong style="color:var(--text);">RCW 19.255.010</strong> — notify no later than <strong style="color:var(--critical);">30 days</strong>. Notify WA AG if breach affects <strong style="color:var(--text);">500+ WA residents</strong>.<br><strong style="color:var(--text);">My Health MY Data Act</strong> — eff. March 31, 2024; broad health data privacy law outside HIPAA.`,
+      links: [
+        { name: 'WA AG — Data Breach Reporting', url: 'https://www.atg.wa.gov/data-breach-reporting' },
+      ]
+    },
+    IL: { label: 'Illinois Breach Notification',
+      html: `<strong style="color:var(--text);">PIPA (815 ILCS 530)</strong> — notify "in the most expedient time possible." Notify IL AG if breach affects <strong style="color:var(--text);">500+ IL residents</strong>.<br><strong style="color:var(--text);">BIPA (740 ILCS 14)</strong> — biometric data; strict liability $1,000–$5,000 per violation; requires explicit consent before collecting biometrics.`,
+      links: [
+        { name: 'IL AG — Consumer Protection', url: 'https://illinoisattorneygeneral.gov/consumers/dataprivacy.html' },
+        { name: 'BIPA Text', url: 'https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004' },
+      ]
+    }
+  }
+};
+
+// ─── Settings Logic ───────────────────────────────────────────────────────────
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (raw) return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+  } catch(e) {}
+  return { ...DEFAULT_SETTINGS };
+}
+function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
+
+function getIndustryKW() {
+  const s = loadSettings();
+  return PROFILE_DATA.industries[s.industry]?.kwPattern || PROFILE_DATA.industries.banking.kwPattern;
+}
+
+function softwareMatches(text) {
+  const sw = loadSettings().software || [];
+  if (!sw.length) return false;
+  const t = text.toLowerCase();
+  return sw.some(term => t.includes(term.toLowerCase()));
+}
+
+// Settings UI
+let _pendingChips = [];
+
+function openSettings() {
+  const s = loadSettings();
+  document.getElementById('s-industry').value = s.industry;
+  document.querySelectorAll('#s-states input[type=checkbox]').forEach(cb => {
+    cb.checked = (s.states || []).includes(cb.value);
+  });
+  renderChips(s.software || []);
+  document.getElementById('settings-overlay').classList.add('open');
+}
+
+function closeSettings() {
+  document.getElementById('settings-overlay').classList.remove('open');
+}
+
+function renderChips(chips) {
+  _pendingChips = [...chips];
+  const wrap = document.getElementById('s-chips');
+  const input = document.getElementById('s-sw-input');
+  wrap.innerHTML = '';
+  chips.forEach((c, i) => {
+    const span = document.createElement('span');
+    span.className = 'chip';
+    span.innerHTML = `${escHtml(c)}<button class="chip-remove" onclick="removeChip(${i})" title="Remove">×</button>`;
+    wrap.appendChild(span);
+  });
+  wrap.appendChild(input);
+  input.value = '';
+}
+
+function removeChip(i) {
+  _pendingChips.splice(i, 1);
+  renderChips(_pendingChips);
+}
+
+function chipKeydown(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const val = e.target.value.trim();
+    if (val && !_pendingChips.includes(val)) { _pendingChips.push(val); renderChips(_pendingChips); }
+    else { e.target.value = ''; }
+  } else if (e.key === 'Backspace' && !e.target.value && _pendingChips.length) {
+    _pendingChips.pop();
+    renderChips(_pendingChips);
+  }
+}
+
+function applySettings() {
+  const industry = document.getElementById('s-industry').value;
+  const states = [...document.querySelectorAll('#s-states input[type=checkbox]:checked')].map(cb => cb.value);
+  saveSettings({ industry, states, software: [..._pendingChips] });
+  closeSettings();
+  renderNews();
+  renderRegulatory();
+  loadKEV();
+  loadNVD();
+  loadReddit();
+}
+
+function renderNews() {
+  const s = loadSettings();
+  const ind = PROFILE_DATA.industries[s.industry] || PROFILE_DATA.industries.banking;
+  document.getElementById('news-title').textContent = ind.newsTitle;
+  let html = '';
+  ind.news.forEach(sec => {
+    html += `<div class="link-section"><div class="link-section-label">${escHtml(sec.label)}</div><div class="link-grid">`;
+    sec.links.forEach(l => { html += `<a class="link-tile" href="${escHtml(l.url)}" target="_blank" rel="noopener">${escHtml(l.name)}</a>`; });
+    html += '</div></div>';
+  });
+  document.getElementById('news-body').innerHTML = html;
+}
+
+function renderRegulatory() {
+  const s = loadSettings();
+  const ind = PROFILE_DATA.industries[s.industry] || PROFILE_DATA.industries.banking;
+  const stLabels = (s.states || []).map(a => (PROFILE_DATA.states[a]?.label || a).replace(' Breach Notification', ''));
+  document.getElementById('refs-title').textContent =
+    stLabels.length ? `${stLabels.join(' / ')} + Federal Regulatory` : 'Federal Regulatory Quick Reference';
+  let html = '';
+  (ind.federalRegs || []).forEach(reg => {
+    html += `<div class="vendor-section"><div class="vendor-label">${escHtml(reg.label)}</div>`;
+    html += `<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;line-height:1.6;">${reg.html}</div>`;
+    html += '<div class="vendor-links">';
+    (reg.links || []).forEach(l => { html += `<a class="vendor-link" href="${escHtml(l.url)}" target="_blank" rel="noopener">${escHtml(l.name)}</a>`; });
+    html += '</div></div>';
+  });
+  (s.states || []).forEach(abbr => {
+    const st = PROFILE_DATA.states[abbr];
+    if (!st) return;
+    html += `<div class="vendor-section"><div class="vendor-label">${escHtml(st.label)}</div>`;
+    html += `<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;line-height:1.6;">${st.html}</div>`;
+    html += '<div class="vendor-links">';
+    (st.links || []).forEach(l => { html += `<a class="vendor-link" href="${escHtml(l.url)}" target="_blank" rel="noopener">${escHtml(l.name)}</a>`; });
+    html += '</div></div>';
+  });
+  if (!html) html = '<div class="loading-state" style="padding:16px;">Open ⚙ Settings to configure your industry and states.</div>';
+  document.getElementById('refs-body').innerHTML = html;
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function timeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const s = Math.floor(diff / 1000);
+  if (s < 60) return s + 's ago';
+  const m = Math.floor(s / 60);
+  if (m < 60) return m + 'm ago';
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + 'h ago';
+  const d = Math.floor(h / 24);
+  if (d < 30) return d + 'd ago';
+  return new Date(dateStr).toLocaleDateString();
+}
+
+function cvssColor(score) {
+  if (score >= 9.0) return 'var(--critical)';
+  if (score >= 7.0) return 'var(--high)';
+  if (score >= 4.0) return 'var(--medium)';
+  return 'var(--low)';
+}
+
+function cvssBadgeClass(score) {
+  if (score >= 9.0) return 'badge-critical';
+  if (score >= 7.0) return 'badge-high';
+  if (score >= 4.0) return 'badge-medium';
+  return 'badge-low';
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function truncate(str, len) {
+  if (!str) return '';
+  return str.length > len ? str.slice(0, len) + '…' : str;
+}
+
+function setLoading(id) {
+  document.getElementById(id).innerHTML = '<div class="loading-state"><span class="spinner"></span>Loading…</div>';
+}
+
+function setError(id, link) {
+  document.getElementById(id).innerHTML =
+    `<div class="error-state">Could not load — CORS or network error.<br>
+     <a class="error-link" href="${escHtml(link)}" target="_blank" rel="noopener">Open site ↗</a></div>`;
+}
+
+function updateTimestamp() {
+  document.getElementById('last-updated').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+}
+
+// ─── Panel 1: CISA KEV ───────────────────────────────────────────────────────
+function renderKEVList(vulns, sourceNote) {
+  if (!vulns.length) { document.getElementById('kev-body').innerHTML = '<div class="loading-state">No data.</div>'; return; }
+  const now = new Date();
+  const ul = document.createElement('ul');
+  ul.className = 'feed-list';
+  vulns.forEach(v => {
+    const due = v.dueDate ? new Date(v.dueDate) : null;
+    let dueCls = 'due-ok', dueLabel = '';
+    if (due) {
+      const diffDays = Math.ceil((due - now) / 86400000);
+      if (diffDays < 0) { dueCls = 'due-overdue'; dueLabel = `Due: ${v.dueDate} (OVERDUE)`; }
+      else if (diffDays <= 7) { dueCls = 'due-soon'; dueLabel = `Due: ${v.dueDate} (${diffDays}d)`; }
+      else { dueLabel = `Due: ${v.dueDate}`; }
+    }
+    const swHit = softwareMatches((v.vendorProject || '') + ' ' + (v.product || '') + ' ' + (v.vulnerabilityName || ''));
+    const li = document.createElement('li');
+    li.className = 'feed-item' + (swHit ? ' sw-match' : '');
+    li.innerHTML = `
+      <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+        <a class="feed-item-title" href="https://nvd.nist.gov/vuln/detail/${escHtml(v.cveID)}" target="_blank" rel="noopener" style="font-weight:600;">${swHit ? '⚡ ' : ''}${escHtml(v.cveID)}</a>
+        <span class="feed-item-meta" style="gap:4px;">
+          <span>${escHtml(v.vendorProject || '')}${v.product ? ' — ' + escHtml(v.product) : ''}</span>
+        </span>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);display:flex;gap:10px;flex-wrap:wrap;margin-top:2px;">
+        <span>Added: ${escHtml(v.dateAdded)}</span>
+        <span class="${dueCls}">${escHtml(dueLabel)}</span>
+        ${sourceNote ? `<span style="color:var(--text-muted);font-style:italic;">${escHtml(sourceNote)}</span>` : ''}
+      </div>
+      <div style="font-size:12px;color:var(--text);margin-top:2px;">${escHtml(truncate(v.vulnerabilityName, 90))}</div>`;
+    ul.appendChild(li);
+  });
+  document.getElementById('kev-body').innerHTML = '';
+  document.getElementById('kev-body').appendChild(ul);
+}
+
+async function loadKEV() {
+  setLoading('kev-body');
+  // Try CISA direct first
+  try {
+    const resp = await fetch('https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json');
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    const vulns = (data.vulnerabilities || [])
+      .slice().sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded))
+      .slice(0, 12);
+    renderKEVList(vulns, '');
+    return;
+  } catch (_) { /* fall through to NVD fallback */ }
+
+  // NVD fallback: fetch CVEs modified in last 90 days, filter for KEV-tagged ones
+  try {
+    const pad = n => String(n).padStart(2, '0');
+    const fmt = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T00:00:00.000`;
+    const end = new Date();
+    const start = new Date(end - 90 * 86400000);
+    const url = `https://services.nvd.nist.gov/rest/json/cves/2.0?lastModStartDate=${fmt(start)}&lastModEndDate=${fmt(end)}&resultsPerPage=500`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    const vulns = (data.vulnerabilities || [])
+      .filter(v => v.cve?.cisaExploitAdd)
+      .map(v => ({
+        cveID: v.cve.id,
+        vendorProject: '',
+        product: '',
+        vulnerabilityName: v.cve.cisaVulnerabilityName || v.cve.id,
+        dateAdded: v.cve.cisaExploitAdd,
+        dueDate: v.cve.cisaActionDue || '',
+      }))
+      .sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded))
+      .slice(0, 12);
+    renderKEVList(vulns, 'via NVD');
+  } catch (e) {
+    setError('kev-body', 'https://www.cisa.gov/known-exploited-vulnerabilities-catalog');
+  }
+}
+
+// ─── Panel 2: NVD Critical CVEs ──────────────────────────────────────────────
+async function loadNVD() {
+  setLoading('nvd-body');
+  try {
+    const pad = n => String(n).padStart(2, '0');
+    const fmt = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T00:00:00.000`;
+    const end = new Date();
+    const start = new Date(Date.now() - 90 * 86400000);
+    const url = `https://services.nvd.nist.gov/rest/json/cves/2.0?cvssV3Severity=CRITICAL&pubStartDate=${fmt(start)}&pubEndDate=${fmt(end)}&resultsPerPage=100`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    const items = (data.vulnerabilities || [])
+      .map(v => {
+        const metrics = v.cve?.metrics?.cvssMetricV31?.[0] || v.cve?.metrics?.cvssMetricV30?.[0];
+        const score = metrics?.cvssData?.baseScore ?? 0;
+        return { cve: v.cve, score };
+      })
+      .filter(v => v.score >= 9.0)
+      .sort((a, b) => new Date(b.cve.published) - new Date(a.cve.published))
+      .slice(0, 10);
+    if (!items.length) { document.getElementById('nvd-body').innerHTML = '<div class="loading-state">No critical CVEs found.</div>'; return; }
+    const ul = document.createElement('ul');
+    ul.className = 'feed-list';
+    items.forEach(({ cve, score }) => {
+      const desc = (cve.descriptions || []).find(d => d.lang === 'en')?.value || '';
+      const swHitN = softwareMatches(cve.id + ' ' + desc);
+      const li = document.createElement('li');
+      li.className = 'feed-item' + (swHitN ? ' sw-match' : '');
+      li.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <a class="feed-item-title" href="https://nvd.nist.gov/vuln/detail/${escHtml(cve.id)}" target="_blank" rel="noopener" style="font-weight:600;">${swHitN ? '⚡ ' : ''}${escHtml(cve.id)}</a>
+          <span class="cvss-badge ${cvssBadgeClass(score)}">${score.toFixed(1)}</span>
+          <span style="font-size:11px;color:var(--text-muted);">${timeAgo(cve.published)}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${escHtml(truncate(desc, 120))}</div>`;
+      ul.appendChild(li);
+    });
+    document.getElementById('nvd-body').innerHTML = '';
+    document.getElementById('nvd-body').appendChild(ul);
+  } catch (e) {
+    setError('nvd-body', 'https://nvd.nist.gov/vuln/search');
+  }
+}
+
+// ─── Panel 3: Security Community (r/netsec + r/cybersecurity) ────────────────
+async function loadReddit() {
+  setLoading('reddit-body');
+  try {
+    const [r1, r2] = await Promise.all([
+      fetch('https://www.reddit.com/r/netsec/hot.json?limit=20&raw_json=1').then(r => { if (!r.ok) throw new Error(); return r.json(); }),
+      fetch('https://www.reddit.com/r/cybersecurity/hot.json?limit=20&raw_json=1').then(r => { if (!r.ok) throw new Error(); return r.json(); }),
+    ]);
+    const posts = [
+      ...(r1.data?.children || []).map(c => ({...c.data, _sub: 'netsec'})),
+      ...(r2.data?.children || []).map(c => ({...c.data, _sub: 'cybersecurity'})),
+    ].sort((a, b) => b.score - a.score).slice(0, 20);
+
+    if (!posts.length) { document.getElementById('reddit-body').innerHTML = '<div class="loading-state">No posts.</div>'; return; }
+
+    const kw = getIndustryKW();
+    const ind = PROFILE_DATA.industries[loadSettings().industry] || PROFILE_DATA.industries.banking;
+    document.getElementById('reddit-kw-label').textContent = ind.newsTitle.replace(' Security News','').replace(' News','') + ' relevant ★';
+    const ul = document.createElement('ul');
+    ul.className = 'feed-list';
+    posts.forEach(p => {
+      const postUrl = 'https://www.reddit.com' + p.permalink;
+      const relevant = kw.test(p.title + ' ' + (p.selftext || ''));
+      const li = document.createElement('li');
+      li.className = 'feed-item' + (relevant ? ' banking-relevant' : '');
+      li.innerHTML = `
+        <a class="feed-item-title" href="${escHtml(p.url || postUrl)}" target="_blank" rel="noopener">${relevant ? '★ ' : ''}${escHtml(p.title)}</a>
+        <div class="feed-item-meta">
+          <span class="reddit-sub">r/${p._sub}</span>
+          <span>↑ ${(p.score || 0).toLocaleString()}</span>
+          <a href="${escHtml(postUrl)}" target="_blank" rel="noopener">${p.num_comments || 0} comments</a>
+          <span>${timeAgo(new Date(p.created_utc * 1000).toISOString())}</span>
+        </div>`;
+      ul.appendChild(li);
+    });
+    document.getElementById('reddit-body').innerHTML = '';
+    document.getElementById('reddit-body').appendChild(ul);
+  } catch (e) {
+    setError('reddit-body', 'https://www.reddit.com/r/netsec/');
+  }
+}
+
+// ─── Panel 5: Threat Intel Lookup ────────────────────────────────────────────
+const TI_SERVICES = {
+  ip: [
+    { name: 'VirusTotal',  url: v => `https://www.virustotal.com/gui/ip-address/${v}` },
+    { name: 'Shodan',      url: v => `https://www.shodan.io/host/${v}` },
+    { name: 'AbuseIPDB',   url: v => `https://www.abuseipdb.com/check/${v}` },
+    { name: 'GreyNoise',   url: v => `https://viz.greynoise.io/ip/${v}` },
+    { name: 'Censys',      url: v => `https://search.censys.io/hosts/${v}` },
+    { name: 'IPInfo',      url: v => `https://ipinfo.io/${v}` },
+  ],
+  domain: [
+    { name: 'VirusTotal',      url: v => `https://www.virustotal.com/gui/domain/${v}` },
+    { name: 'Shodan',          url: v => `https://www.shodan.io/domain/${v}` },
+    { name: 'URLhaus',         url: v => `https://urlhaus.abuse.ch/host/${v}` },
+    { name: 'URLScan',         url: v => `https://urlscan.io/search/#domain:${v}` },
+    { name: 'SecurityTrails',  url: v => `https://securitytrails.com/domain/${v}/dns` },
+  ],
+  hash: [
+    { name: 'VirusTotal',       url: v => `https://www.virustotal.com/gui/file/${v}` },
+    { name: 'MalwareBazaar',    url: v => `https://bazaar.abuse.ch/sample/${v}/` },
+    { name: 'Hybrid Analysis',  url: v => `https://www.hybrid-analysis.com/search?query=${v}` },
+    { name: 'Any.run',          url: v => `https://app.any.run/tasks/?hashes=${v}` },
+  ],
+  url: [
+    { name: 'VirusTotal',  url: v => `https://www.virustotal.com/gui/url/${v}` },
+    { name: 'URLScan',     url: v => `https://urlscan.io/search/#page.url:${v}` },
+    { name: 'URLhaus',     url: v => `https://urlhaus.abuse.ch/url/${encodeURIComponent(v)}` },
+  ],
+};
+
+function tiDetectType(val) {
+  val = val.trim();
+  if (!val) return 'ip';
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(val)) return 'ip';
+  if (/^[0-9a-fA-F]{32}$|^[0-9a-fA-F]{40}$|^[0-9a-fA-F]{64}$/.test(val)) return 'hash';
+  if (/^https?:\/\//i.test(val)) return 'url';
+  return 'domain';
+}
+
+function tiDetect() {
+  const val = document.getElementById('ti-val').value.trim();
+  if (val) document.getElementById('ti-type').value = tiDetectType(val);
+  tiRender();
+}
+
+function tiRender() {
+  const val = document.getElementById('ti-val').value.trim();
+  const type = document.getElementById('ti-type').value;
+  const svcs = TI_SERVICES[type] || [];
+  const container = document.getElementById('ti-services');
+  if (!svcs.length) { container.innerHTML = ''; return; }
+  const makeUrl = (svc) => svc.url(val || '{value}');
+  let html = `<div class="svc-group"><div class="svc-group-label">${escHtml(type.toUpperCase())} services</div><div class="svc-buttons">`;
+  svcs.forEach(svc => {
+    html += `<button class="svc-btn" onclick="if(document.getElementById('ti-val').value.trim())window.open(${JSON.stringify(makeUrl(svc))},'_blank')" title="${escHtml(svc.name)}">${escHtml(svc.name)}</button>`;
+  });
+  html += `<button class="svc-open-all" onclick="tiOpenAll()">Open All</button>`;
+  html += '</div></div>';
+  container.innerHTML = html;
+}
+
+function tiOpenAll() {
+  const val = document.getElementById('ti-val').value.trim();
+  if (!val) return;
+  const type = document.getElementById('ti-type').value;
+  (TI_SERVICES[type] || []).forEach(svc => window.open(svc.url(val), '_blank'));
+}
+
+tiRender();
+
+// ─── Panel 6: CVE Lookup ─────────────────────────────────────────────────────
+async function lookupCVE() {
+  let raw = document.getElementById('cve-input').value.trim();
+  if (!raw) return;
+  if (/^\d{4}-\d+$/.test(raw)) raw = 'CVE-' + raw;
+  raw = raw.toUpperCase();
+  const result = document.getElementById('cve-result');
+  result.innerHTML = '<div class="loading-state"><span class="spinner"></span>Fetching…</div>';
+  try {
+    const resp = await fetch(`https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=${encodeURIComponent(raw)}`);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    const vuln = (data.vulnerabilities || [])[0];
+    if (!vuln) { result.innerHTML = '<div class="error-state">CVE not found.</div>'; return; }
+    const cve = vuln.cve;
+    const metrics31 = cve.metrics?.cvssMetricV31?.[0];
+    const metrics30 = cve.metrics?.cvssMetricV30?.[0];
+    const metrics = metrics31 || metrics30;
+    const score = metrics?.cvssData?.baseScore;
+    const severity = metrics?.cvssData?.baseSeverity || '';
+    const desc = (cve.descriptions || []).find(d => d.lang === 'en')?.value || 'No description.';
+    const published = cve.published ? new Date(cve.published).toLocaleDateString() : '—';
+    const parts = raw.match(/CVE-(\d{4})-(\d+)/);
+    const exploitUrl = parts ? `https://www.exploit-db.com/search?cve=${parts[1]}-${parts[2]}` : `https://www.exploit-db.com/search?cve=${raw.replace('CVE-','')}`;
+    result.innerHTML = `
+      <div class="cve-result">
+        <div class="cve-result-header">
+          <span class="cve-id">${escHtml(raw)}</span>
+          ${score != null ? `<span class="cvss-badge ${cvssBadgeClass(score)}">${score.toFixed(1)}</span><span style="font-size:12px;color:var(--text-muted);">${escHtml(severity)}</span>` : ''}
+        </div>
+        <div class="cve-meta">Published: ${published}</div>
+        <div class="cve-desc">${escHtml(desc)}</div>
+        <div class="cve-links">
+          <a class="cve-link" href="https://nvd.nist.gov/vuln/detail/${escHtml(raw)}" target="_blank" rel="noopener">View on NVD ↗</a>
+          <a class="cve-link" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=${escHtml(raw)}" target="_blank" rel="noopener">View on MITRE ↗</a>
+          <a class="cve-link" href="${escHtml(exploitUrl)}" target="_blank" rel="noopener">Search Exploit-DB ↗</a>
+        </div>
+      </div>`;
+  } catch (e) {
+    result.innerHTML = `<div class="error-state">Could not fetch CVE data.<br><a class="error-link" href="https://nvd.nist.gov/vuln/detail/${escHtml(raw)}" target="_blank" rel="noopener">Open on NVD ↗</a></div>`;
+  }
+}
+
+function clearCVE() {
+  document.getElementById('cve-input').value = '';
+  document.getElementById('cve-result').innerHTML = '';
+}
+
+// ─── Panel 8: Patch Tuesday Countdown ────────────────────────────────────────
+function getPatchTuesday(year, month) {
+  // Second Tuesday of month (month is 0-indexed)
+  const d = new Date(year, month, 1);
+  const day = d.getDay(); // 0=Sun,1=Mon,...,2=Tue
+  const firstTue = day <= 2 ? 2 - day + 1 : 9 - day;
+  return new Date(year, month, firstTue + 7);
+}
+
+function renderPatchTuesday() {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  let nextPT = getPatchTuesday(today.getFullYear(), today.getMonth());
+  if (nextPT <= today) {
+    // Move to next month
+    const nm = today.getMonth() === 11 ? 0 : today.getMonth() + 1;
+    const ny = today.getMonth() === 11 ? today.getFullYear() + 1 : today.getFullYear();
+    nextPT = getPatchTuesday(ny, nm);
+  }
+  // Last PT: either this month's if past, or prior month's
+  let lastPT = getPatchTuesday(today.getFullYear(), today.getMonth());
+  if (lastPT > today) {
+    const pm = today.getMonth() === 0 ? 11 : today.getMonth() - 1;
+    const py = today.getMonth() === 0 ? today.getFullYear() - 1 : today.getFullYear();
+    lastPT = getPatchTuesday(py, pm);
+  }
+  const daysAway = Math.ceil((nextPT - today) / 86400000);
+  let countdownColor = 'var(--text-muted)';
+  if (daysAway <= 3) countdownColor = 'var(--critical)';
+  else if (daysAway <= 7) countdownColor = 'var(--high)';
+  else if (daysAway <= 14) countdownColor = 'var(--medium)';
+  const fmtDate = d => d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  document.getElementById('pt-body').innerHTML = `
+    <div class="pt-main">Next Patch Tuesday</div>
+    <div class="pt-countdown" style="color:${countdownColor};">${daysAway} day${daysAway !== 1 ? 's' : ''} away</div>
+    <div style="font-size:15px;font-weight:600;margin-bottom:8px;">${fmtDate(nextPT)}</div>
+    <div class="pt-last">Last Patch Tuesday: ${fmtDate(lastPT)}</div>
+    <a class="pt-link" href="https://msrc.microsoft.com/update-guide/releaseNote" target="_blank" rel="noopener">MSRC Release Notes ↗</a>`;
+}
+
+// ─── Refresh All ─────────────────────────────────────────────────────────────
+function refreshAll() {
+  loadKEV();
+  loadNVD();
+  loadReddit();
+  updateTimestamp();
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+renderPatchTuesday();
+renderNews();
+renderRegulatory();
+refreshAll();
+</script>
+</body>
+</html>

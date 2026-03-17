@@ -1,0 +1,40 @@
+<h2>First-run setup: which approach feels right?</h2>
+<p class="subtitle">When the dashboard loads with no settings, how should it prompt you to configure your industry and states?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Full-screen setup wizard</h3>
+      <p>Dashboard is blocked until you choose industry + states. Step 1: pick your industry. Step 2: pick your states. Then the dashboard loads. Clean, no distractions — you can't accidentally skip it.</p>
+      <div class="pros-cons" style="margin-top:10px;">
+        <div class="pros"><h4>Pros</h4><ul><li>Can't be missed</li><li>Focused decision</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Feels heavyweight</li><li>Delays seeing the dashboard</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Centered modal overlay</h3>
+      <p>Dashboard renders behind a modal dialog: "Welcome — tell us your industry and states to personalize your briefing." Both selectors on one screen. Click Save to dismiss and load. Can be dismissed with a default (Banking / CA+NV).</p>
+      <div class="pros-cons" style="margin-top:10px;">
+        <div class="pros"><h4>Pros</h4><ul><li>Lightweight feel</li><li>One step, then go</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Easy to dismiss without reading</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Inline banner + auto-open settings</h3>
+      <p>Dashboard loads normally, but the ⚙ Settings drawer opens automatically and a banner at the top says "Set up your profile to personalise this briefing." Settings close when you save. No modal, no wizard.</p>
+      <div class="pros-cons" style="margin-top:10px;">
+        <div class="pros"><h4>Pros</h4><ul><li>Minimal interruption</li><li>See the dashboard immediately</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Easy to ignore the drawer</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
