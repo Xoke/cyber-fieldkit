@@ -574,6 +574,10 @@ html[data-theme="sepia"] .welcome-banner { background: #f5edd6; color: #6b4c00; 
           <label class="check-item"><input type="checkbox" value="CO"> Colorado</label>
           <label class="check-item"><input type="checkbox" value="WA"> Washington</label>
           <label class="check-item"><input type="checkbox" value="IL"> Illinois</label>
+          <label class="check-item"><input type="checkbox" value="VA"> Virginia</label>
+          <label class="check-item"><input type="checkbox" value="CT"> Connecticut</label>
+          <label class="check-item"><input type="checkbox" value="OR"> Oregon</label>
+          <label class="check-item"><input type="checkbox" value="GA"> Georgia</label>
         </div>
       </div>
       <div class="settings-section">
@@ -856,6 +860,31 @@ const PROFILE_DATA = {
       links: [
         { name: 'IL AG — Consumer Protection', url: 'https://illinoisattorneygeneral.gov/consumers/dataprivacy.html' },
         { name: 'BIPA Text', url: 'https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004' },
+      ]
+    },
+    VA: { label: 'Virginia Consumer Data Protection Act (VCDPA)',
+      html: `<strong style="color:var(--text);">VCDPA (Va. Code §59.1-575 et seq.)</strong> — eff. Jan 1, 2023. Applies to controllers processing data of 100,000+ VA consumers, or 25,000+ if >50% revenue from data sales. Breach notification (Va. Code §18.2-186.6): notify without unreasonable delay.`,
+      links: [
+        { name: 'VA AG — Privacy', url: 'https://www.oag.state.va.us/consumer-protection/index.php/privacy-and-security' },
+        { name: 'VCDPA Text', url: 'https://law.lis.virginia.gov/vacode/title59.1/chapter53/' },
+      ]
+    },
+    CT: { label: 'Connecticut Data Privacy Act (CTDPA)',
+      html: `<strong style="color:var(--text);">CTDPA (Pub. Act 22-15)</strong> — eff. July 1, 2023. Applies to controllers processing data of 100,000+ CT consumers, or 25,000+ if >25% revenue from data sales. Breach notification (Conn. Gen. Stat. §36a-701b): notify within <strong style="color:var(--critical);">60 days</strong> of discovery.`,
+      links: [
+        { name: 'CT AG — Data Privacy', url: 'https://portal.ct.gov/AG/Sections/Privacy/The-Privacy-Section' },
+      ]
+    },
+    OR: { label: 'Oregon Consumer Privacy Act (OCPA)',
+      html: `<strong style="color:var(--text);">OCPA (ORS 646A.570 et seq.)</strong> — eff. July 1, 2024. Applies to controllers processing data of 100,000+ OR consumers, or 25,000+ if >25% revenue from data sales. Breach notification (ORS 646A.604): notify within <strong style="color:var(--critical);">30 days</strong> of discovery.`,
+      links: [
+        { name: 'OR DOJ — Data Breach', url: 'https://www.doj.state.or.us/consumer-protection/data-breach-information-for-businesses/' },
+      ]
+    },
+    GA: { label: 'Georgia Breach Notification',
+      html: `<strong style="color:var(--text);">O.C.G.A. §10-1-910 et seq.</strong> — notify affected GA residents "in the most expedient time possible." No specific day limit. No AG notification requirement under current law.`,
+      links: [
+        { name: 'GA AG — Consumer Protection', url: 'https://consumer.georgia.gov/data-breaches' },
       ]
     }
   }
