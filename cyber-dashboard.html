@@ -144,7 +144,6 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
   display: flex; flex-direction: column; gap: 2px;
 }
 .feed-item:last-child { border-bottom: none; }
-.feed-item.industry-relevant { background: var(--accent-light); border-left: 3px solid var(--accent); padding-left: 8px; margin-left: -14px; padding-left: 11px; }
 .feed-item.industry-relevant { background: var(--accent-light); border-left: 3px solid var(--accent); padding-left: 11px; margin-left: -14px; }
 .reddit-sub { font-size: 10px; padding: 1px 5px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 3px; color: var(--text-muted); }
 .feed-item-title {
@@ -1257,7 +1256,7 @@ async function loadReddit() {
     const posts = [];
     [...(r1.data?.children || []), ...(r2.data?.children || [])].forEach(c => {
       const p = c.data;
-      const key = p.url || p.id;
+      const key = p.id;
       if (!seen.has(key)) { seen.add(key); posts.push(p); }
     });
     posts.sort((a, b) => (b.score || 0) - (a.score || 0));
