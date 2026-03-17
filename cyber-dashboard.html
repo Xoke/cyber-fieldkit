@@ -145,6 +145,7 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
 }
 .feed-item:last-child { border-bottom: none; }
 .feed-item.banking-relevant { background: var(--accent-light); border-left: 3px solid var(--accent); padding-left: 8px; margin-left: -14px; padding-left: 11px; }
+.feed-item.industry-relevant { background: var(--accent-light); border-left: 3px solid var(--accent); padding-left: 11px; margin-left: -14px; }
 .reddit-sub { font-size: 10px; padding: 1px 5px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 3px; color: var(--text-muted); }
 .feed-item-title {
   font-size: 13px; color: var(--text); text-decoration: none; line-height: 1.4;
@@ -656,7 +657,13 @@ const PROFILE_DATA = {
           { name: 'OCC Cybersecurity', url: 'https://www.occ.gov/topics/supervision-and-examination/cybersecurity/index-cybersecurity.html' },
           { name: 'FDIC Notification', url: 'https://www.fdic.gov/regulations/applications/financial-institution-notification.html' },
         ]
-      }]
+      }],
+      rssFeeds: [
+        'https://www.bleepingcomputer.com/feed/',
+        'https://krebsonsecurity.com/feed/',
+        'https://www.bankinfosecurity.com/rss/news',
+        'https://www.darkreading.com/rss/all.xml',
+      ],
     },
     healthcare: {
       label: 'Healthcare',
@@ -687,7 +694,13 @@ const PROFILE_DATA = {
           { name: 'HHS OCR Breach Portal', url: 'https://ocrportal.hhs.gov/ocr/breach/wizard.jsf' },
           { name: 'HIPAA Breach Rule', url: 'https://www.hhs.gov/hipaa/for-professionals/breach-notification/index.html' },
         ]
-      }]
+      }],
+      rssFeeds: [
+        'https://www.healthcareinfosecurity.com/rss/news',
+        'https://www.hipaajournal.com/feed/',
+        'https://www.bleepingcomputer.com/feed/',
+        'https://krebsonsecurity.com/feed/',
+      ],
     },
     retail: {
       label: 'Retail / E-commerce',
@@ -715,7 +728,13 @@ const PROFILE_DATA = {
           { name: 'FTC Data Security', url: 'https://www.ftc.gov/tips-advice/business-center/privacy-and-security/data-security' },
           { name: 'PCI SSC', url: 'https://www.pcisecuritystandards.org/' },
         ]
-      }]
+      }],
+      rssFeeds: [
+        'https://www.scmagazine.com/feed/',
+        'https://www.bleepingcomputer.com/feed/',
+        'https://krebsonsecurity.com/feed/',
+        'https://www.darkreading.com/rss/all.xml',
+      ],
     },
     technology: {
       label: 'Technology',
@@ -746,7 +765,13 @@ const PROFILE_DATA = {
           { name: 'SEC Cyber Rule', url: 'https://www.sec.gov/rules/final/2023/33-11216.pdf' },
           { name: 'CISA Resources', url: 'https://www.cisa.gov/resources-tools' },
         ]
-      }]
+      }],
+      rssFeeds: [
+        'https://feeds.feedburner.com/TheHackersNews',
+        'https://www.bleepingcomputer.com/feed/',
+        'https://krebsonsecurity.com/feed/',
+        'https://isc.sans.edu/rssfeed.xml',
+      ],
     },
     legal: {
       label: 'Legal / Professional Services',
@@ -774,7 +799,13 @@ const PROFILE_DATA = {
           { name: 'ABA Formal Opinion 477', url: 'https://www.americanbar.org/content/dam/aba/administrative/professional_responsibility/aba_formal_opinion_477.pdf' },
           { name: 'FTC Safeguards', url: 'https://www.ftc.gov/legal-library/browse/rules/safeguards-rule' },
         ]
-      }]
+      }],
+      rssFeeds: [
+        'https://www.darkreading.com/rss/all.xml',
+        'https://www.bleepingcomputer.com/feed/',
+        'https://krebsonsecurity.com/feed/',
+        'https://www.law.com/legaltechnews/feed/',
+      ],
     },
     government: {
       label: 'Government / Public Sector',
@@ -805,7 +836,13 @@ const PROFILE_DATA = {
           { name: 'FISMA', url: 'https://csrc.nist.gov/topics/laws-and-regulations/laws/fisma' },
           { name: 'FedRAMP', url: 'https://www.fedramp.gov/' },
         ]
-      }]
+      }],
+      rssFeeds: [
+        'https://fedscoop.com/feed/',
+        'https://statescoop.com/feed/',
+        'https://www.bleepingcomputer.com/feed/',
+        'https://krebsonsecurity.com/feed/',
+      ],
     }
   },
   states: {
@@ -969,6 +1006,7 @@ function applySettings() {
   saveSettings({ industry, states, software: [..._pendingChips] });
   closeSettings();
   renderNews();
+  loadNewsRSS();
   renderRegulatory();
   loadKEV();
   loadNVD();
@@ -1399,13 +1437,76 @@ function checkFirstRun() {
   }
 }
 
-// ─── News RSS (stub — replaced in Task 5) ────────────────────────────────────
-function loadNewsRSS() { /* implemented in Task 5 */ }
+// ─── News RSS ────────────────────────────────────────────────────────────────
+const RSS2JSON_BASE = 'https://api.rss2json.com/v1/api.json?rss_url=';
+
+async function loadNewsRSS() {
+  const s = loadSettings();
+  const ind = PROFILE_DATA.industries[s.industry] || PROFILE_DATA.industries.banking;
+  const titleEl = document.getElementById('news-title');
+  if (titleEl) titleEl.textContent = ind.newsTitle;
+  setLoading('news-body');
+  try {
+    const feeds = ind.rssFeeds || [];
+    const results = await Promise.allSettled(
+      feeds.map(url =>
+        fetch(RSS2JSON_BASE + encodeURIComponent(url), { cache: 'default' })
+          .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      )
+    );
+    const items = [];
+    results.forEach(r => {
+      if (r.status !== 'fulfilled' || r.value.status !== 'ok') return;
+      const feedTitle = r.value.feed?.title || '';
+      (r.value.items || []).slice(0, 6).forEach(item => {
+        items.push({
+          title: item.title || '',
+          link: item.link || item.guid || '#',
+          description: (item.description || item.content || '').replace(/<[^>]+>/g, '').trim().slice(0, 130),
+          pubDate: item.pubDate || '',
+          source: feedTitle,
+        });
+      });
+    });
+    if (!items.length) throw new Error('no items');
+    items.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+    const kw = getIndustryKW();
+    const ul = document.createElement('ul');
+    ul.className = 'feed-list';
+    items.slice(0, 12).forEach(item => {
+      const relevant = kw.test(item.title + ' ' + item.description);
+      const li = document.createElement('li');
+      li.className = 'feed-item' + (relevant ? ' industry-relevant' : '');
+      li.innerHTML = `
+        <a class="feed-item-title" href="${escHtml(item.link)}" target="_blank" rel="noopener">${escHtml(item.title)}</a>
+        <div class="feed-item-meta">
+          <span>${escHtml(item.source)}</span>
+          <span>${timeAgo(item.pubDate)}</span>
+          ${relevant ? '<span style="color:var(--accent);">★ relevant</span>' : ''}
+        </div>`;
+      ul.appendChild(li);
+    });
+    document.getElementById('news-body').innerHTML = '';
+    document.getElementById('news-body').appendChild(ul);
+  } catch(e) {
+    // Fallback: render static link-tile grid from industry data
+    const s2 = loadSettings();
+    const ind2 = PROFILE_DATA.industries[s2.industry] || PROFILE_DATA.industries.banking;
+    let html = '';
+    ind2.news.forEach(sec => {
+      html += `<div class="link-section"><div class="link-section-label">${escHtml(sec.label)}</div><div class="link-grid">`;
+      sec.links.forEach(l => { html += `<a class="link-tile" href="${escHtml(l.url)}" target="_blank" rel="noopener">${escHtml(l.name)}</a>`; });
+      html += '</div></div>';
+    });
+    document.getElementById('news-body').innerHTML = html || '<div class="loading-state">Could not load news.</div>';
+  }
+}
 
 // ─── Refresh All ─────────────────────────────────────────────────────────────
 function refreshAll() {
   loadKEV();
   loadNVD();
+  loadNewsRSS();
   loadReddit();
   updateTimestamp();
 }
