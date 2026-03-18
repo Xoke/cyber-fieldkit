@@ -233,9 +233,7 @@ body { background: var(--bg); color: var(--text); display: flex; flex-direction:
         </div>
       </div>
       <div class="input-card-actions">
-        <button class="btn-primary" onclick="openAll('names')">Open All</button>
         <button class="btn-secondary" onclick="clearTab('names')">Clear</button>
-        <span class="tip-text">Allow popups in your browser</span>
       </div>
     </div>
     <div class="services-area" id="names-services"></div>
@@ -252,9 +250,7 @@ body { background: var(--bg); color: var(--text); display: flex; flex-direction:
         </div>
       </div>
       <div class="input-card-actions">
-        <button class="btn-primary" onclick="openAll('phone')">Open All</button>
         <button class="btn-secondary" onclick="clearTab('phone')">Clear</button>
-        <span class="tip-text">Allow popups in your browser</span>
       </div>
     </div>
     <div class="services-area" id="phone-services"></div>
@@ -271,9 +267,7 @@ body { background: var(--bg); color: var(--text); display: flex; flex-direction:
         </div>
       </div>
       <div class="input-card-actions">
-        <button class="btn-primary" onclick="openAll('email')">Open All</button>
         <button class="btn-secondary" onclick="clearTab('email')">Clear</button>
-        <span class="tip-text">Allow popups in your browser</span>
       </div>
     </div>
     <div class="services-area" id="email-services"></div>
@@ -290,9 +284,7 @@ body { background: var(--bg); color: var(--text); display: flex; flex-direction:
         </div>
       </div>
       <div class="input-card-actions">
-        <button class="btn-primary" onclick="openAll('username')">Open All</button>
         <button class="btn-secondary" onclick="clearTab('username')">Clear</button>
-        <span class="tip-text">Allow popups in your browser</span>
       </div>
     </div>
     <div class="services-area" id="username-services"></div>
@@ -676,24 +668,6 @@ function getArgs(tab) {
   return null;
 }
 
-// ── Open all ──────────────────────────────────────────────────────────────
-function openAll(tab) {
-  const args = getArgs(tab);
-  if (!args) { shakeCard(tab); return; }
-  // Test whether popups are allowed before firing everything
-  const test = window.open('about:blank', '_blank');
-  if (!test) {
-    alert('Popups are blocked!\n\nTo use Open All:\n1. Click the popup-blocked icon in your address bar\n2. Choose "Always allow popups from this page"\n3. Click Done, then try again\n\n(Individual service buttons work without this setting.)');
-    return;
-  }
-  test.close();
-  SERVICES[tab].forEach(group => {
-    group.items.forEach(item => {
-      window.open(item.url(...args), '_blank');
-    });
-  });
-}
-
 // ── Clear ─────────────────────────────────────────────────────────────────
 function clearTab(tab) {
   if (tab === 'names') {
@@ -735,15 +709,6 @@ function shakeCard(tab) {
   }
 }
 
-// ── Enter key triggers Open All ───────────────────────────────────────────
-function addEnterKey(inputId, tab) {
-  const el = document.getElementById(inputId);
-  if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') openAll(tab); });
-}
-['n-first','n-last','n-city','n-state'].forEach(id => addEnterKey(id, 'names'));
-addEnterKey('p-phone', 'phone');
-addEnterKey('e-email', 'email');
-addEnterKey('u-user', 'username');
 </script>
 </body>
 </html>
