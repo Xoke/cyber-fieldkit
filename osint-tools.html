@@ -309,6 +309,10 @@ body { background: var(--bg); color: var(--text); display: flex; flex-direction:
 </div><!-- end content -->
 
 <script>
+// ── State ──────────────────────────────────────────────────────────────────
+let currentServiceUrl = null;
+let activeServiceBtn = null;
+
 // ── Theme ──────────────────────────────────────────────────────────────────
 const THEME_KEY = 'osint-theme';
 function applyTheme(t) {
@@ -328,10 +332,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
   });
 });
-
-// ── State ──────────────────────────────────────────────────────────────────
-let currentServiceUrl = null;
-let activeServiceBtn = null;
 
 // ── Load service in iframe ─────────────────────────────────────────────────
 function loadService(url, label, btn) {
@@ -357,7 +357,7 @@ function loadService(url, label, btn) {
 }
 
 function openCurrentInNewTab() {
-  if (currentServiceUrl) window.open(currentServiceUrl, '_blank');
+  if (currentServiceUrl) window.open(currentServiceUrl, '_blank', 'noopener,noreferrer');
 }
 
 // ── Service definitions ────────────────────────────────────────────────────
