@@ -55,8 +55,9 @@ The existing header (app name + theme switcher) and tab bar (Names, Phone, Email
 
 ### Blocked iframe detection
 - When a site refuses to embed (X-Frame-Options / CSP), the iframe will appear blank
-- Detect via a load timeout (e.g. 3 seconds): if the iframe has no accessible content, show an overlay message: *"This site can't be embedded. [Open in new tab ↗]"*
-- The "Open in new tab" button in the header also handles this manually
+- Reliable auto-detection is not possible: `iframe.contentDocument` always throws a cross-origin security error regardless of whether the site blocked embedding, so there is no way to distinguish a blocked embed from a successfully loaded cross-origin page
+- Instead: make the "Open in new tab" button in the panel header prominent and always visible; add a static helper note below the iframe: *"If the page above is blank, the site blocks embedding — use the button above."*
+- No overlay, no timeout logic — the user handles it manually via the always-present button
 
 ### "Open All" button
 - Removed. No longer useful in the single-panel investigation workflow.
@@ -69,7 +70,7 @@ The existing header (app name + theme switcher) and tab bar (Names, Phone, Email
 - Location: below service buttons in the left panel
 - A `<textarea>` with label "Investigation Notes"
 - Vertically resizable (CSS `resize: vertical`)
-- A small "Clear" button resets it to empty
+- A small "Clear Notes" button resets it to empty (distinct label from the input card's "Clear" button)
 - Session-only — no persistence, wiped on page close/refresh
 - Placeholder text: *"Paste addresses, phone numbers, notes to cross-reference..."*
 
@@ -77,9 +78,10 @@ The existing header (app name + theme switcher) and tab bar (Names, Phone, Email
 
 - All changes are within the single `osint-tools.html` file — no new files
 - Layout uses CSS flexbox (`flex-direction: row` on the content area)
-- Left panel: `overflow-y: auto`, fixed width or flex basis ~35%
+- Left panel: `overflow-y: auto`, fixed width or flex basis ~35% — fixed, not user-resizable (no drag handle)
 - Right panel: `flex: 1`, iframe is `width: 100%; height: 100%; border: none`
-- Iframe blocking detection: set a timeout on `iframe.onload`; attempt `iframe.contentDocument` access — if it throws or is null after load, treat as blocked
+- Minimum viable layout width: ~900px. No mobile/narrow viewport support required — this is a desktop investigation tool. No responsive collapse behavior needed.
+- Active button highlight (the service currently loaded in the iframe) clears when the user switches tabs, since switching tabs changes the search context; the iframe retains whatever URL was last loaded (does not reset to placeholder on tab switch)
 - No changes to theme system, tab switching logic, input validation, shake animation, or `getArgs()` / `renderServices()` functions
 - `openAll()` function and its button are removed
 
