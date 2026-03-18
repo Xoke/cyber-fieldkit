@@ -290,6 +290,15 @@ body { background: var(--bg); color: var(--text); display: flex; flex-direction:
     <div class="services-area" id="username-services"></div>
   </div>
 
+  <!-- INVESTIGATION NOTES -->
+  <div class="notes-section">
+    <h2>Investigation Notes</h2>
+    <textarea id="investigation-notes" placeholder="Paste addresses, phone numbers, notes to cross-reference..."></textarea>
+    <div class="notes-actions">
+      <button class="btn-secondary" onclick="clearNotes()">Clear Notes</button>
+    </div>
+  </div>
+
 </div><!-- end left-panel -->
 
 <div class="right-panel">
@@ -712,6 +721,11 @@ function clearTab(tab) {
   } else if (tab === 'username') {
     document.getElementById('u-user').value = '';
   }
+}
+
+// ── Clear notes ────────────────────────────────────────────────────────────
+function clearNotes() {
+  document.getElementById('investigation-notes').value = '';
 }
 
 // ── Shake animation ────────────────────────────────────────────────────────
