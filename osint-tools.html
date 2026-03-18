@@ -329,6 +329,37 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
+// ── State ──────────────────────────────────────────────────────────────────
+let currentServiceUrl = null;
+let activeServiceBtn = null;
+
+// ── Load service in iframe ─────────────────────────────────────────────────
+function loadService(url, label, btn) {
+  currentServiceUrl = url;
+
+  // Update iframe
+  const frame = document.getElementById('result-frame');
+  const placeholder = document.getElementById('iframe-placeholder');
+  const hint = document.getElementById('iframe-hint');
+  frame.src = url;
+  frame.style.display = 'block';
+  placeholder.style.display = 'none';
+  hint.style.display = 'block';
+
+  // Update header
+  document.getElementById('iframe-service-label').textContent = label;
+  document.getElementById('iframe-newtab-btn').style.display = 'inline-block';
+
+  // Update active button highlight
+  if (activeServiceBtn) activeServiceBtn.classList.remove('active');
+  activeServiceBtn = btn;
+  btn.classList.add('active');
+}
+
+function openCurrentInNewTab() {
+  if (currentServiceUrl) window.open(currentServiceUrl, '_blank');
+}
+
 // ── Service definitions ────────────────────────────────────────────────────
 const enc = encodeURIComponent;
 
@@ -627,7 +658,7 @@ function renderServices(tab) {
         const args = getArgs(tab);
         if (!args) { shakeCard(tab); return; }
         const url = item.url(...args);
-        window.open(url, '_blank');
+        loadService(url, item.label, btn);
       });
       btns.appendChild(btn);
     });
