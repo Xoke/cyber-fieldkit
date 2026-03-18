@@ -208,6 +208,7 @@ body { background: var(--bg); color: var(--text); display: flex; flex-direction:
 </div>
 
 <div id="content">
+<div class="left-panel">
 
   <!-- NAMES TAB -->
   <div class="tab-panel active" id="tab-names">
@@ -297,7 +298,23 @@ body { background: var(--bg); color: var(--text); display: flex; flex-direction:
     <div class="services-area" id="username-services"></div>
   </div>
 
+</div><!-- end left-panel -->
+
+<div class="right-panel">
+  <div class="iframe-header">
+    <span class="iframe-service-name" id="iframe-service-label">No service loaded</span>
+    <button class="btn-secondary" id="iframe-newtab-btn" style="display:none;" onclick="openCurrentInNewTab()">Open in new tab ↗</button>
+  </div>
+  <div class="iframe-placeholder" id="iframe-placeholder">
+    Click a service to load results here
+  </div>
+  <iframe id="result-frame" style="display:none;" src="about:blank"></iframe>
+  <p class="iframe-hint" id="iframe-hint" style="display:none;">
+    If the page above is blank, the site blocks embedding — use the "Open in new tab" button above.
+  </p>
 </div>
+
+</div><!-- end content -->
 
 <script>
 // ── Theme ──────────────────────────────────────────────────────────────────
