@@ -66,40 +66,7 @@ body { background: var(--bg); color: var(--text); display: flex; flex-direction:
 .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
 
 /* Content */
-#content { flex: 1; display: flex; overflow: hidden; }
-
-/* Split layout */
-.left-panel {
-  width: 36%; min-width: 280px; overflow-y: auto;
-  padding: 20px 16px 20px 24px; flex-shrink: 0;
-  border-right: 1px solid var(--border);
-}
-.right-panel {
-  flex: 1; display: flex; flex-direction: column;
-  overflow: hidden; background: var(--bg-alt);
-}
-
-/* Iframe panel */
-.iframe-header {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 12px; background: var(--bg-alt);
-  border-bottom: 1px solid var(--border); flex-shrink: 0;
-}
-.iframe-service-name {
-  font-size: 12px; font-weight: 600; color: var(--text-muted);
-  flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-#result-frame {
-  flex: 1; border: none; background: var(--bg);
-}
-.iframe-hint {
-  font-size: 11px; color: var(--text-muted); padding: 6px 12px;
-  flex-shrink: 0; border-top: 1px solid var(--border);
-}
-.iframe-placeholder {
-  flex: 1; display: flex; align-items: center; justify-content: center;
-  color: var(--text-muted); font-size: 13px;
-}
+#content { flex: 1; overflow-y: auto; padding: 20px 24px; }
 
 /* Notes section */
 .notes-section { margin-top: 20px; }
@@ -117,10 +84,6 @@ body { background: var(--bg); color: var(--text); display: flex; flex-direction:
 .notes-section textarea:focus { border-color: var(--accent); }
 .notes-actions { display: flex; justify-content: flex-end; margin-top: 6px; }
 
-/* Active service button */
-.svc-btn.active {
-  background: var(--accent); color: #fff; border-color: var(--accent);
-}
 
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
@@ -201,7 +164,6 @@ body { background: var(--bg); color: var(--text); display: flex; flex-direction:
 </div>
 
 <div id="content">
-<div class="left-panel">
 
   <!-- NAMES TAB -->
   <div class="tab-panel active" id="tab-names">
@@ -292,29 +254,10 @@ body { background: var(--bg); color: var(--text); display: flex; flex-direction:
     </div>
   </div>
 
-</div><!-- end left-panel -->
-
-<div class="right-panel">
-  <div class="iframe-header">
-    <span class="iframe-service-name" id="iframe-service-label">No service loaded</span>
-    <button class="btn-secondary" id="iframe-newtab-btn" style="display:none;" onclick="openCurrentInNewTab()">Open in new tab ↗</button>
-  </div>
-  <div class="iframe-placeholder" id="iframe-placeholder">
-    Click a service to load results here
-  </div>
-  <iframe id="result-frame" style="display:none;" src="about:blank"></iframe>
-  <p class="iframe-hint" id="iframe-hint" style="display:none;">
-    If the page above is blank, the site blocks embedding — use the "Open in new tab" button above.
-  </p>
-</div>
 
 </div><!-- end content -->
 
 <script>
-// ── State ──────────────────────────────────────────────────────────────────
-let currentServiceUrl = null;
-let activeServiceBtn = null;
-
 // ── Theme ──────────────────────────────────────────────────────────────────
 const THEME_KEY = 'osint-theme';
 function applyTheme(t) {
@@ -332,37 +275,8 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-    // Clear active service button highlight on tab switch
-    if (activeServiceBtn) { activeServiceBtn.classList.remove('active'); activeServiceBtn = null; }
   });
 });
-
-// ── Load service in iframe ─────────────────────────────────────────────────
-function loadService(url, label, btn) {
-  currentServiceUrl = url;
-
-  // Update iframe
-  const frame = document.getElementById('result-frame');
-  const placeholder = document.getElementById('iframe-placeholder');
-  const hint = document.getElementById('iframe-hint');
-  frame.src = url;
-  frame.style.display = 'block';
-  placeholder.style.display = 'none';
-  hint.style.display = 'block';
-
-  // Update header
-  document.getElementById('iframe-service-label').textContent = label;
-  document.getElementById('iframe-newtab-btn').style.display = 'inline-block';
-
-  // Update active button highlight
-  if (activeServiceBtn) activeServiceBtn.classList.remove('active');
-  activeServiceBtn = btn;
-  btn.classList.add('active');
-}
-
-function openCurrentInNewTab() {
-  if (currentServiceUrl) window.open(currentServiceUrl, '_blank', 'noopener,noreferrer');
-}
 
 // ── Service definitions ────────────────────────────────────────────────────
 const enc = encodeURIComponent;
@@ -662,7 +576,7 @@ function renderServices(tab) {
         const args = getArgs(tab);
         if (!args) { shakeCard(tab); return; }
         const url = item.url(...args);
-        loadService(url, item.label, btn);
+        window.open(url, '_blank', 'noopener,noreferrer');
       });
       btns.appendChild(btn);
     });
