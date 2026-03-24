@@ -14,7 +14,7 @@ Live threat intelligence dashboard pulling from CISA KEV, NVD, and Reddit (r/net
 Tracks Continuing Professional Education hours for CISSP recertification. Logs activities with domain coverage, CPE type (Group A/B), proof attachments, and markdown summaries. Shows progress toward the 120-hour / 3-year cycle requirement.
 
 ### Notes (`notes.html`)
-Minimal markdown notes app with tagging and full-text search. Edit in plain text, preview rendered markdown. Tags shown in sidebar for quick filtering.
+Minimal markdown notes app with tagging and full-text search. Edit in plain text, preview rendered markdown. Tags shown in sidebar for quick filtering. Inspired by [TiddlyWiki](https://tiddlywiki.com/), including its self-saving file approach.
 
 ## Usage
 
