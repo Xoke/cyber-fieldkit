@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSINT Tools</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; }
+
+html[data-theme="light"] {
+  --bg: #fff; --bg-alt: #fafbfc; --bg-ctrl: #fff; --bg-hover: rgba(0,0,0,0.04);
+  --border: #e1e4e8; --text: #24292e; --text-muted: #6a737d;
+  --accent: #4a6fa5; --accent-hover: #3d5d8a; --accent-light: #e8eef7;
+}
+html[data-theme="sepia"] {
+  --bg: #f9f5ef; --bg-alt: #f2ece3; --bg-ctrl: #f9f5ef; --bg-hover: rgba(0,0,0,0.04);
+  --border: #d5cdc0; --text: #3b2f1e; --text-muted: #7d6e5a;
+  --accent: #7a5c2e; --accent-hover: #614a24; --accent-light: #ecdfc9;
+}
+html[data-theme="dusk"] {
+  --bg: #1e2233; --bg-alt: #232840; --bg-ctrl: #252a3d; --bg-hover: rgba(255,255,255,0.05);
+  --border: #343a54; --text: #d0d4e8; --text-muted: #7e86a8;
+  --accent: #7b9fd4; --accent-hover: #9ab6e2; --accent-light: #2a3354;
+}
+html[data-theme="dark"] {
+  --bg: #1a1b1e; --bg-alt: #1f2228; --bg-ctrl: #22252a; --bg-hover: rgba(255,255,255,0.05);
+  --border: #30363d; --text: #e1e4e8; --text-muted: #8b949e;
+  --accent: #5c8dd4; --accent-hover: #79a3e0; --accent-light: #1c2a3f;
+}
+
+body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; }
+
+/* Header */
+#header {
+  display: flex; align-items: center; padding: 0 16px; height: 44px;
+  background: var(--bg-alt); border-bottom: 1px solid var(--border);
+  flex-shrink: 0; gap: 12px;
+}
+#app-name { font-weight: 700; font-size: 15px; flex: 1; }
+#theme-row { display: flex; align-items: center; gap: 5px; }
+.theme-btn {
+  width: 16px; height: 16px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; padding: 0; outline: none;
+  transition: transform 0.1s;
+}
+.theme-btn:hover { transform: scale(1.2); }
+.theme-btn.active { border-color: var(--text); }
+.theme-btn[data-t="light"]  { background: #fff; box-shadow: 0 0 0 1px #ccc; }
+.theme-btn[data-t="sepia"]  { background: #c8a97e; }
+.theme-btn[data-t="dusk"]   { background: #4a5580; }
+.theme-btn[data-t="dark"]   { background: #2a2d35; box-shadow: 0 0 0 1px #555; }
+
+/* Tab bar */
+#tab-bar {
+  display: flex; background: var(--bg-alt); border-bottom: 1px solid var(--border);
+  flex-shrink: 0; padding: 0 16px;
+}
+.tab-btn {
+  padding: 10px 16px; font-size: 13px; font-weight: 500; cursor: pointer;
+  border: none; background: none; color: var(--text-muted);
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* Content */
+#content { flex: 1; overflow-y: auto; padding: 20px 24px; }
+
+/* Notes section */
+.notes-section { margin-top: 20px; }
+.notes-section h2 {
+  font-size: 13px; font-weight: 600; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;
+}
+.notes-section textarea {
+  width: 100%; min-height: 120px; padding: 8px 10px;
+  background: var(--bg-ctrl); border: 1px solid var(--border);
+  border-radius: 5px; color: var(--text); font-size: 12px;
+  font-family: inherit; resize: vertical; outline: none;
+  transition: border-color 0.15s;
+}
+.notes-section textarea:focus { border-color: var(--accent); }
+.notes-actions { display: flex; justify-content: flex-end; margin-top: 6px; }
+
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* Input card */
+.input-card {
+  background: var(--bg-alt); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px; margin-bottom: 20px;
+  max-width: 700px;
+}
+.input-card h2 { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+.input-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.input-group { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 140px; }
+.input-group label { font-size: 12px; color: var(--text-muted); }
+.input-group input {
+  padding: 7px 10px; background: var(--bg-ctrl); border: 1px solid var(--border);
+  border-radius: 5px; color: var(--text); font-size: 13px; outline: none;
+  font-family: inherit; transition: border-color 0.15s;
+}
+.input-group input:focus { border-color: var(--accent); }
+.input-card-actions { display: flex; align-items: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.btn-secondary {
+  padding: 7px 12px; background: var(--bg-ctrl); color: var(--text);
+  border: 1px solid var(--border); border-radius: 5px; font-size: 13px;
+  cursor: pointer; transition: background 0.15s;
+}
+.btn-secondary:hover { background: var(--bg-hover); }
+
+/* Shake animation */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+.shake { animation: shake 0.35s ease; border-color: #d73a49 !important; }
+
+/* Service groups */
+.services-area { max-width: 700px; }
+.service-group { margin-bottom: 20px; }
+.service-group-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-muted); margin-bottom: 8px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;
+}
+.service-group-note {
+  font-size: 10px; font-weight: 400; text-transform: none; letter-spacing: 0;
+  color: var(--text-muted); opacity: 0.7;
+}
+.service-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+.svc-btn {
+  padding: 5px 12px; background: var(--accent-light); color: var(--accent);
+  border: 1px solid var(--border); border-radius: 4px; font-size: 12px;
+  font-weight: 500; cursor: pointer; transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+.svc-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div id="app-name">OSINT Tools</div>
+  <div id="theme-row">
+    <button class="theme-btn" data-t="light"  title="Light"></button>
+    <button class="theme-btn" data-t="sepia"  title="Sepia"></button>
+    <button class="theme-btn" data-t="dusk"   title="Dusk"></button>
+    <button class="theme-btn" data-t="dark"   title="Dark"></button>
+  </div>
+</div>
+
+<div id="tab-bar">
+  <button class="tab-btn active" data-tab="names">Names</button>
+  <button class="tab-btn" data-tab="phone">Phone</button>
+  <button class="tab-btn" data-tab="email">Email</button>
+  <button class="tab-btn" data-tab="username">Username</button>
+</div>
+
+<div id="content">
+
+  <!-- NAMES TAB -->
+  <div class="tab-panel active" id="tab-names">
+    <div class="input-card" id="names-card">
+      <h2>Name Search</h2>
+      <div class="input-row">
+        <div class="input-group">
+          <label for="n-first">First Name</label>
+          <input type="text" id="n-first" placeholder="Jane" autocomplete="off">
+        </div>
+        <div class="input-group">
+          <label for="n-last">Last Name</label>
+          <input type="text" id="n-last" placeholder="Doe" autocomplete="off">
+        </div>
+        <div class="input-group">
+          <label for="n-city">City (opt.)</label>
+          <input type="text" id="n-city" placeholder="Reno" autocomplete="off">
+        </div>
+        <div class="input-group" style="max-width:90px;">
+          <label for="n-state">State (opt.)</label>
+          <input type="text" id="n-state" placeholder="NV" autocomplete="off" maxlength="2">
+        </div>
+      </div>
+      <div class="input-card-actions">
+        <button class="btn-secondary" onclick="clearTab('names')">Clear</button>
+      </div>
+    </div>
+    <div class="services-area" id="names-services"></div>
+  </div>
+
+  <!-- PHONE TAB -->
+  <div class="tab-panel" id="tab-phone">
+    <div class="input-card" id="phone-card">
+      <h2>Phone Lookup</h2>
+      <div class="input-row">
+        <div class="input-group">
+          <label for="p-phone">Phone Number</label>
+          <input type="text" id="p-phone" placeholder="(555) 867-5309" autocomplete="off">
+        </div>
+      </div>
+      <div class="input-card-actions">
+        <button class="btn-secondary" onclick="clearTab('phone')">Clear</button>
+      </div>
+    </div>
+    <div class="services-area" id="phone-services"></div>
+  </div>
+
+  <!-- EMAIL TAB -->
+  <div class="tab-panel" id="tab-email">
+    <div class="input-card" id="email-card">
+      <h2>Email Lookup</h2>
+      <div class="input-row">
+        <div class="input-group">
+          <label for="e-email">Email Address</label>
+          <input type="text" id="e-email" placeholder="user@example.com" autocomplete="off">
+        </div>
+      </div>
+      <div class="input-card-actions">
+        <button class="btn-secondary" onclick="clearTab('email')">Clear</button>
+      </div>
+    </div>
+    <div class="services-area" id="email-services"></div>
+  </div>
+
+  <!-- USERNAME TAB -->
+  <div class="tab-panel" id="tab-username">
+    <div class="input-card" id="username-card">
+      <h2>Username Search</h2>
+      <div class="input-row">
+        <div class="input-group">
+          <label for="u-user">Username</label>
+          <input type="text" id="u-user" placeholder="johndoe42" autocomplete="off">
+        </div>
+      </div>
+      <div class="input-card-actions">
+        <button class="btn-secondary" onclick="clearTab('username')">Clear</button>
+      </div>
+    </div>
+    <div class="services-area" id="username-services"></div>
+  </div>
+
+  <!-- INVESTIGATION NOTES -->
+  <div class="notes-section">
+    <h2>Investigation Notes</h2>
+    <textarea id="investigation-notes" placeholder="Paste addresses, phone numbers, notes to cross-reference..."></textarea>
+    <div class="notes-actions">
+      <button class="btn-secondary" onclick="clearNotes()">Clear Notes</button>
+    </div>
+  </div>
+
+
+</div><!-- end content -->
+
+<script>
+// ── Theme ──────────────────────────────────────────────────────────────────
+const THEME_KEY = 'osint-theme';
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.t === t));
+  localStorage.setItem(THEME_KEY, t);
+}
+document.querySelectorAll('.theme-btn').forEach(b => b.addEventListener('click', () => applyTheme(b.dataset.t)));
+applyTheme(localStorage.getItem(THEME_KEY) || 'light');
+
+// ── Tabs ───────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ── Service definitions ────────────────────────────────────────────────────
+const enc = encodeURIComponent;
+
+// Helpers for URL building
+const STATE_NAMES = {
+  AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',
+  CT:'Connecticut',DE:'Delaware',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',
+  IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',
+  ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',
+  MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',
+  NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',
+  NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',
+  PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',
+  TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',
+  WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming',DC:'District of Columbia'
+};
+const tc  = s => s.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+const slg = s => s.trim().toLowerCase().replace(/\s+/g, '-');
+
+const SERVICES = {
+  names: [
+    {
+      category: 'People Search',
+      items: [
+        // URL patterns verified against working searches
+        { label: 'TruePeopleSearch', url: (f,l,c,s) => {
+            let u = `https://www.truepeoplesearch.com/results?name=${enc(f)}%20${enc(l)}`;
+            const loc = [c,s].filter(Boolean).join(', ');
+            if (loc) u += `&citystatezip=${enc(loc)}`;
+            return u;
+          }
+        },
+        { label: 'FastPeopleSearch', url: (f,l,c,s) => {
+            let path = `${slg(f)}-${slg(l)}`;
+            const loc = [c,s].filter(Boolean).map(slg).join('-');
+            if (loc) path += `_${loc}`;
+            return `https://www.fastpeoplesearch.com/name/${path}`;
+          }
+        },
+        { label: 'WhitePages', url: (f,l,c,s) => {
+            let u = `https://www.whitepages.com/name/${tc(f)}-${tc(l)}`;
+            if (c && s) u += `/${tc(c).replace(/\s+/g,'-')}-${s.toUpperCase()}`;
+            else if (c) u += `/${tc(c).replace(/\s+/g,'-')}`;
+            else if (s) u += `/${s.toUpperCase()}`;
+            return u;
+          }
+        },
+        { label: 'Spokeo', url: (f,l,c,s) => {
+            let u = `https://www.spokeo.com/${tc(f)}-${tc(l)}`;
+            if (s) {
+              const full = STATE_NAMES[s.toUpperCase()] || s;
+              u += `/${full.replace(/\s+/g,'-')}`;
+              if (c) u += `/${tc(c).replace(/\s+/g,'-')}`;
+            } else if (c) {
+              u += `/${tc(c).replace(/\s+/g,'-')}`;
+            }
+            return u;
+          }
+        },
+        { label: 'FamilyTreeNow', url: (f,l,c,s) => {
+            let u = `https://www.familytreenow.com/search/genealogy/results?first=${enc(f)}&last=${enc(l)}`;
+            const loc = [c,s].filter(Boolean).join(', ');
+            if (loc) u += `&citystatezip=${enc(loc)}`;
+            return u;
+          }
+        },
+        { label: '411', url: (f,l,c,s) => {
+            let u = `https://www.411.com/person-search/${tc(f)}-${tc(l)}`;
+            if (s) u += `/${s.toUpperCase()}`;
+            if (c) u += `/${tc(c).replace(/\s+/g,'-')}`;
+            return u;
+          }
+        },
+        { label: 'ThatsThem', url: (f,l,c,s) => {
+            let u = `https://thatsthem.com/searching?fullname=${enc(f)}+${enc(l)}`;
+            const loc = [c,s].filter(Boolean).join(', ').toLowerCase();
+            if (loc) u += `&address=${enc(loc)}`;
+            return u;
+          }
+        },
+        { label: 'CyberBackground', url: (f,l,c,s) => {
+            let u = `https://www.cyberbackgroundchecks.com/people/${slg(f)}-${slg(l)}`;
+            if (s) u += `/${s.toLowerCase()}`;
+            if (c) u += `/${slg(c)}`;
+            return u;
+          }
+        },
+      ]
+    },
+    {
+      category: 'Background / Records',
+      items: [
+        { label: 'Intelius', url: (f,l,c,s) => {
+            let u = `https://www.intelius.com/people-search/${slg(f)}-${slg(l)}`;
+            if (s) u += `/${(STATE_NAMES[s.toUpperCase()] || s).toLowerCase().replace(/\s+/g,'-')}`;
+            return u + '/';
+          }
+        },
+        { label: 'ZabaSearch', url: (f,l,c,s) => {
+            let u = `https://www.zabasearch.com/people/${slg(f)}-${slg(l)}`;
+            if (s) u += `/${(STATE_NAMES[s.toUpperCase()] || s).toLowerCase().replace(/\s+/g,'-')}`;
+            if (c) u += `/${slg(c)}`;
+            return u + '/';
+          }
+        },
+        { label: 'CourtListener', url: (f,l) => `https://www.courtlistener.com/?q=${enc(f + ' ' + l)}` },
+        { label: 'OpenSanctions', url: (f,l) => `https://www.opensanctions.org/search/?q=${enc(f + ' ' + l)}` },
+      ]
+    },
+    {
+      category: 'Social Media',
+      note: '* login required',
+      items: [
+        { label: 'LinkedIn',    url: (f,l) => `https://www.linkedin.com/search/results/people/?keywords=${enc(f + ' ' + l)}` },
+        { label: 'Facebook',    url: (f,l) => `https://www.facebook.com/search/people/?q=${enc(f + ' ' + l)}` },
+        { label: 'X/Twitter',   url: (f,l) => `https://twitter.com/search?q=${enc('"' + f + ' ' + l + '"')}&f=user` },
+        { label: 'Instagram',   url: (f,l) => `https://www.instagram.com/explore/search/keyword/?q=${enc(f + ' ' + l)}` },
+        { label: 'TikTok *',    url: (f,l) => `https://www.tiktok.com/search?q=${enc(f + ' ' + l)}` },
+        { label: 'Bluesky *',   url: (f,l) => `https://bsky.app/search?q=${enc(f + ' ' + l)}` },
+        { label: 'Threads',     url: (f,l) => `https://www.threads.net/search?q=${enc(f + ' ' + l)}` },
+        { label: 'Tumblr',      url: (f,l) => `https://www.tumblr.com/search/${enc(f + ' ' + l)}` },
+      ]
+    },
+    {
+      category: 'Search Engines',
+      items: [
+        { label: 'Google',      url: (f,l) => `https://www.google.com/search?q=${enc('"' + f + ' ' + l + '"')}` },
+        { label: 'Google News', url: (f,l) => `https://www.google.com/search?tbm=nws&q=${enc('"' + f + ' ' + l + '"')}` },
+        { label: 'Bing',        url: (f,l) => `https://www.bing.com/search?q=${enc('"' + f + ' ' + l + '"')}` },
+        { label: 'DuckDuckGo',  url: (f,l) => `https://duckduckgo.com/?q=${enc('"' + f + ' ' + l + '"')}` },
+      ]
+    }
+  ],
+
+  phone: [
+    {
+      category: 'Reverse Lookup',
+      items: [
+        { label: 'TruePeopleSearch', url: p => `https://www.truepeoplesearch.com/results?phoneno=${p}` },
+        { label: 'FastPeopleSearch', url: p => `https://www.fastpeoplesearch.com/phone/${p}` },
+        { label: 'WhitePages',       url: p => `https://www.whitepages.com/phone/${p}` },
+        { label: 'Spokeo',           url: p => `https://www.spokeo.com/phone/${p}` },
+        { label: 'NumLookup',        url: p => `https://www.numlookup.com/?number=${p}` },
+        { label: 'ThatsThem',        url: p => `https://thatsthem.com/phone/${p}` },
+        { label: 'Nuwber',           url: p => `https://nuwber.com/search?phone=${p}` },
+        { label: '800Notes',         url: p => `https://800notes.com/Phone.aspx/1-${p.slice(0,3)}-${p.slice(3,6)}-${p.slice(6)}` },
+        { label: 'CallerSmart',      url: p => `https://www.callersmart.com/search/phone/${p}` },
+      ]
+    },
+    {
+      category: 'Carrier / Info',
+      items: [
+        { label: 'FreeCarrierLookup', url: () => 'https://www.freecarrierlookup.com/' },
+        { label: 'NumberVille',       url: () => 'https://www.numberville.com/' },
+      ]
+    },
+    {
+      category: 'Search Engines',
+      items: [
+        { label: 'Google',     url: (p, raw) => `https://www.google.com/search?q=${enc(raw)}` },
+        { label: 'Bing',       url: (p, raw) => `https://www.bing.com/search?q=${enc(raw)}` },
+        { label: 'DuckDuckGo', url: (p, raw) => `https://duckduckgo.com/?q=${enc(raw)}` },
+      ]
+    }
+  ],
+
+  email: [
+    {
+      category: 'Reverse Lookup',
+      items: [
+        { label: 'EPIEOS',          url: e => `https://epieos.com/?q=${enc(e)}&type=email` },
+        { label: 'OSINT Industries', url: () => 'https://osint.industries/' },
+        { label: 'Castrick',        url: () => 'https://castrickclues.com/' },
+        { label: 'osint.rocks',     url: () => 'https://osint.rocks/' },
+      ]
+    },
+    {
+      category: 'Breach Check',
+      items: [
+        { label: 'HaveIBeenPwned',  url: e => `https://haveibeenpwned.com/account/${enc(e)}` },
+        { label: 'DeHashed',        url: e => `https://dehashed.com/search?query=${enc(e)}` },
+        { label: 'BreachDirectory', url: () => 'https://breachdirectory.org/' },
+        { label: 'Snusbase',        url: () => 'https://snusbase.com/' },
+        { label: 'emailrep.io',     url: e => `https://emailrep.io/${enc(e)}` },
+        { label: 'Scamsearch.io',   url: e => `https://scamsearch.io/search?searchQuery=${enc(e)}&option=all` },
+      ]
+    },
+    {
+      category: 'People Search',
+      items: [
+        { label: 'ThatsThem',   url: e => `https://thatsthem.com/email/${enc(e)}` },
+        { label: 'Spokeo',      url: e => `https://www.spokeo.com/email/${enc(e)}` },
+        { label: 'Pipl',        url: e => `https://pipl.com/search/?q=${enc(e)}` },
+      ]
+    },
+    {
+      category: 'Professional / Find Email',
+      items: [
+        { label: 'Hunter.io',   url: e => `https://hunter.io/email-verifier/${enc(e)}` },
+        { label: 'SignalHire',  url: e => `https://www.signalhire.com/search?email=${enc(e)}` },
+        { label: 'Skymem',      url: e => `https://www.skymem.info/srweb?q=${enc(e)}` },
+      ]
+    },
+    {
+      category: 'WHOIS / Domain',
+      items: [
+        { label: 'Whoxy Reverse',  url: e => `https://www.whoxy.com/email/${enc(e)}/` },
+        { label: 'Reverse Whois',  url: e => `https://viewdns.info/reversewhois/?q=${enc(e)}` },
+      ]
+    },
+    {
+      category: 'Accounts / Social',
+      items: [
+        { label: 'LinkedIn', url: e => `https://www.linkedin.com/search/results/people/?keywords=${enc(e)}` },
+        { label: 'GitHub',   url: e => `https://github.com/search?q=${enc(e)}&type=users` },
+      ]
+    },
+    {
+      category: 'Search Engines',
+      items: [
+        { label: 'Google',     url: e => `https://www.google.com/search?q=${enc(e)}` },
+        { label: 'Bing',       url: e => `https://www.bing.com/search?q=${enc(e)}` },
+        { label: 'DuckDuckGo', url: e => `https://duckduckgo.com/?q=${enc(e)}` },
+      ]
+    }
+  ],
+
+  username: [
+    {
+      category: 'OSINT Tools',
+      items: [
+        { label: 'WhatsMyName',     url: u => `https://whatsmyname.app/?q=${enc(u)}` },
+        { label: 'UserSearch.org',  url: u => `https://usersearch.org/results_normal.php?URL_username=${enc(u)}` },
+        { label: 'Mailcat',         url: u => `https://mailcat.best/?target=${enc(u)}` },
+        { label: 'Namechk',         url: () => 'https://namechk.com/' },
+        { label: 'CheckUsernames',  url: () => 'https://checkusernames.com/' },
+      ]
+    },
+    {
+      category: 'Social Media',
+      items: [
+        { label: 'Twitter/X',  url: u => `https://twitter.com/${u}` },
+        { label: 'Instagram',  url: u => `https://www.instagram.com/${u}/` },
+        { label: 'Facebook',   url: u => `https://www.facebook.com/${u}` },
+        { label: 'LinkedIn',   url: u => `https://www.linkedin.com/in/${u}` },
+        { label: 'GitHub',     url: u => `https://github.com/${u}` },
+        { label: 'Reddit',     url: u => `https://www.reddit.com/user/${u}` },
+        { label: 'TikTok',     url: u => `https://www.tiktok.com/@${u}` },
+        { label: 'YouTube',    url: u => `https://www.youtube.com/@${u}` },
+        { label: 'Twitch',     url: u => `https://www.twitch.tv/${u}` },
+        { label: 'Pinterest',  url: u => `https://www.pinterest.com/${u}` },
+        { label: 'Tumblr',     url: u => `https://${u}.tumblr.com` },
+        { label: 'Medium',     url: u => `https://medium.com/@${u}` },
+        { label: 'Steam',      url: u => `https://steamcommunity.com/id/${u}` },
+        { label: 'Snapchat',   url: u => `https://www.snapchat.com/add/${u}` },
+        { label: 'Telegram',   url: u => `https://t.me/${u}` },
+        { label: 'Flickr',     url: u => `https://www.flickr.com/people/${u}` },
+      ]
+    },
+    {
+      category: 'Search Engines',
+      items: [
+        { label: 'Google',     url: u => `https://www.google.com/search?q=${enc('"' + u + '"')}` },
+        { label: 'Bing',       url: u => `https://www.bing.com/search?q=${enc('"' + u + '"')}` },
+        { label: 'DuckDuckGo', url: u => `https://duckduckgo.com/?q=${enc('"' + u + '"')}` },
+      ]
+    }
+  ]
+};
+
+// ── Render service buttons ─────────────────────────────────────────────────
+function renderServices(tab) {
+  const container = document.getElementById(tab + '-services');
+  if (!container) return;
+  container.innerHTML = '';
+  SERVICES[tab].forEach(group => {
+    const gDiv = document.createElement('div');
+    gDiv.className = 'service-group';
+    const label = document.createElement('div');
+    label.className = 'service-group-label';
+    label.textContent = group.category;
+    if (group.note) {
+      const note = document.createElement('span');
+      note.className = 'service-group-note';
+      note.textContent = group.note;
+      label.appendChild(note);
+    }
+    gDiv.appendChild(label);
+    const btns = document.createElement('div');
+    btns.className = 'service-buttons';
+    group.items.forEach(item => {
+      const btn = document.createElement('button');
+      btn.className = 'svc-btn';
+      btn.textContent = item.label;
+      btn.addEventListener('click', () => {
+        const args = getArgs(tab);
+        if (!args) { shakeCard(tab); return; }
+        const url = item.url(...args);
+        window.open(url, '_blank', 'noopener,noreferrer');
+      });
+      btns.appendChild(btn);
+    });
+    gDiv.appendChild(btns);
+    container.appendChild(gDiv);
+  });
+}
+
+['names', 'phone', 'email', 'username'].forEach(renderServices);
+
+// ── Get args for each tab ──────────────────────────────────────────────────
+function getArgs(tab) {
+  if (tab === 'names') {
+    const first = document.getElementById('n-first').value.trim();
+    const last  = document.getElementById('n-last').value.trim();
+    if (!first || !last) return null;
+    const city  = document.getElementById('n-city').value.trim();
+    const state = document.getElementById('n-state').value.trim();
+    return [first, last, city, state];
+  }
+  if (tab === 'phone') {
+    const raw = document.getElementById('p-phone').value.trim();
+    if (!raw) return null;
+    const digits = raw.replace(/\D/g, '').replace(/^1(\d{10})$/, '$1');
+    if (digits.length !== 10) return null;
+    return [digits, raw];
+  }
+  if (tab === 'email') {
+    const email = document.getElementById('e-email').value.trim();
+    if (!email) return null;
+    return [email];
+  }
+  if (tab === 'username') {
+    const u = document.getElementById('u-user').value.trim();
+    if (!u) return null;
+    return [u];
+  }
+  return null;
+}
+
+// ── Clear ─────────────────────────────────────────────────────────────────
+function clearTab(tab) {
+  if (tab === 'names') {
+    ['n-first','n-last','n-city','n-state'].forEach(id => document.getElementById(id).value = '');
+  } else if (tab === 'phone') {
+    document.getElementById('p-phone').value = '';
+  } else if (tab === 'email') {
+    document.getElementById('e-email').value = '';
+  } else if (tab === 'username') {
+    document.getElementById('u-user').value = '';
+  }
+}
+
+// ── Clear notes ────────────────────────────────────────────────────────────
+function clearNotes() {
+  document.getElementById('investigation-notes').value = '';
+}
+
+// ── Shake animation ────────────────────────────────────────────────────────
+function shakeCard(tab) {
+  const card = document.getElementById(tab + '-card');
+  card.classList.remove('shake');
+  void card.offsetWidth; // reflow to restart animation
+  card.classList.add('shake');
+  card.addEventListener('animationend', () => card.classList.remove('shake'), { once: true });
+  // highlight empty required inputs
+  if (tab === 'names') {
+    ['n-first','n-last'].forEach(id => {  // only required fields shake
+      const el = document.getElementById(id);
+      if (!el.value.trim()) { el.classList.add('shake'); el.addEventListener('animationend', () => el.classList.remove('shake'), { once: true }); }
+    });
+  } else if (tab === 'phone') {
+    const el = document.getElementById('p-phone');
+    el.classList.add('shake');
+    el.addEventListener('animationend', () => el.classList.remove('shake'), { once: true });
+  } else if (tab === 'email') {
+    const el = document.getElementById('e-email');
+    el.classList.add('shake');
+    el.addEventListener('animationend', () => el.classList.remove('shake'), { once: true });
+  } else if (tab === 'username') {
+    const el = document.getElementById('u-user');
+    el.classList.add('shake');
+    el.addEventListener('animationend', () => el.classList.remove('shake'), { once: true });
+  }
+}
+
+</script>
+</body>
+</html>
