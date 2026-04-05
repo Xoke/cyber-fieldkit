@@ -337,15 +337,153 @@ function render() {
   renderMain();
 }
 
-// ── Main render (placeholder) ─────────────────────────────────────────────────
+// ── Main render ───────────────────────────────────────────────────────────────
 function renderMain() {
   const main   = document.getElementById('main');
   const folder = getActiveFolder();
+
   if (!folder) {
     main.innerHTML = '<div id="empty-state">Select a folder or create a new one</div>';
+    document.body.classList.remove('edit-mode');
     return;
   }
-  main.innerHTML = '<div id="main-toolbar"><input id="folder-title" value="' + escHtml(folder.name) + '" readonly><button id="btn-edit">Edit</button></div><div id="card-grid"><div style="padding:20px;color:var(--text-muted);font-size:12px">Cards coming in next task</div></div>';
+
+  if (editMode) document.body.classList.add('edit-mode');
+  else          document.body.classList.remove('edit-mode');
+
+  const bms = filteredBookmarks(folder);
+
+  main.innerHTML =
+    '<div id="main-toolbar">' +
+      '<input id="folder-title" value="' + escHtml(folder.name) + '"' + (editMode ? '' : ' readonly') + '>' +
+      (editMode ? '<button id="btn-delete-folder">Delete Folder</button>' : '') +
+      '<button id="btn-edit"' + (editMode ? ' class="active"' : '') + '>Edit</button>' +
+    '</div>' +
+    '<div id="card-grid"></div>' +
+    '<div id="add-form">' +
+      '<label>Title *</label>' +
+      '<input id="af-title" placeholder="My Bookmark">' +
+      '<label>URL *</label>' +
+      '<input id="af-url" type="url" placeholder="https://…">' +
+      '<label>Description</label>' +
+      '<textarea id="af-desc" placeholder="Optional notes…"></textarea>' +
+      '<label>Tags (comma-separated)</label>' +
+      '<input id="af-tags" placeholder="tag1, tag2">' +
+      '<div id="add-form-actions">' +
+        '<button class="btn-primary" id="af-save">Add</button>' +
+        '<button class="btn-secondary" id="af-cancel">Cancel</button>' +
+      '</div>' +
+    '</div>';
+
+  // Build card grid
+  const grid = document.getElementById('card-grid');
+
+  if (bms.length) {
+    grid.innerHTML = bms.map(b =>
+      '<div class="bm-card" data-id="' + escHtml(b.id) + '">' +
+        '<button class="delete-btn" data-id="' + escHtml(b.id) + '" title="Remove">×</button>' +
+        '<div class="bm-card-title">' + escHtml(b.title || 'Untitled') + '</div>' +
+        '<div class="bm-card-url">' + escHtml(b.url || '') + '</div>' +
+        (b.description ? '<div class="bm-card-desc">' + escHtml(b.description) + '</div>' : '') +
+        ((b.tags || []).length ? '<div class="bm-card-tags">' + (b.tags || []).map(t => '<span class="bm-card-tag">' + escHtml(t) + '</span>').join('') + '</div>' : '') +
+      '</div>'
+    ).join('');
+  } else {
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:20px;color:var(--text-muted);font-size:12px;text-align:center">' +
+      (folder.bookmarks.length ? 'No matches' : 'No bookmarks yet — click Edit then + Add Bookmark') +
+      '</div>';
+  }
+
+  if (editMode) {
+    // Add-card placeholder
+    const addCard = document.createElement('div');
+    addCard.className = 'add-card';
+    addCard.textContent = '+ Add Bookmark';
+    addCard.addEventListener('click', showAddForm);
+    grid.appendChild(addCard);
+
+    // Delete buttons on cards
+    grid.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        folder.bookmarks = folder.bookmarks.filter(b => b.id !== btn.dataset.id);
+        markDirty();
+        render();
+      });
+    });
+
+    // Folder rename
+    const titleEl = document.getElementById('folder-title');
+    titleEl.addEventListener('blur', () => {
+      const val = titleEl.value.trim();
+      if (val && val !== folder.name) {
+        folder.name = val;
+        markDirty();
+        renderFolderList();
+      }
+    });
+    titleEl.addEventListener('keydown', e => { if (e.key === 'Enter') titleEl.blur(); });
+
+    // Delete folder
+    document.getElementById('btn-delete-folder').addEventListener('click', () => {
+      data.folders = data.folders.filter(f => f.id !== activeFolderId);
+      activeFolderId = data.folders.length ? data.folders[0].id : null;
+      editMode = false;
+      markDirty();
+      render();
+    });
+  } else {
+    // Click card → open URL
+    grid.querySelectorAll('.bm-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const bm = folder.bookmarks.find(b => b.id === card.dataset.id);
+        if (bm && bm.url) window.open(bm.url, '_blank');
+      });
+    });
+  }
+
+  // Edit toggle
+  document.getElementById('btn-edit').addEventListener('click', () => {
+    editMode = !editMode;
+    render();
+  });
+
+  // Add form buttons
+  document.getElementById('af-save').addEventListener('click', addBookmark);
+  document.getElementById('af-cancel').addEventListener('click', hideAddForm);
+}
+
+function showAddForm() {
+  const form = document.getElementById('add-form');
+  if (form) { form.classList.add('visible'); document.getElementById('af-title').focus(); }
+}
+
+function hideAddForm() {
+  const form = document.getElementById('add-form');
+  if (!form) return;
+  form.classList.remove('visible');
+  ['af-title', 'af-url', 'af-desc', 'af-tags'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+function addBookmark() {
+  const title = document.getElementById('af-title').value.trim();
+  const url   = document.getElementById('af-url').value.trim();
+  if (!title || !url) { alert('Title and URL are required.'); return; }
+  const folder = getActiveFolder();
+  if (!folder) return;
+  folder.bookmarks.push({
+    id:          uid(),
+    title,
+    url,
+    description: document.getElementById('af-desc').value.trim(),
+    tags:        parseTags(document.getElementById('af-tags').value),
+    created:     new Date().toISOString()
+  });
+  markDirty();
+  render();
 }
 
 // ── New folder ────────────────────────────────────────────────────────────────
