@@ -65,38 +65,43 @@ body { background: var(--bg); color: var(--text); }
 .folder-count { font-size: 11px; color: var(--text-muted); }
 .folder-item.dimmed { opacity: 0.4; }
 
-#btn-new-folder { margin: 8px 10px; padding: 7px; background: var(--accent); color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; flex-shrink: 0; }
-#btn-new-folder:hover { background: var(--accent-hover); }
 
 /* Main panel */
 #main { display: flex; flex-direction: column; overflow: hidden; background: var(--bg-alt); }
 #main-toolbar { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--bg-alt); min-height: 45px; }
 #folder-title { font-size: 16px; font-weight: 600; flex: 1; background: transparent; border: none; color: var(--text); outline: none; }
 #folder-title[readonly] { cursor: default; }
-#btn-edit { font-size: 12px; padding: 4px 10px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 4px; color: var(--text); cursor: pointer; }
-#btn-edit:hover { background: var(--bg-hover); }
-#btn-edit.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 #btn-delete-folder { font-size: 12px; padding: 4px 8px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 4px; color: #e06c75; cursor: pointer; }
 #btn-delete-folder:hover { background: var(--bg-hover); }
 
-/* Card grid */
-#card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; padding: 16px; overflow-y: auto; flex: 1; align-content: start; }
+/* Sidebar bottom */
+#sidebar-bottom { display: flex; gap: 6px; padding: 8px 10px; border-top: 1px solid var(--border); flex-shrink: 0; }
+#btn-new-folder { flex: 1; padding: 7px; background: var(--accent); color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; }
+#btn-new-folder:hover { background: var(--accent-hover); }
+#btn-edit { font-size: 12px; padding: 4px 10px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 4px; color: var(--text); cursor: pointer; }
+#btn-edit:hover:not(:disabled) { background: var(--bg-hover); }
+#btn-edit.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+#btn-edit:disabled { opacity: 0.35; cursor: default; }
 
-.bm-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; cursor: pointer; position: relative; transition: border-color 0.1s; }
-.bm-card:hover { border-color: var(--accent); box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-.bm-card-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bm-card-url { font-size: 11px; color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; }
-.bm-card-desc { font-size: 12px; color: var(--text-muted); margin-top: 6px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.bm-card-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 8px; }
-.bm-card-tag { font-size: 10px; padding: 1px 5px; background: var(--bg-ctrl); border-radius: 8px; color: var(--text-muted); border: 1px solid var(--border); }
-
-.bm-card .delete-btn { display: none; position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; background: #e06c75; border: none; border-radius: 50%; color: #fff; font-size: 14px; cursor: pointer; align-items: center; justify-content: center; line-height: 1; padding: 0; }
-body.edit-mode .bm-card .delete-btn { display: flex; }
-body.edit-mode .bm-card { cursor: default; }
-body.edit-mode .bm-card:hover { border-color: var(--border); box-shadow: none; }
-
-.add-card { background: transparent; border: 2px dashed var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; min-height: 100px; cursor: pointer; color: var(--text-muted); font-size: 13px; }
-.add-card:hover { border-color: var(--accent); color: var(--accent); }
+/* Bookmark table */
+#bm-table-wrap { flex: 1; overflow-y: auto; }
+#bm-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+#bm-table th { text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted); padding: 7px 14px; border-bottom: 2px solid var(--border); white-space: nowrap; position: sticky; top: 0; background: var(--bg-alt); }
+#bm-table td { padding: 8px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.bm-row { cursor: pointer; }
+.bm-row:hover td { background: var(--bg-hover); }
+body.edit-mode .bm-row { cursor: default; }
+body.edit-mode .bm-row:hover td { background: transparent; }
+.bm-row-title { font-weight: 600; white-space: nowrap; }
+.bm-row-url { font-size: 11px; color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; display: block; }
+.bm-row-desc { color: var(--text-muted); font-size: 12px; max-width: 320px; }
+.bm-row-tags { white-space: nowrap; }
+.bm-row-tag { font-size: 10px; padding: 1px 5px; background: var(--bg-ctrl); border-radius: 8px; color: var(--text-muted); border: 1px solid var(--border); margin-right: 3px; display: inline-block; }
+.bm-row .delete-btn { display: none; padding: 2px 8px; background: none; border: 1px solid var(--border); border-radius: 4px; color: #e06c75; cursor: pointer; font-size: 12px; }
+body.edit-mode .bm-row .delete-btn { display: inline-block; }
+#btn-add-row { margin: 10px 14px; padding: 6px 14px; background: transparent; border: 2px dashed var(--border); border-radius: 6px; color: var(--text-muted); cursor: pointer; font-size: 13px; display: none; }
+body.edit-mode #btn-add-row { display: inline-block; }
+#btn-add-row:hover { border-color: var(--accent); color: var(--accent); }
 
 /* Add form */
 #add-form { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin: 0 16px 16px; flex-shrink: 0; display: none; }
@@ -135,7 +140,10 @@ body.edit-mode .bm-card:hover { border-color: var(--border); box-shadow: none; }
     </div>
     <div id="tag-panel"></div>
     <div id="folder-list"></div>
-    <button id="btn-new-folder">+ New Folder</button>
+    <div id="sidebar-bottom">
+      <button id="btn-new-folder">+ New Folder</button>
+      <button id="btn-edit" disabled>Edit</button>
+    </div>
   </aside>
   <main id="main">
     <div id="empty-state">Select a folder or create a new one</div>
@@ -336,6 +344,11 @@ function render() {
   renderTagPanel();
   renderFolderList();
   renderMain();
+  const btn = document.getElementById('btn-edit');
+  if (btn) {
+    btn.disabled = !activeFolderId;
+    btn.classList.toggle('active', editMode && !!activeFolderId);
+  }
 }
 
 // ── Main render ───────────────────────────────────────────────────────────────
@@ -358,9 +371,12 @@ function renderMain() {
     '<div id="main-toolbar">' +
       '<input id="folder-title" value="' + escHtml(folder.name) + '"' + (editMode ? '' : ' readonly') + '>' +
       (editMode ? '<button id="btn-delete-folder">Delete Folder</button>' : '') +
-      '<button id="btn-edit"' + (editMode ? ' class="active"' : '') + '>Edit</button>' +
     '</div>' +
-    '<div id="card-grid"></div>' +
+    '<div id="bm-table-wrap"><table id="bm-table"><thead><tr>' +
+      '<th>Title</th><th>Description</th><th>Tags</th>' +
+      (editMode ? '<th></th>' : '') +
+    '</tr></thead><tbody id="bm-tbody"></tbody></table></div>' +
+    '<button id="btn-add-row">+ Add Bookmark</button>' +
     '<div id="add-form">' +
       '<label>Title *</label>' +
       '<input id="af-title" placeholder="My Bookmark">' +
@@ -376,35 +392,32 @@ function renderMain() {
       '</div>' +
     '</div>';
 
-  // Build card grid
-  const grid = document.getElementById('card-grid');
+  // Build bookmark table
+  const tbody = document.getElementById('bm-tbody');
+  const cols = editMode ? 4 : 3;
 
   if (bms.length) {
-    grid.innerHTML = bms.map(b =>
-      '<div class="bm-card" data-id="' + escHtml(b.id) + '">' +
-        '<button class="delete-btn" data-id="' + escHtml(b.id) + '" title="Remove">×</button>' +
-        '<div class="bm-card-title">' + escHtml(b.title || 'Untitled') + '</div>' +
-        '<div class="bm-card-url">' + escHtml(b.url || '') + '</div>' +
-        (b.description ? '<div class="bm-card-desc">' + escHtml(b.description) + '</div>' : '') +
-        ((b.tags || []).length ? '<div class="bm-card-tags">' + (b.tags || []).map(t => '<span class="bm-card-tag">' + escHtml(t) + '</span>').join('') + '</div>' : '') +
-      '</div>'
+    tbody.innerHTML = bms.map(b =>
+      '<tr class="bm-row" data-id="' + escHtml(b.id) + '">' +
+        '<td><span class="bm-row-title">' + escHtml(b.title || 'Untitled') + '</span>' +
+          '<span class="bm-row-url">' + escHtml(b.url || '') + '</span></td>' +
+        '<td class="bm-row-desc">' + escHtml(b.description || '') + '</td>' +
+        '<td class="bm-row-tags">' + (b.tags || []).map(t => '<span class="bm-row-tag">' + escHtml(t) + '</span>').join('') + '</td>' +
+        (editMode ? '<td><button class="delete-btn" data-id="' + escHtml(b.id) + '">×</button></td>' : '') +
+      '</tr>'
     ).join('');
   } else {
-    grid.innerHTML = '<div style="grid-column:1/-1;padding:20px;color:var(--text-muted);font-size:12px;text-align:center">' +
-      ((folder.bookmarks && folder.bookmarks.length) ? 'No matches' : (editMode ? 'No bookmarks yet — click + Add Bookmark above' : 'No bookmarks yet — click Edit to add bookmarks')) +
-      '</div>';
+    tbody.innerHTML = '<tr><td colspan="' + cols + '" style="padding:20px;color:var(--text-muted);font-size:12px;text-align:center">' +
+      ((folder.bookmarks && folder.bookmarks.length) ? 'No matches' : (editMode ? 'No bookmarks yet' : 'No bookmarks yet — click Edit to add bookmarks')) +
+    '</td></tr>';
   }
 
   if (editMode) {
-    // Add-card placeholder
-    const addCard = document.createElement('div');
-    addCard.className = 'add-card';
-    addCard.textContent = '+ Add Bookmark';
-    addCard.addEventListener('click', showAddForm);
-    grid.appendChild(addCard);
+    // Add bookmark button
+    document.getElementById('btn-add-row').addEventListener('click', showAddForm);
 
-    // Delete buttons on cards
-    grid.querySelectorAll('.delete-btn').forEach(btn => {
+    // Delete buttons on rows
+    tbody.querySelectorAll('.delete-btn').forEach(btn => {
       btn.addEventListener('click', e => {
         e.stopPropagation();
         folder.bookmarks = folder.bookmarks.filter(b => b.id !== btn.dataset.id);
@@ -444,20 +457,14 @@ function renderMain() {
       if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') addBookmark(); });
     });
   } else {
-    // Click card → open URL
-    grid.querySelectorAll('.bm-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const bm = folder.bookmarks.find(b => b.id === card.dataset.id);
+    // Click row → open URL
+    tbody.querySelectorAll('.bm-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const bm = folder.bookmarks.find(b => b.id === row.dataset.id);
         if (bm && bm.url) window.open(bm.url, '_blank');
       });
     });
   }
-
-  // Edit toggle
-  document.getElementById('btn-edit').addEventListener('click', () => {
-    editMode = !editMode;
-    render();
-  });
 }
 
 function showAddForm() {
@@ -525,6 +532,11 @@ function init() {
 
   document.getElementById('btn-save-hdr').addEventListener('click', saveOrDownload);
   document.getElementById('btn-new-folder').addEventListener('click', newFolder);
+  document.getElementById('btn-edit').addEventListener('click', () => {
+    if (!activeFolderId) return;
+    editMode = !editMode;
+    render();
+  });
   document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveOrDownload(); }
   });
