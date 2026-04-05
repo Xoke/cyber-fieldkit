@@ -390,7 +390,7 @@ function renderMain() {
     ).join('');
   } else {
     grid.innerHTML = '<div style="grid-column:1/-1;padding:20px;color:var(--text-muted);font-size:12px;text-align:center">' +
-      (folder.bookmarks.length ? 'No matches' : 'No bookmarks yet — click Edit then + Add Bookmark') +
+      ((folder.bookmarks && folder.bookmarks.length) ? 'No matches' : 'No bookmarks yet — click Edit then + Add Bookmark') +
       '</div>';
   }
 
@@ -432,6 +432,10 @@ function renderMain() {
       markDirty();
       render();
     });
+
+    // Add form buttons (only wired in edit mode since form is only shown in edit mode)
+    document.getElementById('af-save').addEventListener('click', addBookmark);
+    document.getElementById('af-cancel').addEventListener('click', hideAddForm);
   } else {
     // Click card → open URL
     grid.querySelectorAll('.bm-card').forEach(card => {
@@ -447,10 +451,6 @@ function renderMain() {
     editMode = !editMode;
     render();
   });
-
-  // Add form buttons
-  document.getElementById('af-save').addEventListener('click', addBookmark);
-  document.getElementById('af-cancel').addEventListener('click', hideAddForm);
 }
 
 function showAddForm() {
