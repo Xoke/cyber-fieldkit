@@ -43,6 +43,8 @@ body { background: var(--bg); color: var(--text); }
 #save-status { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
 #btn-save-hdr { font-size: 11px; padding: 3px 8px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 4px; color: var(--text); cursor: pointer; white-space: nowrap; }
 #btn-save-hdr:hover { background: var(--bg-hover); }
+#btn-import-hdr { font-size: 11px; padding: 3px 8px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 4px; color: var(--text-muted); cursor: pointer; white-space: nowrap; }
+#btn-import-hdr:hover { background: var(--bg-hover); color: var(--text); }
 
 #theme-row { display: flex; align-items: center; gap: 5px; padding: 6px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
 #theme-row span { font-size: 11px; color: var(--text-muted); flex: 1; }
@@ -126,7 +128,9 @@ body.edit-mode #btn-add-row { display: inline-block; }
     <div id="sidebar-hdr">
       <span id="app-name">Bookmarks</span>
       <span id="save-status">Saved</span>
+      <button id="btn-import-hdr" title="Import bookmarks from browser export">Import</button>
       <button id="btn-save-hdr" title="Save file (Ctrl+S)">Save</button>
+      <input type="file" id="import-input" accept=".html" style="display:none">
     </div>
     <div id="theme-row">
       <span>Theme</span>
@@ -514,6 +518,75 @@ function newFolder() {
   render();
 }
 
+// ── Import ────────────────────────────────────────────────────────────────────
+function parseNetscapeBookmarks(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const result = [];
+
+  function parseFolder(dl, folderName) {
+    const bms = [];
+    let node = dl.firstElementChild;
+    while (node) {
+      if (node.tagName === 'DT') {
+        const a = node.querySelector(':scope > a');
+        const h3 = node.querySelector(':scope > h3');
+        if (a) {
+          const url = (a.getAttribute('href') || '').trim();
+          if (url.startsWith('http')) bms.push({ title: a.textContent.trim() || url, url });
+        } else if (h3) {
+          const next = node.nextElementSibling;
+          if (next && next.tagName === 'DL') parseFolder(next, h3.textContent.trim());
+        }
+      }
+      node = node.nextElementSibling;
+    }
+    if (bms.length) result.push({ name: folderName || 'Imported', bookmarks: bms });
+  }
+
+  const rootDl = doc.querySelector('dl');
+  if (rootDl) parseFolder(rootDl, '');
+  return result;
+}
+
+function handleImportFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const parsed = parseNetscapeBookmarks(e.target.result);
+    const totalBms = parsed.reduce((n, f) => n + f.bookmarks.length, 0);
+    if (!totalBms) { alert('No bookmarks found in that file.'); return; }
+
+    const folderCount = parsed.length;
+    const newNames = parsed.filter(p => !data.folders.find(f => f.name === p.name)).map(p => p.name);
+    const mergeNames = parsed.filter(p => data.folders.find(f => f.name === p.name)).map(p => p.name);
+
+    let msg = 'Found ' + totalBms + ' bookmark' + (totalBms !== 1 ? 's' : '') +
+      ' across ' + folderCount + ' folder' + (folderCount !== 1 ? 's' : '') + '.\n\n';
+    if (newNames.length) msg += 'New folders: ' + newNames.join(', ') + '\n';
+    if (mergeNames.length) msg += 'Merge into existing: ' + mergeNames.join(', ') + '\n';
+    msg += '\nImport?';
+
+    if (!confirm(msg)) return;
+
+    parsed.forEach(({ name, bookmarks }) => {
+      let folder = data.folders.find(f => f.name === name);
+      if (!folder) {
+        folder = { id: uid(), name, bookmarks: [] };
+        data.folders.push(folder);
+      }
+      bookmarks.forEach(({ title, url }) => {
+        folder.bookmarks.push({ id: uid(), title, url, description: '', tags: [], created: new Date().toISOString() });
+      });
+    });
+
+    if (!activeFolderId && data.folders.length) activeFolderId = data.folders[0].id;
+    markDirty();
+    render();
+    // Reset file input so the same file can be re-imported if needed
+    document.getElementById('import-input').value = '';
+  };
+  reader.readAsText(file);
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 function init() {
   loadData();
@@ -531,6 +604,8 @@ function init() {
   });
 
   document.getElementById('btn-save-hdr').addEventListener('click', saveOrDownload);
+  document.getElementById('btn-import-hdr').addEventListener('click', () => document.getElementById('import-input').click());
+  document.getElementById('import-input').addEventListener('change', e => { if (e.target.files[0]) handleImportFile(e.target.files[0]); });
   document.getElementById('btn-new-folder').addEventListener('click', newFolder);
   document.getElementById('btn-edit').addEventListener('click', () => {
     if (!activeFolderId) return;
