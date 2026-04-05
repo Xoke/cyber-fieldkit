@@ -222,7 +222,7 @@ async function saveFile() {
       fileHandle = await window.showSaveFilePicker({
         suggestedName: location.pathname.split('/').pop() || 'bookmarks.html',
         types: [{ description: 'HTML file', accept: { 'text/html': ['.html'] } }],
-        startIn: 'documents'
+        ...(fileHandle ? { startIn: fileHandle } : { startIn: 'documents' })
       });
     }
     setSaveStatus('saving');
@@ -436,9 +436,13 @@ function renderMain() {
       render();
     });
 
-    // Add form buttons (only wired in edit mode since form is only shown in edit mode)
+    // Add form buttons and keyboard shortcuts (only wired in edit mode since form is only shown in edit mode)
     document.getElementById('af-save').addEventListener('click', addBookmark);
     document.getElementById('af-cancel').addEventListener('click', hideAddForm);
+    ['af-title', 'af-url'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') addBookmark(); });
+    });
   } else {
     // Click card → open URL
     grid.querySelectorAll('.bm-card').forEach(card => {
@@ -461,11 +465,6 @@ function showAddForm() {
   if (!form) return;
   form.classList.add('visible');
   document.getElementById('af-title').focus();
-  // Allow Enter to submit from title or URL fields
-  ['af-title', 'af-url'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') addBookmark(); });
-  });
 }
 
 function hideAddForm() {
