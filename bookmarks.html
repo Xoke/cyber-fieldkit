@@ -221,7 +221,8 @@ async function saveFile() {
     if (!fileHandle) {
       fileHandle = await window.showSaveFilePicker({
         suggestedName: location.pathname.split('/').pop() || 'bookmarks.html',
-        types: [{ description: 'HTML file', accept: { 'text/html': ['.html'] } }]
+        types: [{ description: 'HTML file', accept: { 'text/html': ['.html'] } }],
+        startIn: 'documents'
       });
     }
     setSaveStatus('saving');
@@ -390,7 +391,7 @@ function renderMain() {
     ).join('');
   } else {
     grid.innerHTML = '<div style="grid-column:1/-1;padding:20px;color:var(--text-muted);font-size:12px;text-align:center">' +
-      ((folder.bookmarks && folder.bookmarks.length) ? 'No matches' : 'No bookmarks yet — click Edit then + Add Bookmark') +
+      ((folder.bookmarks && folder.bookmarks.length) ? 'No matches' : (editMode ? 'No bookmarks yet — click + Add Bookmark above' : 'No bookmarks yet — click Edit to add bookmarks')) +
       '</div>';
   }
 
@@ -426,6 +427,8 @@ function renderMain() {
 
     // Delete folder
     document.getElementById('btn-delete-folder').addEventListener('click', () => {
+      const folder = getActiveFolder();
+      if (!confirm('Delete folder "' + (folder ? folder.name : '') + '" and all its bookmarks?')) return;
       data.folders = data.folders.filter(f => f.id !== activeFolderId);
       activeFolderId = data.folders.length ? data.folders[0].id : null;
       editMode = false;
@@ -455,7 +458,14 @@ function renderMain() {
 
 function showAddForm() {
   const form = document.getElementById('add-form');
-  if (form) { form.classList.add('visible'); document.getElementById('af-title').focus(); }
+  if (!form) return;
+  form.classList.add('visible');
+  document.getElementById('af-title').focus();
+  // Allow Enter to submit from title or URL fields
+  ['af-title', 'af-url'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') addBookmark(); });
+  });
 }
 
 function hideAddForm() {
