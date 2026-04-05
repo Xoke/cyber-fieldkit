@@ -258,14 +258,132 @@ function saveOrDownload() {
   else triggerFallbackDownload();
 }
 
-// ── Init (placeholder) ────────────────────────────────────────────────────────
+// ── Theme ─────────────────────────────────────────────────────────────────────
+function setTheme(t) {
+  document.documentElement.dataset.theme = t === 'light' ? '' : t;
+  localStorage.setItem(LS_THEME, t);
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === t));
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function getActiveFolder() {
+  return data.folders.find(f => f.id === activeFolderId) || null;
+}
+
+function getAllTags() {
+  const set = new Set();
+  data.folders.forEach(f => (f.bookmarks || []).forEach(b => (b.tags || []).forEach(t => set.add(t))));
+  return [...set].sort();
+}
+
+function filteredBookmarks(folder) {
+  let bms = folder.bookmarks || [];
+  if (activeTag)    bms = bms.filter(b => (b.tags || []).includes(activeTag));
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    bms = bms.filter(b =>
+      (b.title || '').toLowerCase().includes(q) ||
+      (b.url || '').toLowerCase().includes(q) ||
+      (b.description || '').toLowerCase().includes(q) ||
+      (b.tags || []).some(t => t.toLowerCase().includes(q))
+    );
+  }
+  return bms;
+}
+
+// ── Sidebar render ────────────────────────────────────────────────────────────
+function renderTagPanel() {
+  const el   = document.getElementById('tag-panel');
+  const tags = getAllTags();
+  if (!tags.length) { el.innerHTML = ''; return; }
+  el.innerHTML = tags.map(t =>
+    '<span class="tag-chip' + (t === activeTag ? ' active' : '') + '" data-tag="' + escHtml(t) + '">' + escHtml(t) + '</span>'
+  ).join('');
+  el.querySelectorAll('.tag-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      activeTag = chip.dataset.tag === activeTag ? null : chip.dataset.tag;
+      render();
+    });
+  });
+}
+
+function renderFolderList() {
+  const el = document.getElementById('folder-list');
+  if (!data.folders.length) {
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px">No folders yet</div>';
+    return;
+  }
+  el.innerHTML = data.folders.map(f => {
+    const count  = filteredBookmarks(f).length;
+    const dimmed = (searchQuery || activeTag) && count === 0 ? ' dimmed' : '';
+    const active = f.id === activeFolderId ? ' active' : '';
+    return '<div class="folder-item' + active + dimmed + '" data-id="' + escHtml(f.id) + '">' +
+      '<span class="folder-name">' + escHtml(f.name) + '</span>' +
+      '<span class="folder-count">' + count + '</span>' +
+    '</div>';
+  }).join('');
+  el.querySelectorAll('.folder-item').forEach(item => {
+    item.addEventListener('click', () => {
+      activeFolderId = item.dataset.id;
+      editMode = false;
+      render();
+    });
+  });
+}
+
+function render() {
+  renderTagPanel();
+  renderFolderList();
+  renderMain();
+}
+
+// ── Main render (placeholder) ─────────────────────────────────────────────────
+function renderMain() {
+  const main   = document.getElementById('main');
+  const folder = getActiveFolder();
+  if (!folder) {
+    main.innerHTML = '<div id="empty-state">Select a folder or create a new one</div>';
+    return;
+  }
+  main.innerHTML = '<div id="main-toolbar"><input id="folder-title" value="' + escHtml(folder.name) + '" readonly><button id="btn-edit">Edit</button></div><div id="card-grid"><div style="padding:20px;color:var(--text-muted);font-size:12px">Cards coming in next task</div></div>';
+}
+
+// ── New folder ────────────────────────────────────────────────────────────────
+function newFolder() {
+  const name = prompt('Folder name:');
+  if (!name || !name.trim()) return;
+  const folder = { id: uid(), name: name.trim(), bookmarks: [] };
+  data.folders.push(folder);
+  activeFolderId = folder.id;
+  editMode = false;
+  markDirty();
+  render();
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
 function init() {
   loadData();
   cacheOriginalHtml();
+
+  const savedTheme = localStorage.getItem(LS_THEME) || 'light';
+  setTheme(savedTheme);
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.addEventListener('click', () => setTheme(btn.dataset.theme));
+  });
+
+  document.getElementById('search-input').addEventListener('input', e => {
+    searchQuery = e.target.value.trim();
+    render();
+  });
+
   document.getElementById('btn-save-hdr').addEventListener('click', saveOrDownload);
+  document.getElementById('btn-new-folder').addEventListener('click', newFolder);
   document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveOrDownload(); }
   });
+
+  if (data.folders.length) activeFolderId = data.folders[0].id;
+  render();
 }
 
 init();
