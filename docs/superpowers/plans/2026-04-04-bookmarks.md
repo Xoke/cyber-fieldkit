@@ -1,0 +1,785 @@
+# Bookmarks App Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Build a standalone single-file HTML bookmark manager styled after notes.html, with folders, tag filtering, search, card grid layout, and TiddlyWiki-style self-save.
+
+**Architecture:** Single `bookmarks.html` file — no build step, no dependencies. Data embedded in a `<script id="tiddlers-data">` tag; saved back via File System Access API with localStorage fallback. Four themes via CSS custom properties identical to notes.html.
+
+**Tech Stack:** Vanilla HTML/CSS/JS, File System Access API, localStorage. No test framework — verification is manual browser checks after each task.
+
+---
+
+## File Structure
+
+| File | Action | Responsibility |
+|---|---|---|
+| `bookmarks.html` | Create | Entire app — CSS, HTML layout, all JS |
+
+---
+
+## Task 1: HTML scaffold + complete CSS
+
+**Files:**
+- Create: `bookmarks.html`
+
+- [ ] **Step 1: Create the file with full HTML structure and CSS**
+
+Create `bookmarks.html` with this complete content (no JS yet — the `<script>` block at the bottom is a placeholder):
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bookmarks</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; font-size: 14px; }
+
+:root {
+  --bg: #ffffff; --bg-alt: #fafbfc; --bg-ctrl: #ffffff; --bg-hover: rgba(0,0,0,0.04);
+  --bg-sidebar: #f5f6f7; --bg-code: #f6f8fa;
+  --border: #e1e4e8; --text: #24292e; --text-muted: #6a737d;
+  --accent: #4a6fa5; --accent-hover: #3d5d8a;
+}
+html[data-theme="sepia"] {
+  --bg: #f9f5ef; --bg-alt: #f2ece3; --bg-ctrl: #f9f5ef; --bg-hover: rgba(0,0,0,0.04);
+  --bg-sidebar: #ede8e0; --bg-code: #e8e2d8;
+  --border: #d5cdc0; --text: #3b2f1e; --text-muted: #7d6e5a;
+  --accent: #7a5c2e; --accent-hover: #614a24;
+}
+html[data-theme="dusk"] {
+  --bg: #1e2233; --bg-alt: #232840; --bg-ctrl: #252a3d; --bg-hover: rgba(255,255,255,0.05);
+  --bg-sidebar: #171b2b; --bg-code: #2a2f45;
+  --border: #343a54; --text: #d0d4e8; --text-muted: #7e86a8;
+  --accent: #7b9fd4; --accent-hover: #9ab6e2;
+}
+html[data-theme="dark"] {
+  --bg: #1a1b1e; --bg-alt: #1f2228; --bg-ctrl: #22252a; --bg-hover: rgba(255,255,255,0.05);
+  --bg-sidebar: #131416; --bg-code: #2a2d35;
+  --border: #30363d; --text: #e1e4e8; --text-muted: #8b949e;
+  --accent: #5c8dd4; --accent-hover: #79a3e0;
+}
+
+body { background: var(--bg); color: var(--text); }
+#app { display: grid; grid-template-columns: 260px 1fr; height: 100vh; }
+
+/* Sidebar */
+#sidebar { background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+#sidebar-hdr { display: flex; align-items: center; gap: 6px; padding: 10px 12px 8px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+#app-name { font-weight: 700; font-size: 13px; flex: 1; }
+#save-status { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+#btn-save-hdr { font-size: 11px; padding: 3px 8px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 4px; color: var(--text); cursor: pointer; white-space: nowrap; }
+#btn-save-hdr:hover { background: var(--bg-hover); }
+
+#theme-row { display: flex; align-items: center; gap: 5px; padding: 6px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+#theme-row span { font-size: 11px; color: var(--text-muted); flex: 1; }
+.theme-btn { width: 16px; height: 16px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; padding: 0; outline-offset: 2px; }
+.theme-btn.active { border-color: var(--accent); }
+
+#search-wrap { padding: 8px 10px; flex-shrink: 0; border-bottom: 1px solid var(--border); }
+#search-input { width: 100%; padding: 5px 8px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 12px; outline: none; }
+#search-input:focus { border-color: var(--accent); }
+
+#tag-panel { padding: 6px 10px; border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 4px; flex-shrink: 0; min-height: 32px; }
+.tag-chip { font-size: 11px; padding: 2px 7px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; color: var(--text-muted); }
+.tag-chip:hover, .tag-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+#folder-list { flex: 1; overflow-y: auto; }
+.folder-item { padding: 8px 12px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.folder-item:hover { background: var(--bg-ctrl); }
+.folder-item.active { background: var(--bg-hover); }
+.folder-name { font-size: 13px; font-weight: 500; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.folder-count { font-size: 11px; color: var(--text-muted); }
+.folder-item.dimmed { opacity: 0.4; }
+
+#btn-new-folder { margin: 8px 10px; padding: 7px; background: var(--accent); color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; flex-shrink: 0; }
+#btn-new-folder:hover { background: var(--accent-hover); }
+
+/* Main panel */
+#main { display: flex; flex-direction: column; overflow: hidden; background: var(--bg-alt); }
+#main-toolbar { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--bg-alt); min-height: 45px; }
+#folder-title { font-size: 16px; font-weight: 600; flex: 1; background: transparent; border: none; color: var(--text); outline: none; }
+#folder-title[readonly] { cursor: default; }
+#btn-edit { font-size: 12px; padding: 4px 10px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 4px; color: var(--text); cursor: pointer; }
+#btn-edit:hover { background: var(--bg-hover); }
+#btn-edit.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+#btn-delete-folder { font-size: 12px; padding: 4px 8px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 4px; color: #e06c75; cursor: pointer; }
+#btn-delete-folder:hover { background: var(--bg-hover); }
+
+/* Card grid */
+#card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; padding: 16px; overflow-y: auto; flex: 1; align-content: start; }
+
+.bm-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; cursor: pointer; position: relative; transition: border-color 0.1s; }
+.bm-card:hover { border-color: var(--accent); box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.bm-card-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bm-card-url { font-size: 11px; color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; }
+.bm-card-desc { font-size: 12px; color: var(--text-muted); margin-top: 6px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.bm-card-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 8px; }
+.bm-card-tag { font-size: 10px; padding: 1px 5px; background: var(--bg-ctrl); border-radius: 8px; color: var(--text-muted); border: 1px solid var(--border); }
+
+.bm-card .delete-btn { display: none; position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; background: #e06c75; border: none; border-radius: 50%; color: #fff; font-size: 14px; cursor: pointer; align-items: center; justify-content: center; line-height: 1; padding: 0; }
+body.edit-mode .bm-card .delete-btn { display: flex; }
+body.edit-mode .bm-card { cursor: default; }
+body.edit-mode .bm-card:hover { border-color: var(--border); box-shadow: none; }
+
+.add-card { background: transparent; border: 2px dashed var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; min-height: 100px; cursor: pointer; color: var(--text-muted); font-size: 13px; }
+.add-card:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Add form */
+#add-form { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin: 0 16px 16px; flex-shrink: 0; display: none; }
+#add-form.visible { display: block; }
+#add-form label { font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 3px; margin-top: 8px; }
+#add-form label:first-child { margin-top: 0; }
+#add-form input, #add-form textarea { width: 100%; padding: 5px 8px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 12px; outline: none; font-family: inherit; }
+#add-form input:focus, #add-form textarea:focus { border-color: var(--accent); }
+#add-form textarea { height: 56px; resize: vertical; }
+#add-form-actions { display: flex; gap: 8px; margin-top: 10px; }
+.btn-primary { padding: 5px 12px; background: var(--accent); border: none; border-radius: 4px; color: #fff; font-size: 12px; cursor: pointer; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-secondary { padding: 5px 12px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 12px; cursor: pointer; }
+.btn-secondary:hover { background: var(--bg-hover); }
+
+#empty-state { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div id="sidebar-hdr">
+      <span id="app-name">Bookmarks</span>
+      <span id="save-status">Saved</span>
+      <button id="btn-save-hdr" title="Save file (Ctrl+S)">Save</button>
+    </div>
+    <div id="theme-row">
+      <span>Theme</span>
+      <button class="theme-btn" data-theme="light" title="Light" style="background:#ffffff;border:2px solid #ccc"></button>
+      <button class="theme-btn" data-theme="sepia" title="Sepia" style="background:#f9f5ef;border:2px solid #ccc"></button>
+      <button class="theme-btn" data-theme="dusk"  title="Dusk"  style="background:#2d3142;border:2px solid #555"></button>
+      <button class="theme-btn" data-theme="dark"  title="Dark"  style="background:#1a1b1e;border:2px solid #555"></button>
+    </div>
+    <div id="search-wrap">
+      <input id="search-input" placeholder="Search bookmarks…">
+    </div>
+    <div id="tag-panel"></div>
+    <div id="folder-list"></div>
+    <button id="btn-new-folder">+ New Folder</button>
+  </aside>
+  <main id="main">
+    <div id="empty-state">Select a folder or create a new one</div>
+  </main>
+</div>
+<script id="tiddlers-data" type="application/json">{}</script>
+<script>
+</script>
+</body>
+</html>
+```
+
+- [ ] **Step 2: Open in browser and verify layout**
+
+Open `bookmarks.html` in a browser. Verify:
+- Two-panel layout: 260px sidebar on the left, main area fills the right
+- Sidebar shows: "Bookmarks" header, Save button, theme dots, search input, empty tag area, empty folder list, blue "+ New Folder" button
+- Main area shows: "Select a folder or create a new one" centered in grey text
+- No console errors
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add bookmarks.html
+git commit -m "feat: add bookmarks.html scaffold with full CSS"
+```
+
+---
+
+## Task 2: Data persistence layer
+
+**Files:**
+- Modify: `bookmarks.html` — replace the empty `<script>` block with the JS below
+
+- [ ] **Step 1: Add data layer JS inside the `<script>` block**
+
+Replace `<script>\n</script>` at the bottom of the file with:
+
+```html
+<script>
+// ── Constants ─────────────────────────────────────────────────────────────────
+const LS_KEY   = 'bookmarks-app-data';
+const LS_THEME = 'bookmarks-theme';
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let data           = { folders: [] };
+let activeFolderId = null;
+let editMode       = false;
+let searchQuery    = '';
+let activeTag      = null;
+let isDirty        = false;
+let fileHandle     = null;
+let originalHtml   = '';
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+function uid()       { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function escHtml(s)  { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function parseTags(s){ return s.split(',').map(t => t.trim()).filter(Boolean); }
+
+// ── Data load ─────────────────────────────────────────────────────────────────
+function loadData() {
+  try {
+    const embedded = document.getElementById('tiddlers-data').textContent.trim();
+    if (embedded && embedded !== '{}') { data = JSON.parse(embedded); return; }
+  } catch(e) {}
+  try {
+    const ls = localStorage.getItem(LS_KEY);
+    if (ls) { data = JSON.parse(ls); return; }
+  } catch(e) {}
+  data = { folders: [] };
+}
+
+function saveToLocalStorage() { localStorage.setItem(LS_KEY, JSON.stringify(data)); }
+function serializeData()      { return JSON.stringify(data, null, 2); }
+
+function markDirty() {
+  saveToLocalStorage();
+  setSaveStatus('dirty');
+}
+
+// ── File save ─────────────────────────────────────────────────────────────────
+async function cacheOriginalHtml() {
+  try {
+    const res = await fetch(location.href, { cache: 'no-store' });
+    if (!res.ok) throw new Error('fetch failed');
+    originalHtml = await res.text();
+  } catch(e) {
+    originalHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  }
+}
+
+function buildUpdatedHtml() {
+  if (!originalHtml) throw new Error('Original HTML not cached yet. Try again in a moment.');
+  const marker   = '<script id="tiddlers-data"';
+  const start    = originalHtml.indexOf(marker);
+  if (start === -1) throw new Error('tiddlers-data marker not found.');
+  const tagEnd   = originalHtml.indexOf('>', start) + 1;
+  const closeTag = '<' + '/script>';
+  const closeIdx = originalHtml.indexOf(closeTag, tagEnd);
+  if (closeIdx === -1) throw new Error('Could not find closing tag for tiddlers-data.');
+  return originalHtml.slice(0, tagEnd) + '\n' + serializeData() + '\n' + originalHtml.slice(closeIdx);
+}
+
+function setSaveStatus(state) {
+  const el = document.getElementById('save-status');
+  if (!el) return;
+  const map = { saved: 'Saved', saving: 'Saving…', dirty: 'Unsaved', error: 'Error!', downloaded: 'Downloaded' };
+  el.textContent = map[state] || '';
+  el.style.color = state === 'error' ? '#e06c75' : state === 'dirty' ? '#e5c07b' : 'var(--text-muted)';
+  isDirty = (state === 'dirty');
+}
+
+async function saveFile() {
+  try {
+    const html = buildUpdatedHtml();
+    if (!fileHandle) {
+      fileHandle = await window.showSaveFilePicker({
+        suggestedName: location.pathname.split('/').pop() || 'bookmarks.html',
+        types: [{ description: 'HTML file', accept: { 'text/html': ['.html'] } }]
+      });
+    }
+    setSaveStatus('saving');
+    const writable = await fileHandle.createWritable();
+    await writable.write(html);
+    await writable.close();
+    originalHtml = html;
+    const domEl = document.getElementById('tiddlers-data');
+    if (domEl) domEl.textContent = '\n' + serializeData() + '\n';
+    setSaveStatus('saved');
+  } catch(e) {
+    if (e && e.name === 'AbortError') return;
+    console.error(e);
+    setSaveStatus('error');
+    alert('Save failed: ' + e.message);
+  }
+}
+
+function triggerFallbackDownload() {
+  try {
+    const html = buildUpdatedHtml();
+    const blob = new Blob([html], { type: 'text/html' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = location.pathname.split('/').pop() || 'bookmarks.html';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    setSaveStatus('downloaded');
+  } catch(e) { alert('Download failed: ' + e.message); }
+}
+
+function saveOrDownload() {
+  if (typeof window.showSaveFilePicker === 'function') saveFile();
+  else triggerFallbackDownload();
+}
+
+// ── Init (placeholder) ────────────────────────────────────────────────────────
+function init() {
+  loadData();
+  cacheOriginalHtml();
+  document.getElementById('btn-save-hdr').addEventListener('click', saveOrDownload);
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveOrDownload(); }
+  });
+}
+
+init();
+</script>
+```
+
+- [ ] **Step 2: Verify in browser**
+
+Open `bookmarks.html`. Open DevTools console. Verify:
+- No console errors on load
+- `cacheOriginalHtml` runs without error (check Network tab — a request to the file itself should appear)
+- Clicking Save either opens a file picker (Chrome/Edge) or triggers a download (Firefox/Safari)
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add bookmarks.html
+git commit -m "feat: add data persistence layer (load/save/localStorage)"
+```
+
+---
+
+## Task 3: Theme + sidebar rendering
+
+**Files:**
+- Modify: `bookmarks.html` — add theme and sidebar render functions; update `init()`
+
+- [ ] **Step 1: Add theme, filtering, and sidebar render functions**
+
+Inside the `<script>` block, before `init()`, add:
+
+```js
+// ── Theme ─────────────────────────────────────────────────────────────────────
+function setTheme(t) {
+  document.documentElement.dataset.theme = t === 'light' ? '' : t;
+  localStorage.setItem(LS_THEME, t);
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === t));
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function getActiveFolder() {
+  return data.folders.find(f => f.id === activeFolderId) || null;
+}
+
+function getAllTags() {
+  const set = new Set();
+  data.folders.forEach(f => (f.bookmarks || []).forEach(b => (b.tags || []).forEach(t => set.add(t))));
+  return [...set].sort();
+}
+
+function filteredBookmarks(folder) {
+  let bms = folder.bookmarks || [];
+  if (activeTag)    bms = bms.filter(b => (b.tags || []).includes(activeTag));
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    bms = bms.filter(b =>
+      (b.title || '').toLowerCase().includes(q) ||
+      (b.url || '').toLowerCase().includes(q) ||
+      (b.description || '').toLowerCase().includes(q) ||
+      (b.tags || []).some(t => t.toLowerCase().includes(q))
+    );
+  }
+  return bms;
+}
+
+// ── Sidebar render ────────────────────────────────────────────────────────────
+function renderTagPanel() {
+  const el   = document.getElementById('tag-panel');
+  const tags = getAllTags();
+  if (!tags.length) { el.innerHTML = ''; return; }
+  el.innerHTML = tags.map(t =>
+    '<span class="tag-chip' + (t === activeTag ? ' active' : '') + '" data-tag="' + escHtml(t) + '">' + escHtml(t) + '</span>'
+  ).join('');
+  el.querySelectorAll('.tag-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      activeTag = chip.dataset.tag === activeTag ? null : chip.dataset.tag;
+      render();
+    });
+  });
+}
+
+function renderFolderList() {
+  const el = document.getElementById('folder-list');
+  if (!data.folders.length) {
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px">No folders yet</div>';
+    return;
+  }
+  el.innerHTML = data.folders.map(f => {
+    const count  = filteredBookmarks(f).length;
+    const dimmed = (searchQuery || activeTag) && count === 0 ? ' dimmed' : '';
+    const active = f.id === activeFolderId ? ' active' : '';
+    return '<div class="folder-item' + active + dimmed + '" data-id="' + escHtml(f.id) + '">' +
+      '<span class="folder-name">' + escHtml(f.name) + '</span>' +
+      '<span class="folder-count">' + count + '</span>' +
+    '</div>';
+  }).join('');
+  el.querySelectorAll('.folder-item').forEach(item => {
+    item.addEventListener('click', () => {
+      activeFolderId = item.dataset.id;
+      editMode = false;
+      render();
+    });
+  });
+}
+
+function render() {
+  renderTagPanel();
+  renderFolderList();
+  renderMain();
+}
+
+// ── Main render (placeholder) ─────────────────────────────────────────────────
+function renderMain() {
+  const main   = document.getElementById('main');
+  const folder = getActiveFolder();
+  if (!folder) {
+    main.innerHTML = '<div id="empty-state">Select a folder or create a new one</div>';
+    return;
+  }
+  main.innerHTML = '<div id="main-toolbar"><input id="folder-title" value="' + escHtml(folder.name) + '" readonly><button id="btn-edit">Edit</button></div><div id="card-grid"><div style="padding:20px;color:var(--text-muted);font-size:12px">Cards coming in next task</div></div>';
+}
+
+// ── New folder ────────────────────────────────────────────────────────────────
+function newFolder() {
+  const name = prompt('Folder name:');
+  if (!name || !name.trim()) return;
+  const folder = { id: uid(), name: name.trim(), bookmarks: [] };
+  data.folders.push(folder);
+  activeFolderId = folder.id;
+  editMode = false;
+  markDirty();
+  render();
+}
+```
+
+- [ ] **Step 2: Update `init()` to wire up theme, search, and new folder**
+
+Replace the existing `init()` function with:
+
+```js
+function init() {
+  loadData();
+  cacheOriginalHtml();
+
+  const savedTheme = localStorage.getItem(LS_THEME) || 'light';
+  setTheme(savedTheme);
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.addEventListener('click', () => setTheme(btn.dataset.theme));
+  });
+
+  document.getElementById('search-input').addEventListener('input', e => {
+    searchQuery = e.target.value.trim();
+    render();
+  });
+
+  document.getElementById('btn-save-hdr').addEventListener('click', saveOrDownload);
+  document.getElementById('btn-new-folder').addEventListener('click', newFolder);
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveOrDownload(); }
+  });
+
+  if (data.folders.length) activeFolderId = data.folders[0].id;
+  render();
+}
+```
+
+- [ ] **Step 3: Verify in browser**
+
+Open `bookmarks.html`. Verify:
+- Theme dots work — clicking each changes the color scheme
+- "+ New Folder" prompts for a name; the folder appears in the sidebar immediately
+- Clicking a folder in the sidebar shows the "Cards coming in next task" placeholder in the main area
+- Creating two folders, saving (Ctrl+S), reopening the file shows both folders persist
+- Search input is wired (no visible effect yet, but no errors)
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add bookmarks.html
+git commit -m "feat: add theme switching, sidebar folder list, tag panel, search wiring"
+```
+
+---
+
+## Task 4: Main panel — card grid + edit mode
+
+**Files:**
+- Modify: `bookmarks.html` — replace the `renderMain()` placeholder with the full implementation; add `showAddForm`, `hideAddForm`, `addBookmark`
+
+- [ ] **Step 1: Replace the placeholder `renderMain()` with the full implementation**
+
+Replace the entire `renderMain()` function (from `function renderMain()` through its closing `}`) with:
+
+```js
+function renderMain() {
+  const main   = document.getElementById('main');
+  const folder = getActiveFolder();
+
+  if (!folder) {
+    main.innerHTML = '<div id="empty-state">Select a folder or create a new one</div>';
+    document.body.classList.remove('edit-mode');
+    return;
+  }
+
+  if (editMode) document.body.classList.add('edit-mode');
+  else          document.body.classList.remove('edit-mode');
+
+  const bms = filteredBookmarks(folder);
+
+  main.innerHTML =
+    '<div id="main-toolbar">' +
+      '<input id="folder-title" value="' + escHtml(folder.name) + '"' + (editMode ? '' : ' readonly') + '>' +
+      (editMode ? '<button id="btn-delete-folder">Delete Folder</button>' : '') +
+      '<button id="btn-edit"' + (editMode ? ' class="active"' : '') + '>Edit</button>' +
+    '</div>' +
+    '<div id="card-grid"></div>' +
+    '<div id="add-form">' +
+      '<label>Title *</label>' +
+      '<input id="af-title" placeholder="My Bookmark">' +
+      '<label>URL *</label>' +
+      '<input id="af-url" type="url" placeholder="https://…">' +
+      '<label>Description</label>' +
+      '<textarea id="af-desc" placeholder="Optional notes…"></textarea>' +
+      '<label>Tags (comma-separated)</label>' +
+      '<input id="af-tags" placeholder="tag1, tag2">' +
+      '<div id="add-form-actions">' +
+        '<button class="btn-primary" id="af-save">Add</button>' +
+        '<button class="btn-secondary" id="af-cancel">Cancel</button>' +
+      '</div>' +
+    '</div>';
+
+  // Build card grid
+  const grid = document.getElementById('card-grid');
+
+  if (bms.length) {
+    grid.innerHTML = bms.map(b =>
+      '<div class="bm-card" data-id="' + escHtml(b.id) + '">' +
+        '<button class="delete-btn" data-id="' + escHtml(b.id) + '" title="Remove">×</button>' +
+        '<div class="bm-card-title">' + escHtml(b.title || 'Untitled') + '</div>' +
+        '<div class="bm-card-url">' + escHtml(b.url || '') + '</div>' +
+        (b.description ? '<div class="bm-card-desc">' + escHtml(b.description) + '</div>' : '') +
+        ((b.tags || []).length ? '<div class="bm-card-tags">' + (b.tags || []).map(t => '<span class="bm-card-tag">' + escHtml(t) + '</span>').join('') + '</div>' : '') +
+      '</div>'
+    ).join('');
+  } else {
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:20px;color:var(--text-muted);font-size:12px;text-align:center">' +
+      (folder.bookmarks.length ? 'No matches' : 'No bookmarks yet — click Edit then + Add Bookmark') +
+      '</div>';
+  }
+
+  if (editMode) {
+    // Add-card placeholder
+    const addCard = document.createElement('div');
+    addCard.className = 'add-card';
+    addCard.textContent = '+ Add Bookmark';
+    addCard.addEventListener('click', showAddForm);
+    grid.appendChild(addCard);
+
+    // Delete buttons on cards
+    grid.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        folder.bookmarks = folder.bookmarks.filter(b => b.id !== btn.dataset.id);
+        markDirty();
+        render();
+      });
+    });
+
+    // Folder rename
+    const titleEl = document.getElementById('folder-title');
+    titleEl.addEventListener('blur', () => {
+      const val = titleEl.value.trim();
+      if (val && val !== folder.name) {
+        folder.name = val;
+        markDirty();
+        renderFolderList();
+      }
+    });
+    titleEl.addEventListener('keydown', e => { if (e.key === 'Enter') titleEl.blur(); });
+
+    // Delete folder
+    document.getElementById('btn-delete-folder').addEventListener('click', () => {
+      data.folders = data.folders.filter(f => f.id !== activeFolderId);
+      activeFolderId = data.folders.length ? data.folders[0].id : null;
+      editMode = false;
+      markDirty();
+      render();
+    });
+  } else {
+    // Click card → open URL
+    grid.querySelectorAll('.bm-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const bm = folder.bookmarks.find(b => b.id === card.dataset.id);
+        if (bm && bm.url) window.open(bm.url, '_blank');
+      });
+    });
+  }
+
+  // Edit toggle
+  document.getElementById('btn-edit').addEventListener('click', () => {
+    editMode = !editMode;
+    render();
+  });
+
+  // Add form buttons
+  document.getElementById('af-save').addEventListener('click', addBookmark);
+  document.getElementById('af-cancel').addEventListener('click', hideAddForm);
+}
+```
+
+- [ ] **Step 2: Add `showAddForm`, `hideAddForm`, and `addBookmark` functions**
+
+After the `renderMain()` function, add:
+
+```js
+function showAddForm() {
+  const form = document.getElementById('add-form');
+  if (form) { form.classList.add('visible'); document.getElementById('af-title').focus(); }
+}
+
+function hideAddForm() {
+  const form = document.getElementById('add-form');
+  if (!form) return;
+  form.classList.remove('visible');
+  ['af-title', 'af-url', 'af-desc', 'af-tags'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+function addBookmark() {
+  const title = document.getElementById('af-title').value.trim();
+  const url   = document.getElementById('af-url').value.trim();
+  if (!title || !url) { alert('Title and URL are required.'); return; }
+  const folder = getActiveFolder();
+  if (!folder) return;
+  folder.bookmarks.push({
+    id:          uid(),
+    title,
+    url,
+    description: document.getElementById('af-desc').value.trim(),
+    tags:        parseTags(document.getElementById('af-tags').value),
+    created:     new Date().toISOString()
+  });
+  markDirty();
+  render();
+}
+```
+
+- [ ] **Step 3: Verify the full edit flow in browser**
+
+Open `bookmarks.html`. Walk through:
+1. Create a folder (e.g. "Work")
+2. Click "Edit" — button turns blue/accent, delete button appears
+3. Click "+ Add Bookmark" — form appears below the grid
+4. Fill in Title: "GitHub", URL: "https://github.com", Description: "Code hosting", Tags: "dev, git"
+5. Click "Add" — card appears in the grid with title, URL, description, and tag chips
+6. Add a second bookmark
+7. Click "Edit" again to exit edit mode — cards become clickable, × buttons disappear
+8. Click a card — it opens the URL in a new tab
+9. Re-enter edit mode — click × on a card — it disappears
+10. In edit mode, change the folder name in the toolbar header input and press Enter — sidebar updates
+11. Press Ctrl+S — save dialog appears; save the file and reopen it — bookmarks persist
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add bookmarks.html
+git commit -m "feat: add card grid, edit mode, add/delete bookmarks, folder rename/delete"
+```
+
+---
+
+## Task 5: Search + tag filtering polish
+
+**Files:**
+- Modify: `bookmarks.html` — search and tag filtering are already wired; this task verifies and polishes the display
+
+- [ ] **Step 1: Add sample data to test filtering**
+
+In the browser console (without modifying the file), run:
+
+```js
+data.folders.push({
+  id: uid(), name: 'Research', bookmarks: [
+    { id: uid(), title: 'MDN', url: 'https://developer.mozilla.org', description: 'Web docs', tags: ['web', 'reference'], created: new Date().toISOString() },
+    { id: uid(), title: 'CSS Tricks', url: 'https://css-tricks.com', description: 'CSS tips', tags: ['web', 'css'], created: new Date().toISOString() },
+    { id: uid(), title: 'HN', url: 'https://news.ycombinator.com', description: 'Hacker News', tags: ['news'], created: new Date().toISOString() }
+  ]
+});
+render();
+```
+
+- [ ] **Step 2: Verify search behavior**
+
+With the Research folder selected:
+- Type "css" in the search input — only the CSS Tricks card remains; the "MDN" and "HN" cards disappear
+- The folder list shows "Research (1)" and other folders show "(0)" and appear dimmed
+- Clear the search — all cards reappear
+
+- [ ] **Step 3: Verify tag chip filtering**
+
+- Tag chips "web", "reference", "css", "news" should appear in the sidebar tag panel
+- Click "web" chip — it turns accent-colored; only MDN and CSS Tricks show (in Research folder)
+- Switch to another folder while "web" is active — only bookmarks with "web" tag show
+- Click "web" again — filter clears
+
+- [ ] **Step 4: Verify search + tag compose**
+
+- Click the "web" chip, then type "css" in search — only CSS Tricks shows
+- Clear search — both web-tagged bookmarks reappear
+- Click "web" to clear — all bookmarks reappear
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add bookmarks.html
+git commit -m "feat: verify search and tag filtering work correctly"
+```
+
+---
+
+## Task 6: Final polish + save verification
+
+**Files:**
+- Modify: `bookmarks.html` — minor UX fixes if discovered; confirm save roundtrip
+
+- [ ] **Step 1: Verify save roundtrip with real data**
+
+1. Create 2 folders with 2-3 bookmarks each, including tags
+2. Press Ctrl+S — save the file (use the file picker to save over the original)
+3. Close the browser tab
+4. Reopen the saved file — all folders, bookmarks, and tags should be present
+5. Theme preference should be restored (saved in localStorage)
+
+- [ ] **Step 2: Verify fallback download (optional, Firefox/Safari)**
+
+In browsers without `showSaveFilePicker`:
+- Clicking Save triggers a download of the updated `bookmarks.html`
+- Opening the downloaded file shows the saved data
+
+- [ ] **Step 3: Check edge cases**
+
+- Create a folder, add no bookmarks, delete the folder — app shows empty state correctly
+- Add a bookmark with no description and no tags — card renders cleanly (no empty div gaps)
+- Add a bookmark with a very long title — card truncates with ellipsis
+- Add a bookmark with a very long URL — URL field truncates with ellipsis
+
+- [ ] **Step 4: Final commit**
+
+```bash
+git add bookmarks.html
+git commit -m "feat: complete bookmarks app with full edit, search, tag filter, and save"
+```
