@@ -143,6 +143,132 @@ body.edit-mode .bm-card:hover { border-color: var(--border); box-shadow: none; }
 </div>
 <script id="tiddlers-data" type="application/json">{}</script>
 <script>
+// ── Constants ─────────────────────────────────────────────────────────────────
+const LS_KEY   = 'bookmarks-app-data';
+const LS_THEME = 'bookmarks-theme';
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let data           = { folders: [] };
+let activeFolderId = null;
+let editMode       = false;
+let searchQuery    = '';
+let activeTag      = null;
+let isDirty        = false;
+let fileHandle     = null;
+let originalHtml   = '';
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+function uid()       { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function escHtml(s)  { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function parseTags(s){ return s.split(',').map(t => t.trim()).filter(Boolean); }
+
+// ── Data load ─────────────────────────────────────────────────────────────────
+function loadData() {
+  try {
+    const embedded = document.getElementById('tiddlers-data').textContent.trim();
+    if (embedded && embedded !== '{}') { data = JSON.parse(embedded); return; }
+  } catch(e) {}
+  try {
+    const ls = localStorage.getItem(LS_KEY);
+    if (ls) { data = JSON.parse(ls); return; }
+  } catch(e) {}
+  data = { folders: [] };
+}
+
+function saveToLocalStorage() { localStorage.setItem(LS_KEY, JSON.stringify(data)); }
+function serializeData()      { return JSON.stringify(data, null, 2); }
+
+function markDirty() {
+  saveToLocalStorage();
+  setSaveStatus('dirty');
+}
+
+// ── File save ─────────────────────────────────────────────────────────────────
+async function cacheOriginalHtml() {
+  try {
+    const res = await fetch(location.href, { cache: 'no-store' });
+    if (!res.ok) throw new Error('fetch failed');
+    originalHtml = await res.text();
+  } catch(e) {
+    originalHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  }
+}
+
+function buildUpdatedHtml() {
+  if (!originalHtml) throw new Error('Original HTML not cached yet. Try again in a moment.');
+  const marker   = '<script id="tiddlers-data"';
+  const start    = originalHtml.indexOf(marker);
+  if (start === -1) throw new Error('tiddlers-data marker not found.');
+  const tagEnd   = originalHtml.indexOf('>', start) + 1;
+  const closeTag = '<' + '/script>';
+  const closeIdx = originalHtml.indexOf(closeTag, tagEnd);
+  if (closeIdx === -1) throw new Error('Could not find closing tag for tiddlers-data.');
+  return originalHtml.slice(0, tagEnd) + '\n' + serializeData() + '\n' + originalHtml.slice(closeIdx);
+}
+
+function setSaveStatus(state) {
+  const el = document.getElementById('save-status');
+  if (!el) return;
+  const map = { saved: 'Saved', saving: 'Saving…', dirty: 'Unsaved', error: 'Error!', downloaded: 'Downloaded' };
+  el.textContent = map[state] || '';
+  el.style.color = state === 'error' ? '#e06c75' : state === 'dirty' ? '#e5c07b' : 'var(--text-muted)';
+  isDirty = (state === 'dirty');
+}
+
+async function saveFile() {
+  try {
+    const html = buildUpdatedHtml();
+    if (!fileHandle) {
+      fileHandle = await window.showSaveFilePicker({
+        suggestedName: location.pathname.split('/').pop() || 'bookmarks.html',
+        types: [{ description: 'HTML file', accept: { 'text/html': ['.html'] } }]
+      });
+    }
+    setSaveStatus('saving');
+    const writable = await fileHandle.createWritable();
+    await writable.write(html);
+    await writable.close();
+    originalHtml = html;
+    const domEl = document.getElementById('tiddlers-data');
+    if (domEl) domEl.textContent = '\n' + serializeData() + '\n';
+    setSaveStatus('saved');
+  } catch(e) {
+    if (e && e.name === 'AbortError') return;
+    console.error(e);
+    setSaveStatus('error');
+    alert('Save failed: ' + e.message);
+  }
+}
+
+function triggerFallbackDownload() {
+  try {
+    const html = buildUpdatedHtml();
+    const blob = new Blob([html], { type: 'text/html' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = location.pathname.split('/').pop() || 'bookmarks.html';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    setSaveStatus('downloaded');
+  } catch(e) { alert('Download failed: ' + e.message); }
+}
+
+function saveOrDownload() {
+  if (typeof window.showSaveFilePicker === 'function') saveFile();
+  else triggerFallbackDownload();
+}
+
+// ── Init (placeholder) ────────────────────────────────────────────────────────
+function init() {
+  loadData();
+  cacheOriginalHtml();
+  document.getElementById('btn-save-hdr').addEventListener('click', saveOrDownload);
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveOrDownload(); }
+  });
+}
+
+init();
 </script>
 </body>
 </html>
