@@ -534,10 +534,15 @@ function parseNetscapeBookmarks(html) {
           const url = (a.getAttribute('href') || '').trim();
           if (url.startsWith('http')) bms.push({ title: a.textContent.trim() || url, url });
         } else if (h3) {
-          // Scan forward past any <p> elements the HTML parser inserts from the "DL><p>" pattern
-          let next = node.nextElementSibling;
-          while (next && next.tagName !== 'DL' && next.tagName !== 'DT') next = next.nextElementSibling;
-          if (next && next.tagName === 'DL') parseFolder(next, h3.textContent.trim());
+          // Chrome exports don't close <DT> tags, so the HTML5 parser makes the inner <DL>
+          // a child of the <DT> rather than a sibling. Check inside DT first, then siblings.
+          let subDl = node.querySelector(':scope > dl');
+          if (!subDl) {
+            let next = node.nextElementSibling;
+            while (next && next.tagName !== 'DL' && next.tagName !== 'DT') next = next.nextElementSibling;
+            if (next && next.tagName === 'DL') subDl = next;
+          }
+          if (subDl) parseFolder(subDl, h3.textContent.trim());
         }
       }
       node = node.nextElementSibling;
