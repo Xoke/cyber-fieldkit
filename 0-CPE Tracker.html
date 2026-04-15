@@ -313,7 +313,8 @@ let activeId   = null;
 let editMode   = false;
 let isNewEntry = false;
 let isDirty    = false;
-let fileHandle = null;
+let fileHandle     = null;
+let proofDirHandle = null;
 let originalHtml = '';
 let searchQuery  = '';
 let activeFilter = 'all';
@@ -535,11 +536,13 @@ async function saveProofBlob(blob, suggestedName) {
   if (typeof window.showSaveFilePicker === 'function') {
     const ext = suggestedName.split('.').pop();
     try {
+      const startIn = fileHandle || proofDirHandle;
       const fh = await window.showSaveFilePicker({
         suggestedName: suggestedName,
         types: [{ description: 'Proof file', accept: { '*/*': ['.' + ext] } }],
-        ...(fileHandle ? { startIn: fileHandle } : {})
+        ...(startIn ? { startIn } : {})
       });
+      proofDirHandle = fh;
       const writable = await fh.createWritable();
       await writable.write(blob);
       await writable.close();
