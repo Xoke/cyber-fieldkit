@@ -313,8 +313,7 @@ let activeId   = null;
 let editMode   = false;
 let isNewEntry = false;
 let isDirty    = false;
-let fileHandle     = null;
-let proofDirHandle = null;
+let fileHandle = null;
 let originalHtml = '';
 let searchQuery  = '';
 let activeFilter = 'all';
@@ -524,10 +523,13 @@ function triggerFallbackDownload() {
   } catch(e) { setSaveStatus('error'); console.error(e); }
 }
 
-function saveOrDownload() {
-  if (editMode) collectFormAndSave(false);
-  if (typeof window.showSaveFilePicker === 'function') saveFile();
-  else triggerFallbackDownload();
+async function saveOrDownload() {
+  if (editMode && !collectFormAndSave(false)) return;
+  if (typeof window.showSaveFilePicker === 'function') {
+    await saveFile();
+  } else {
+    triggerFallbackDownload();
+  }
 }
 
 // ── Proof files ───────────────────────────────────────────────────────────────
@@ -536,13 +538,10 @@ async function saveProofBlob(blob, suggestedName) {
   if (typeof window.showSaveFilePicker === 'function') {
     const ext = suggestedName.split('.').pop();
     try {
-      const startIn = fileHandle || proofDirHandle;
       const fh = await window.showSaveFilePicker({
         suggestedName: suggestedName,
-        types: [{ description: 'Proof file', accept: { '*/*': ['.' + ext] } }],
-        ...(startIn ? { startIn } : {})
+        types: [{ description: 'Proof file', accept: { '*/*': ['.' + ext] } }]
       });
-      proofDirHandle = fh;
       const writable = await fh.createWritable();
       await writable.write(blob);
       await writable.close();
@@ -562,7 +561,7 @@ async function saveProofBlob(blob, suggestedName) {
 }
 
 function proofSuggestedName(entry, file) {
-  const ext      = file.name ? file.name.split('.').pop() : (file.type.split('/')[1] || 'png');
+  const ext = file.name ? file.name.split('.').pop() : (file.type.split('/')[1] || 'bin');
   const datePart = (entry.dateFrom || currentMonth()).slice(0, 7).replace('-', '-');
   const typePart = entry.type || 'cpe';
   const titlePart = slug(entry.title || 'untitled');
@@ -618,7 +617,10 @@ function addProofRef(name) {
   item.className = 'proof-ref-item has-file';
   item.dataset.name = name;
   item.innerHTML = escHtml(name) + ' <button class="proof-ref-remove" title="Remove">\u00d7</button>';
-  item.querySelector('.proof-ref-remove').addEventListener('click', () => item.remove());
+  item.querySelector('.proof-ref-remove').addEventListener('click', () => {
+    item.remove();
+    updateProofRefsHidden();
+  });
   listEl.appendChild(item);
   updateProofRefsHidden();
 }
@@ -1475,24 +1477,49 @@ function collectFormData() {
     if (hiddenEl) proofRefs = JSON.parse(hiddenEl.value) || [];
   } catch(e) {}
   return {
-    title:         (document.getElementById('f-title')     || {}).value || '',
+    title:         (document.getElementById('f-title')     || {}).value.trim() || '',
     type:          (document.getElementById('f-type')      || {}).value || 'webinar',
     dateFrom:      (document.getElementById('f-date-from') || {}).value || '',
     dateTo:        (document.getElementById('f-date-to')   || {}).value || '',
     cpeCount:      parseFloat((document.getElementById('f-cpe') || {}).value) || 0,
-    presenter:     (document.getElementById('f-presenter') || {}).value || '',
-    org:           (document.getElementById('f-org')       || {}).value || '',
+    presenter:     (document.getElementById('f-presenter') || {}).value.trim() || '',
+    org:           (document.getElementById('f-org')       || {}).value.trim() || '',
     yearPublished: (document.getElementById('f-year')      || {}).value || '',
-    url:           (document.getElementById('f-url')       || {}).value || '',
-    summary:       (document.getElementById('f-summary')   || {}).value || '',
+    url:           (document.getElementById('f-url')       || {}).value.trim() || '',
+    summary:       (document.getElementById('f-summary')   || {}).value.trim() || '',
     proofRefs:     proofRefs,
     transcript:    !!(document.getElementById('f-transcript') || {}).checked,
     domains:       domains,
   };
 }
 
+function validateEntry(formData) {
+  if (!formData.title) {
+    alert('Please enter a title for this CPE entry.');
+    document.getElementById('f-title')?.focus();
+    return false;
+  }
+  if (!formData.dateFrom) {
+    alert('Please select a start date for this entry.');
+    document.getElementById('f-date-from')?.focus();
+    return false;
+  }
+  if (formData.dateTo && formData.dateTo < formData.dateFrom) {
+    alert('The end date cannot be before the start date.');
+    document.getElementById('f-date-to')?.focus();
+    return false;
+  }
+  if (!(formData.cpeCount > 0)) {
+    alert('Please enter a CPE credit value greater than zero.');
+    document.getElementById('f-cpe')?.focus();
+    return false;
+  }
+  return true;
+}
+
 function collectFormAndSave(exitEdit) {
   const formData = collectFormData();
+  if (!validateEntry(formData)) return false;
   const now = new Date().toISOString();
 
   if (isNewEntry) {
@@ -1509,6 +1536,7 @@ function collectFormAndSave(exitEdit) {
 
   if (exitEdit) { editMode = false; isNewEntry = false; }
   renderAll();
+  return true;
 }
 
 function cancelEdit() {
@@ -1604,7 +1632,7 @@ function renderAll() {
 
 function wireEvents() {
   document.getElementById('btn-new').addEventListener('click', newEntry);
-  document.getElementById('btn-save-hdr').addEventListener('click', saveOrDownload);
+  document.getElementById('btn-save-hdr').addEventListener('click', () => saveOrDownload().catch(err => console.error(err)));
 
   // Import button — guard against duplicate injection (outerHTML fallback bakes it into saved HTML)
   if (!document.getElementById('btn-import')) {
@@ -1642,7 +1670,7 @@ function wireEvents() {
   document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
       e.preventDefault();
-      saveOrDownload();
+      saveOrDownload().catch(err => console.error(err));
     }
   });
 
@@ -1662,7 +1690,7 @@ async function bootstrap() {
   setTheme(savedTheme);
   wireEvents();
   renderAll();
-  cacheOriginalHtml();
+  await cacheOriginalHtml();
 }
 
 bootstrap();
