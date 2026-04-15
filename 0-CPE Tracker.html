@@ -324,20 +324,24 @@ function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
-// Format a YYYY-MM or YYYY-MM-DD string as "Jul 2024"
+// Format a YYYY-MM or YYYY-MM-DD string as "Jul 2024" or "15 Jul 2024"
 function fmtDate(iso) {
   if (!iso) return '';
-  // Normalise to YYYY-MM for display
-  const ym = iso.slice(0, 7); // "YYYY-MM"
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const full = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (full) {
+    const [, y, m, d] = full.map(Number);
+    return d + ' ' + (months[m - 1] || '?') + ' ' + y;
+  }
+  const ym = iso.slice(0, 7);
   const [y, m] = ym.split('-').map(Number);
   if (!y || !m) return iso;
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   return (months[m - 1] || '?') + ' ' + y;
 }
 
-// Return current month as YYYY-MM
+// Return today as YYYY-MM-DD
 function currentMonth() {
-  return new Date().toISOString().slice(0, 7);
+  return new Date().toISOString().slice(0, 10);
 }
 
 function slug(str) {
@@ -401,9 +405,6 @@ function migrateEntry(e) {
     delete e.proofRef;
   }
   if (!e.proofRefs) e.proofRefs = [];
-  // Migrate full dates (YYYY-MM-DD) → month (YYYY-MM)
-  if (e.dateFrom && e.dateFrom.length > 7) e.dateFrom = e.dateFrom.slice(0, 7);
-  if (e.dateTo   && e.dateTo.length   > 7) e.dateTo   = e.dateTo.slice(0, 7);
   return e;
 }
 
@@ -695,12 +696,14 @@ function mapCsvType(raw) {
 
 function parseDateToMonth(raw) {
   if (!raw) return '';
+  const isoFull = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoFull) return isoFull[1] + '-' + isoFull[2] + '-' + isoFull[3];
   const isoMatch = raw.match(/^(\d{4})-(\d{2})/);
-  if (isoMatch) return isoMatch[1] + '-' + isoMatch[2];
+  if (isoMatch) return isoMatch[1] + '-' + isoMatch[2] + '-01';
   const usMatch = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if (usMatch) return usMatch[3] + '-' + usMatch[1].padStart(2, '0');
+  if (usMatch) return usMatch[3] + '-' + usMatch[1].padStart(2, '0') + '-' + usMatch[2].padStart(2, '0');
   const euMatch = raw.match(/^(\d{1,2})[-.](\d{1,2})[-.](\d{4})/);
-  if (euMatch) return euMatch[3] + '-' + euMatch[2].padStart(2, '0');
+  if (euMatch) return euMatch[3] + '-' + euMatch[2].padStart(2, '0') + '-' + euMatch[1].padStart(2, '0');
   const months = {jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',
                   jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12'};
   const mMatch = raw.toLowerCase().match(/([a-z]{3})[a-z]*\s+(\d{4})/);
@@ -728,12 +731,12 @@ async function loadPdfJs() {
 const PDF_MONTHS = {jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',
                     jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12'};
 
-// "15-Dec-2025" → "2025-12"
+// "15-Dec-2025" → "2025-12-15"
 function parsePdfDate(str) {
   const m = (str || '').match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/);
   if (m) {
     const mo = PDF_MONTHS[m[2].toLowerCase()];
-    if (mo) return m[3] + '-' + mo;
+    if (mo) return m[3] + '-' + mo + '-' + m[1].padStart(2, '0');
   }
   return parseDateToMonth(str);
 }
@@ -1368,10 +1371,10 @@ function renderEditForm() {
     '<div class="fields-grid">' +
       '<div class="field-full"><label class="field-label">CPE Type</label>' +
         '<select class="field-input" id="f-type">' + typeOpts + '</select></div>' +
-      '<div><label class="field-label">Date From (month)</label>' +
-        '<input type="month" class="field-input" id="f-date-from" value="' + (v.dateFrom || '') + '"></div>' +
-      '<div><label class="field-label">Date To (month)</label>' +
-        '<input type="month" class="field-input" id="f-date-to" value="' + (v.dateTo || '') + '"></div>' +
+      '<div><label class="field-label">Date From</label>' +
+        '<input type="date" class="field-input" id="f-date-from" value="' + (v.dateFrom || '') + '"></div>' +
+      '<div><label class="field-label">Date To</label>' +
+        '<input type="date" class="field-input" id="f-date-to" value="' + (v.dateTo || '') + '"></div>' +
       '<div><label class="field-label">CPE Credits</label>' +
         '<input type="number" class="field-input" id="f-cpe" min="0" step="0.5" value="' + (v.cpeCount || '') + '"></div>' +
       '<div id="f-presenter-wrap"><label class="field-label">Presenter / Instructor</label>' +
