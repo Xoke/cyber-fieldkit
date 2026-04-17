@@ -1244,17 +1244,20 @@ async function loadNVD() {
       const swHitN = softwareMatches(cve.id + ' ' + desc);
       const li = document.createElement('li');
       li.className = 'feed-item' + (swHitN ? ' sw-match' : '');
+      li.dataset.cve = cve.id;
       li.innerHTML = `
         <div style="font-weight:600;margin-bottom:2px;">${swHitN ? '⚡ ' : ''}${escHtml(truncate(desc, 120))}</div>
         <div style="font-size:12px;color:var(--text-muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:3px;">
           <a class="feed-item-title" href="https://nvd.nist.gov/vuln/detail/${escHtml(cve.id)}" target="_blank" rel="noopener">${escHtml(cve.id)}</a>
           <span class="cvss-badge ${cvssBadgeClass(score)}">${score.toFixed(1)}</span>
           <span>${timeAgo(cve.published)}</span>
+          <span class="epss-slot"></span>
         </div>`;
       ul.appendChild(li);
     });
     document.getElementById('nvd-body').innerHTML = '';
     document.getElementById('nvd-body').appendChild(ul);
+    loadEPSS(items.map(i => i.cve.id), 'nvd-body');
   } catch (e) {
     setError('nvd-body', 'https://nvd.nist.gov/vuln/search');
   }
