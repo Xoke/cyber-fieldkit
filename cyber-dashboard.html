@@ -1370,6 +1370,122 @@ async function loadReddit() {
   }
 }
 
+// ─── Threats Tab: Abuse.ch Active Threats ────────────────────────────────────
+async function loadAbuse() {
+  setLoading('abuse-body');
+  const [feodoResult, threatfoxResult] = await Promise.allSettled([
+    fetch('https://feodotracker.abuse.ch/downloads/ipblocklist.json')
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }),
+    fetch('https://threatfox-api.abuse.ch/api/v1/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: 'get_iocs', days: 1 })
+    }).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  ]);
+
+  const entries = [];
+
+  if (feodoResult.status === 'fulfilled') {
+    const items = Array.isArray(feodoResult.value) ? feodoResult.value : [];
+    items
+      .sort((a, b) => (b.status === 'online' ? 1 : 0) - (a.status === 'online' ? 1 : 0))
+      .slice(0, 15)
+      .forEach(item => entries.push({
+        malware: item.malware || 'Unknown',
+        ioc: `${item.ip_address || ''}:${item.port || ''}`,
+        type: 'C2 IP',
+        country: item.country || '',
+        status: item.status || '',
+        source: 'Feodo',
+        confidence: null,
+      }));
+  }
+
+  if (threatfoxResult.status === 'fulfilled') {
+    const tfData = threatfoxResult.value?.data;
+    if (Array.isArray(tfData)) {
+      tfData
+        .sort((a, b) => (b.confidence_level || 0) - (a.confidence_level || 0))
+        .slice(0, 15)
+        .forEach(item => entries.push({
+          malware: item.malware_printable || item.malware || 'Unknown',
+          ioc: item.ioc || '',
+          type: item.ioc_type || '',
+          country: '',
+          status: '',
+          source: 'ThreatFox',
+          confidence: item.confidence_level != null ? item.confidence_level : null,
+        }));
+    }
+  }
+
+  if (!entries.length) {
+    setError('abuse-body', 'https://abuse.ch');
+    return;
+  }
+
+  const ul = document.createElement('ul');
+  ul.className = 'feed-list';
+  entries.forEach(e => {
+    const swHit = softwareMatches(e.malware);
+    const li = document.createElement('li');
+    li.className = 'feed-item' + (swHit ? ' sw-match' : '');
+    li.innerHTML = `
+      <div style="font-weight:600;margin-bottom:2px;">${swHit ? '⚡ ' : ''}${escHtml(e.malware)}</div>
+      <div style="font-size:12px;color:var(--text);font-family:monospace;margin-bottom:3px;">${escHtml(truncate(e.ioc, 60))}</div>
+      <div class="feed-item-meta">
+        <span>${escHtml(e.source)}</span>
+        <span>${escHtml(e.type)}</span>
+        ${e.country ? `<span>${escHtml(e.country)}</span>` : ''}
+        ${e.status === 'online' ? '<span style="color:var(--critical);font-weight:600;">● ONLINE</span>' : ''}
+        ${e.confidence != null ? `<span>conf: ${e.confidence}%</span>` : ''}
+      </div>`;
+    ul.appendChild(li);
+  });
+  document.getElementById('abuse-body').innerHTML = '';
+  document.getElementById('abuse-body').appendChild(ul);
+}
+
+// ─── Threats Tab: Ransomware Activity ────────────────────────────────────────
+async function loadRansomware() {
+  setLoading('ransomware-body');
+  try {
+    const resp = await fetch('https://api.ransomware.live/recentvictims');
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    const victims = (Array.isArray(data) ? data : [])
+      .sort((a, b) => new Date(b.discovered || 0) - new Date(a.discovered || 0))
+      .slice(0, 15);
+    if (!victims.length) {
+      document.getElementById('ransomware-body').innerHTML = '<div class="loading-state">No recent victims.</div>';
+      return;
+    }
+    const kw = getIndustryKW();
+    const ul = document.createElement('ul');
+    ul.className = 'feed-list';
+    victims.forEach(v => {
+      const activity = v.activity || '';
+      const relevant = kw.test((v.post_title || '') + ' ' + activity);
+      const li = document.createElement('li');
+      li.className = 'feed-item' + (relevant ? ' industry-relevant' : '');
+      li.innerHTML = `
+        <div style="font-weight:600;margin-bottom:2px;">${escHtml(v.post_title || 'Unknown')}</div>
+        <div class="feed-item-meta">
+          <span style="color:var(--critical);">${escHtml(v.group_name || '?')}</span>
+          ${v.country ? `<span>${escHtml(v.country)}</span>` : ''}
+          ${activity ? `<span>${escHtml(truncate(activity, 40))}</span>` : ''}
+          <span>${v.discovered ? timeAgo(v.discovered) : ''}</span>
+          ${relevant ? '<span style="color:var(--accent);">★ relevant</span>' : ''}
+        </div>`;
+      ul.appendChild(li);
+    });
+    document.getElementById('ransomware-body').innerHTML = '';
+    document.getElementById('ransomware-body').appendChild(ul);
+  } catch(e) {
+    setError('ransomware-body', 'https://www.ransomware.live');
+  }
+}
+
 // ─── Panel: CISA Advisories ───────────────────────────────────────────────────
 async function loadCISAAdvisories() {
   setLoading('cisa-body');
