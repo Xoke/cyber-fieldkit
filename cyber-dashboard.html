@@ -1124,21 +1124,18 @@ function renderKEVList(vulns, sourceNote) {
       else { dueLabel = `Due: ${v.dueDate}`; }
     }
     const swHit = softwareMatches((v.vendorProject || '') + ' ' + (v.product || '') + ' ' + (v.vulnerabilityName || ''));
+    const productLabel = [v.vendorProject, v.product].filter(Boolean).join(' — ');
     const li = document.createElement('li');
     li.className = 'feed-item' + (swHit ? ' sw-match' : '');
     li.innerHTML = `
-      <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
-        <a class="feed-item-title" href="https://nvd.nist.gov/vuln/detail/${escHtml(v.cveID)}" target="_blank" rel="noopener" style="font-weight:600;">${swHit ? '⚡ ' : ''}${escHtml(v.cveID)}</a>
-        <span class="feed-item-meta" style="gap:4px;">
-          <span>${escHtml(v.vendorProject || '')}${v.product ? ' — ' + escHtml(v.product) : ''}</span>
-        </span>
-      </div>
-      <div style="font-size:12px;color:var(--text-muted);display:flex;gap:10px;flex-wrap:wrap;margin-top:2px;">
+      <div style="font-weight:600;margin-bottom:2px;">${swHit ? '⚡ ' : ''}${escHtml(productLabel || v.vulnerabilityName)}</div>
+      ${productLabel ? `<div style="font-size:12px;color:var(--text);margin-top:2px;">${escHtml(truncate(v.vulnerabilityName, 90))}</div>` : ''}
+      <div style="font-size:12px;color:var(--text-muted);display:flex;gap:10px;flex-wrap:wrap;margin-top:3px;">
+        <a class="feed-item-title" href="https://nvd.nist.gov/vuln/detail/${escHtml(v.cveID)}" target="_blank" rel="noopener">${escHtml(v.cveID)}</a>
         <span>Added: ${escHtml(v.dateAdded)}</span>
         <span class="${dueCls}">${escHtml(dueLabel)}</span>
-        ${sourceNote ? `<span style="color:var(--text-muted);font-style:italic;">${escHtml(sourceNote)}</span>` : ''}
-      </div>
-      <div style="font-size:12px;color:var(--text);margin-top:2px;">${escHtml(truncate(v.vulnerabilityName, 90))}</div>`;
+        ${sourceNote ? `<span style="font-style:italic;">${escHtml(sourceNote)}</span>` : ''}
+      </div>`;
     ul.appendChild(li);
   });
   document.getElementById('kev-body').innerHTML = '';
@@ -1217,12 +1214,12 @@ async function loadNVD() {
       const li = document.createElement('li');
       li.className = 'feed-item' + (swHitN ? ' sw-match' : '');
       li.innerHTML = `
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <a class="feed-item-title" href="https://nvd.nist.gov/vuln/detail/${escHtml(cve.id)}" target="_blank" rel="noopener" style="font-weight:600;">${swHitN ? '⚡ ' : ''}${escHtml(cve.id)}</a>
+        <div style="font-weight:600;margin-bottom:2px;">${swHitN ? '⚡ ' : ''}${escHtml(truncate(desc, 120))}</div>
+        <div style="font-size:12px;color:var(--text-muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:3px;">
+          <a class="feed-item-title" href="https://nvd.nist.gov/vuln/detail/${escHtml(cve.id)}" target="_blank" rel="noopener">${escHtml(cve.id)}</a>
           <span class="cvss-badge ${cvssBadgeClass(score)}">${score.toFixed(1)}</span>
-          <span style="font-size:11px;color:var(--text-muted);">${timeAgo(cve.published)}</span>
-        </div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${escHtml(truncate(desc, 120))}</div>`;
+          <span>${timeAgo(cve.published)}</span>
+        </div>`;
       ul.appendChild(li);
     });
     document.getElementById('nvd-body').innerHTML = '';
@@ -1248,18 +1245,21 @@ async function loadReddit() {
   const keywords = REDDIT_KEYWORDS[s.industry] || REDDIT_KEYWORDS.banking;
   const base = 'https://www.reddit.com/search.json?sort=top&t=week&limit=15&raw_json=1';
   try {
+    const subFilter = '(subreddit:netsec OR subreddit:cybersecurity)';
     const [r1, r2] = await Promise.all([
-      fetch(`${base}&q=${encodeURIComponent('(subreddit:netsec OR subreddit:cybersecurity)')}`)
+      fetch(`${base}&q=${encodeURIComponent(subFilter)}`)
         .then(r => { if (!r.ok) throw new Error(); return r.json(); }),
-      fetch(`${base}&q=${encodeURIComponent(keywords)}`)
+      fetch(`${base}&q=${encodeURIComponent(subFilter + ' ' + keywords)}`)
         .then(r => { if (!r.ok) throw new Error(); return r.json(); }),
     ]);
+    const ALLOWED_SUBS = new Set(['netsec', 'cybersecurity']);
     const seen = new Set();
     const posts = [];
     [...(r1.data?.children || []), ...(r2.data?.children || [])].forEach(c => {
       const p = c.data;
-      const key = p.id;
-      if (!seen.has(key)) { seen.add(key); posts.push(p); }
+      if (!seen.has(p.id) && ALLOWED_SUBS.has((p.subreddit || '').toLowerCase())) {
+        seen.add(p.id); posts.push(p);
+      }
     });
     posts.sort((a, b) => (b.score || 0) - (a.score || 0));
     const top10 = posts.slice(0, 10);
