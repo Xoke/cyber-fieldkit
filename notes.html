@@ -344,9 +344,11 @@ function renderMain() {
       '</div>' +
       '<div id="editor-split">' +
         '<textarea id="body-editor">' + escHtml(note.body || '') + '</textarea>' +
-        '<div id="editor-preview-pane"><div id="body-view">' + marked.parse(note.body || '') + '</div></div>' +
+        '<div id="editor-preview-pane"><div id="body-view"></div></div>' +
       '</div>';
 
+    document.getElementById('body-view').innerHTML = note.body ? marked.parse(note.body) : '';
+    document.getElementById('note-title-input').focus();
     document.getElementById('btn-view').addEventListener('click', () => {
       collectAndSave(false); editMode = false; renderMain();
     });
