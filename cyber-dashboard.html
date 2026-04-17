@@ -164,6 +164,18 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; }
 .badge-medium { background: var(--medium); }
 .badge-low { background: var(--low); }
 
+/* EPSS badge */
+.epss-badge { display:inline-block; padding:1px 5px; border-radius:3px; font-size:11px; font-weight:600; }
+.epss-high { background:color-mix(in srgb,var(--critical) 20%,transparent); color:var(--critical); }
+.epss-med  { background:color-mix(in srgb,var(--medium)   20%,transparent); color:var(--medium); }
+.epss-low  { background:color-mix(in srgb,var(--text-muted) 15%,transparent); color:var(--text-muted); }
+
+/* Shodan InternetDB result block */
+#idb-result { margin-top:12px; padding:10px 12px; background:var(--bg-hover); border-radius:6px; font-size:12px; }
+.idb-row { margin-bottom:6px; color:var(--text); }
+.idb-label { color:var(--text-muted); margin-right:6px; font-size:11px; }
+.idb-tag { display:inline-block; padding:1px 6px; border-radius:3px; background:var(--accent-light); color:var(--accent); font-size:11px; margin:1px; }
+
 /* KEV due date */
 .due-overdue { color: var(--critical); font-weight: 600; }
 .due-soon { color: var(--high); font-weight: 600; }
