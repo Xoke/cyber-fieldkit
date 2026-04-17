@@ -368,6 +368,9 @@ html[data-theme="dark"] .welcome-banner { background: #1c2a10; color: #c8e6a0; b
       <button class="nav-item" data-tab="intel" onclick="switchTab('intel')">
         <span class="nav-icon">🔍</span><span class="nav-label">Intel</span>
       </button>
+      <button class="nav-item" data-tab="threats" onclick="switchTab('threats')">
+        <span class="nav-icon">⚠</span><span class="nav-label">Threats</span>
+      </button>
     </div>
     <div class="sidebar-bottom">
       <button class="nav-item" onclick="openSettings()">
@@ -558,6 +561,34 @@ html[data-theme="dark"] .welcome-banner { background: #1c2a10; color: #c8e6a0; b
             </div>
             <div id="cve-result"></div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-threats" class="tab-panel">
+      <div class="dashboard-grid">
+        <!-- Abuse.ch Active Threats -->
+        <div class="panel" id="panel-abuse">
+          <div class="panel-header">
+            <span class="panel-title">Active Threats (Abuse.ch)</span>
+            <div class="panel-header-links">
+              <a class="panel-link" href="https://abuse.ch" target="_blank" rel="noopener">abuse.ch ↗</a>
+              <button class="panel-refresh" onclick="loadAbuse()">↻ Refresh</button>
+            </div>
+          </div>
+          <div class="panel-body" id="abuse-body"><div class="loading-state">Loading on first visit…</div></div>
+        </div>
+
+        <!-- Ransomware Activity -->
+        <div class="panel" id="panel-ransomware">
+          <div class="panel-header">
+            <span class="panel-title">Ransomware Activity</span>
+            <div class="panel-header-links">
+              <a class="panel-link" href="https://www.ransomware.live" target="_blank" rel="noopener">ransomware.live ↗</a>
+              <button class="panel-refresh" onclick="loadRansomware()">↻ Refresh</button>
+            </div>
+          </div>
+          <div class="panel-body" id="ransomware-body"><div class="loading-state">Loading on first visit…</div></div>
         </div>
       </div>
     </div>
