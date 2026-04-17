@@ -545,6 +545,7 @@ html[data-theme="dark"] .welcome-banner { background: #1c2a10; color: #c8e6a0; b
               <button class="btn-primary" onclick="tiDetect()">Detect</button>
             </div>
             <div id="ti-services"></div>
+            <div id="idb-result" style="display:none;"></div>
           </div>
         </div>
 
@@ -1572,11 +1573,22 @@ function tiDetect() {
   const val = document.getElementById('ti-val').value.trim();
   if (val) document.getElementById('ti-type').value = tiDetectType(val);
   tiRender();
+  const type = document.getElementById('ti-type').value;
+  if (type === 'ip' && val) {
+    loadInternetDB(val);
+  } else {
+    const el = document.getElementById('idb-result');
+    if (el) { el.style.display = 'none'; el.innerHTML = ''; }
+  }
 }
 
 function tiRender() {
   const val = document.getElementById('ti-val').value.trim();
   const type = document.getElementById('ti-type').value;
+  if (type !== 'ip') {
+    const el = document.getElementById('idb-result');
+    if (el) { el.style.display = 'none'; el.innerHTML = ''; }
+  }
   const svcs = TI_SERVICES[type] || [];
   const container = document.getElementById('ti-services');
   if (!svcs.length) { container.innerHTML = ''; return; }
@@ -1595,6 +1607,28 @@ function tiOpenAll() {
   if (!val) return;
   const type = document.getElementById('ti-type').value;
   (TI_SERVICES[type] || []).forEach(svc => window.open(svc.url(val), '_blank'));
+}
+
+async function loadInternetDB(ip) {
+  const el = document.getElementById('idb-result');
+  if (!el) return;
+  el.style.display = 'none';
+  el.innerHTML = '';
+  try {
+    const resp = await fetch('https://internetdb.shodan.io/' + encodeURIComponent(ip));
+    if (!resp.ok) return;
+    const d = await resp.json();
+    if (d.detail) return;
+    const parts = [];
+    if (d.ports?.length)     parts.push(`<div class="idb-row"><span class="idb-label">Ports</span>${escHtml(d.ports.join(', '))}</div>`);
+    if (d.hostnames?.length) parts.push(`<div class="idb-row"><span class="idb-label">Hostnames</span>${escHtml(d.hostnames.join(', '))}</div>`);
+    if (d.tags?.length)      parts.push(`<div class="idb-row"><span class="idb-label">Tags</span>${d.tags.map(t => `<span class="idb-tag">${escHtml(t)}</span>`).join(' ')}</div>`);
+    if (d.vulns?.length)     parts.push(`<div class="idb-row"><span class="idb-label">Vulns</span>${d.vulns.map(cve => `<a class="feed-item-title" href="https://nvd.nist.gov/vuln/detail/${escHtml(cve)}" target="_blank" rel="noopener">${escHtml(cve)}</a>`).join(' ')}</div>`);
+    if (d.cpes?.length)      parts.push(`<div class="idb-row"><span class="idb-label">CPEs</span>${escHtml(truncate(d.cpes.join(', '), 120))}</div>`);
+    if (!parts.length) return;
+    el.innerHTML = `<div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600;">Shodan InternetDB</div>${parts.join('')}`;
+    el.style.display = 'block';
+  } catch(_) {}
 }
 
 tiRender();
