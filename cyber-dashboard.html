@@ -432,6 +432,18 @@ html[data-theme="dark"] .welcome-banner { background: #1c2a10; color: #c8e6a0; b
         </div>
 
         <!-- Community Pulse (Reddit) -->
+        <!-- CISA Advisories panel -->
+        <div class="panel" id="panel-cisa">
+          <div class="panel-header">
+            <span class="panel-title">CISA Advisories</span>
+            <div class="panel-header-links">
+              <a class="panel-link" href="https://www.cisa.gov/news-events/cybersecurity-advisories" target="_blank" rel="noopener">View all ↗</a>
+              <button class="panel-refresh" onclick="loadCISAAdvisories()">↻ Refresh</button>
+            </div>
+          </div>
+          <div class="panel-body" id="cisa-body"><div class="loading-state"><span class="spinner"></span>Loading…</div></div>
+        </div>
+
         <div class="panel" id="panel-reddit">
           <div class="panel-header">
             <span class="panel-title">Community Pulse <span id="reddit-kw-label" style="font-weight:400;color:var(--accent);font-size:11px;">★ = industry relevant</span></span>
@@ -1018,6 +1030,7 @@ function applySettings() {
   loadKEV();
   loadNVD();
   loadReddit();
+  loadCISAAdvisories();
 }
 
 function updateBriefingContext() {
@@ -1326,6 +1339,43 @@ async function loadReddit() {
   }
 }
 
+// ─── Panel: CISA Advisories ───────────────────────────────────────────────────
+async function loadCISAAdvisories() {
+  setLoading('cisa-body');
+  try {
+    const resp = await fetch(RSS2JSON_BASE + encodeURIComponent('https://www.cisa.gov/cybersecurity-advisories/all.xml'), { cache: 'default' });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    if (data.status !== 'ok') throw new Error('feed error');
+    const items = (data.items || []).slice(0, 10);
+    if (!items.length) { document.getElementById('cisa-body').innerHTML = '<div class="loading-state">No advisories found.</div>'; return; }
+    const kw = getIndustryKW();
+    const ul = document.createElement('ul');
+    ul.className = 'feed-list';
+    items.forEach(item => {
+      const title = item.title || '';
+      const typeMatch = title.match(/^(AA-\d{2}|ICSA-\d{2}-\d+|ICS-CERT|TA\d{2})/);
+      const typeTag = typeMatch ? typeMatch[1] : '';
+      const relevant = kw.test(title);
+      const li = document.createElement('li');
+      li.className = 'feed-item' + (relevant ? ' industry-relevant' : '');
+      li.innerHTML = `
+        <a class="feed-item-title" href="${escHtml(item.link || item.guid || '#')}" target="_blank" rel="noopener">${escHtml(title)}</a>
+        <div class="feed-item-meta">
+          ${typeTag ? `<span style="color:var(--accent);font-weight:600;">${escHtml(typeTag)}</span>` : ''}
+          <span>CISA</span>
+          <span>${item.pubDate ? timeAgo(item.pubDate) : ''}</span>
+          ${relevant ? '<span style="color:var(--accent);">★ relevant</span>' : ''}
+        </div>`;
+      ul.appendChild(li);
+    });
+    document.getElementById('cisa-body').innerHTML = '';
+    document.getElementById('cisa-body').appendChild(ul);
+  } catch(e) {
+    setError('cisa-body', 'https://www.cisa.gov/news-events/cybersecurity-advisories');
+  }
+}
+
 // ─── Panel 5: Threat Intel Lookup ────────────────────────────────────────────
 const TI_SERVICES = {
   ip: [
@@ -1566,6 +1616,7 @@ function refreshAll() {
   loadNVD();
   loadNewsRSS();
   loadReddit();
+  loadCISAAdvisories();
   updateTimestamp();
 }
 
