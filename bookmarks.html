@@ -130,6 +130,7 @@ body.edit-mode #btn-add-row { display: inline-block; }
       <span id="save-status">Saved</span>
       <button id="btn-import-hdr" title="Import bookmarks from browser export">Import</button>
       <button id="btn-save-hdr" title="Save file (Ctrl+S)">Save</button>
+      <button id="update-check-btn" onclick="checkForUpdates()" title="Check for updates on GitHub" style="font-size:10px;padding:2px 6px;background:var(--bg-ctrl);border:1px solid var(--border);border-radius:4px;color:var(--text-muted);cursor:pointer;">Updates</button>
       <input type="file" id="import-input" accept=".html" style="display:none">
     </div>
     <div id="theme-row">
@@ -156,8 +157,10 @@ body.edit-mode #btn-add-row { display: inline-block; }
 <script id="tiddlers-data" type="application/json">{}</script>
 <script>
 // ── Constants ─────────────────────────────────────────────────────────────────
-const LS_KEY   = 'bookmarks-app-data';
-const LS_THEME = 'bookmarks-theme';
+const LS_KEY      = 'bookmarks-app-data';
+const LS_THEME    = 'bookmarks-theme';
+const APP_VERSION = '1.0.0';
+const GITHUB_RAW  = 'https://raw.githubusercontent.com/Xoke/cyber-fieldkit/main/bookmarks.html';
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let data           = { folders: [] };
@@ -628,6 +631,31 @@ function init() {
 }
 
 init();
+
+// ── Update check ───────────────────────────────────────────────────────────
+async function checkForUpdates() {
+  const btn = document.getElementById('update-check-btn');
+  const orig = btn.textContent;
+  btn.textContent = 'Checking…';
+  btn.disabled = true;
+  try {
+    const res = await fetch(GITHUB_RAW);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const m = text.match(/APP_VERSION = '([^']+)'/);
+    if (!m) throw new Error('Version string not found');
+    if (m[1] === APP_VERSION) {
+      alert('You are up to date (v' + APP_VERSION + ').');
+    } else if (confirm('Update available: v' + m[1] + ' (you have v' + APP_VERSION + ').\n\nDownload now?')) {
+      window.open(GITHUB_RAW, '_blank');
+    }
+  } catch(e) {
+    alert('Update check failed: ' + e.message);
+  } finally {
+    btn.textContent = orig;
+    btn.disabled = false;
+  }
+}
 </script>
 </body>
 </html>

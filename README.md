@@ -13,6 +13,9 @@ Markdown note-taking app with full-text search, tag filtering, and live preview.
 ### [Cyber Dashboard](cyber-dashboard.html)
 Morning briefing dashboard with live feeds for CISA KEV, NVD critical CVEs, Reddit security communities, and CISA advisories. Includes threat intel lookup, CVE search, and Patch Tuesday countdown. Configurable by industry and state for relevant regulatory and news content.
 
+### [Bookmarks](bookmarks.html)
+Self-contained bookmark manager with folders, tags, and search. Import directly from a browser bookmark export (HTML format). Data is stored inside the file itself — works the same way as the CPE Tracker and Notes.
+
 ### [OSINT Tools](osint-tools.html)
 Query builder that opens external OSINT sources pre-filled with your search terms. Covers name, phone, email, and username lookups across 50+ sources. Includes an "Open All" mode with popup blocker detection.
 
