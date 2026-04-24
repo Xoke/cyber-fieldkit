@@ -134,6 +134,7 @@ body { background: var(--bg); color: var(--text); }
         <button class="theme-btn" data-theme="dusk"  title="Dusk"  style="background:#2d3142;border:2px solid #555"></button>
         <button class="theme-btn" data-theme="dark"  title="Dark"  style="background:#1a1b1e;border:2px solid #555"></button>
       </div>
+      <button id="update-check-btn" onclick="checkForUpdates()" style="margin-top:6px;width:100%;font-size:11px;padding:4px 8px;background:var(--bg-ctrl);border:1px solid var(--border);border-radius:4px;color:var(--text-muted);cursor:pointer;text-align:center;">Check for Updates</button>
     </div>
   </aside>
   <main id="main">
@@ -145,6 +146,8 @@ body { background: var(--bg); color: var(--text); }
 // ── Constants ─────────────────────────────────────────────────────────────────
 const LS_KEY   = 'notes-app-data';
 const LS_THEME = 'notes-app-theme';
+const APP_VERSION = '1.0.0';
+const GITHUB_RAW = 'https://raw.githubusercontent.com/Xoke/cyber-fieldkit/main/notes.html';
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let data        = { notes: [] };
@@ -491,6 +494,31 @@ function bootstrap() {
 }
 
 bootstrap();
+
+// ── Update check ───────────────────────────────────────────────────────────
+async function checkForUpdates() {
+  const btn = document.getElementById('update-check-btn');
+  const orig = btn.textContent;
+  btn.textContent = 'Checking…';
+  btn.disabled = true;
+  try {
+    const res = await fetch(GITHUB_RAW);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const m = text.match(/APP_VERSION = '([^']+)'/);
+    if (!m) throw new Error('Version string not found');
+    if (m[1] === APP_VERSION) {
+      alert('You are up to date (v' + APP_VERSION + ').');
+    } else if (confirm('Update available: v' + m[1] + ' (you have v' + APP_VERSION + ').\n\nDownload now?')) {
+      window.open(GITHUB_RAW, '_blank');
+    }
+  } catch(e) {
+    alert('Update check failed: ' + e.message);
+  } finally {
+    btn.textContent = orig;
+    btn.disabled = false;
+  }
+}
 </script>
 </body>
 </html>

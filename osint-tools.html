@@ -153,6 +153,7 @@ body { background: var(--bg); color: var(--text); display: flex; flex-direction:
     <button class="theme-btn" data-t="sepia"  title="Sepia"></button>
     <button class="theme-btn" data-t="dusk"   title="Dusk"></button>
     <button class="theme-btn" data-t="dark"   title="Dark"></button>
+    <button id="update-check-btn" onclick="checkForUpdates()" style="font-size:11px;padding:2px 8px;background:var(--bg-ctrl);border:1px solid var(--border);border-radius:4px;color:var(--text-muted);cursor:pointer;">Check for Updates</button>
   </div>
 </div>
 
@@ -258,6 +259,10 @@ body { background: var(--bg); color: var(--text); display: flex; flex-direction:
 </div><!-- end content -->
 
 <script>
+// ── Version ────────────────────────────────────────────────────────────────
+const APP_VERSION = '1.0.0';
+const GITHUB_RAW = 'https://raw.githubusercontent.com/Xoke/cyber-fieldkit/main/osint-tools.html';
+
 // ── Theme ──────────────────────────────────────────────────────────────────
 const THEME_KEY = 'osint-theme';
 function applyTheme(t) {
@@ -660,6 +665,31 @@ function shakeCard(tab) {
     const el = document.getElementById('u-user');
     el.classList.add('shake');
     el.addEventListener('animationend', () => el.classList.remove('shake'), { once: true });
+  }
+}
+
+// ── Update check ───────────────────────────────────────────────────────────
+async function checkForUpdates() {
+  const btn = document.getElementById('update-check-btn');
+  const orig = btn.textContent;
+  btn.textContent = 'Checking…';
+  btn.disabled = true;
+  try {
+    const res = await fetch(GITHUB_RAW);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const m = text.match(/APP_VERSION = '([^']+)'/);
+    if (!m) throw new Error('Version string not found');
+    if (m[1] === APP_VERSION) {
+      alert('You are up to date (v' + APP_VERSION + ').');
+    } else if (confirm('Update available: v' + m[1] + ' (you have v' + APP_VERSION + ').\n\nDownload now?')) {
+      window.open(GITHUB_RAW, '_blank');
+    }
+  } catch(e) {
+    alert('Update check failed: ' + e.message);
+  } finally {
+    btn.textContent = orig;
+    btn.disabled = false;
   }
 }
 

@@ -376,6 +376,9 @@ html[data-theme="dark"] .welcome-banner { background: #1c2a10; color: #c8e6a0; b
       <button class="nav-item" onclick="openSettings()">
         <span class="nav-icon">⚙</span><span class="nav-label">Settings</span>
       </button>
+      <button id="update-check-btn" class="nav-item" onclick="checkForUpdates()" style="font-size:11px;">
+        <span class="nav-icon">↑</span><span class="nav-label">Check for Updates</span>
+      </button>
       <div class="theme-row">
         <button class="theme-btn" data-t="light" title="Light"></button>
         <button class="theme-btn" data-t="sepia" title="Sepia"></button>
@@ -673,6 +676,8 @@ document.querySelectorAll('.theme-btn').forEach(b => b.addEventListener('click',
 applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
 
 // ─── Settings Data ────────────────────────────────────────────────────────────
+const APP_VERSION  = '1.0.0';
+const GITHUB_RAW   = 'https://raw.githubusercontent.com/Xoke/cyber-fieldkit/main/cyber-dashboard.html';
 const SETTINGS_KEY = 'cyber-dash-settings';
 const WELCOMED_KEY = 'cyber-dash-welcomed';
 const DEFAULT_SETTINGS = { industry: 'banking', states: ['CA', 'NV'], software: [] };
@@ -1805,6 +1810,31 @@ function refreshAll() {
   loadReddit();
   loadCISAAdvisories();
   updateTimestamp();
+}
+
+// ─── Update check ─────────────────────────────────────────────────────────────
+async function checkForUpdates() {
+  const btn = document.getElementById('update-check-btn');
+  const orig = btn.textContent;
+  btn.textContent = 'Checking…';
+  btn.disabled = true;
+  try {
+    const res = await fetch(GITHUB_RAW);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const m = text.match(/APP_VERSION\s*=\s*'([^']+)'/);
+    if (!m) throw new Error('Version string not found');
+    if (m[1] === APP_VERSION) {
+      alert('You are up to date (v' + APP_VERSION + ').');
+    } else if (confirm('Update available: v' + m[1] + ' (you have v' + APP_VERSION + ').\n\nDownload now?')) {
+      window.open(GITHUB_RAW, '_blank');
+    }
+  } catch(e) {
+    alert('Update check failed: ' + e.message);
+  } finally {
+    btn.textContent = orig;
+    btn.disabled = false;
+  }
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
