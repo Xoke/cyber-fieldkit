@@ -275,22 +275,29 @@ select.field-input { appearance: auto; }
 <script>
 // ── Constants ──────────────────────────────────────────────────────────────────
 
+const CPE_CATEGORIES = {
+  education:     'Education',
+  contribution:  'Contribution to the Profession',
+  professional:  'Professional Development',
+  work_exp:      'Work Experience',
+};
+
 const CPE_TYPES = {
-  education_security: { label: 'Higher Education (Security)',     group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
-  training_isc2:      { label: 'ISC\u00b2 Official Training',     group: 'A', showPresenter: true,  showOrg: false, showYear: false, showUrl: true  },
-  training_vendor:    { label: 'Vendor/Third-Party Training',     group: 'A', showPresenter: true,  showOrg: true,  showYear: false, showUrl: true  },
-  webinar:            { label: 'Webinar/Online Training',         group: 'A', showPresenter: true,  showOrg: true,  showYear: false, showUrl: true  },
-  seminar:            { label: 'Seminar/Conference Session',      group: 'A', showPresenter: true,  showOrg: true,  showYear: false, showUrl: false },
-  self_study:         { label: 'Self-Study',                      group: 'A', showPresenter: false, showOrg: true,  showYear: true,  showUrl: true  },
-  work_experience:    { label: 'Security Work Experience',        group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
-  writing:            { label: 'Writing/Authoring (Security)',    group: 'A', showPresenter: false, showOrg: true,  showYear: true,  showUrl: true  },
-  instructor:         { label: 'Instructor/Presenter',            group: 'A', showPresenter: true,  showOrg: true,  showYear: false, showUrl: false },
-  exam_dev:           { label: 'Exam Item Development',           group: 'A', showPresenter: false, showOrg: false, showYear: false, showUrl: false },
-  research:           { label: 'Research',                        group: 'A', showPresenter: false, showOrg: true,  showYear: true,  showUrl: true  },
-  volunteer_security: { label: 'Volunteer Work (Security)',       group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
-  education_other:    { label: 'Higher Education (Non-Security)', group: 'B', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
-  professional_dev:   { label: 'Professional Development',        group: 'B', showPresenter: true,  showOrg: true,  showYear: false, showUrl: true  },
-  volunteer_other:    { label: 'Volunteer Work (Non-Security)',   group: 'B', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  education_security: { label: 'Higher Education (Security)',     category: 'education',    group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  training_isc2:      { label: 'ISC\u00b2 Official Training',     category: 'education',    group: 'A', showPresenter: true,  showOrg: false, showYear: false, showUrl: true  },
+  training_vendor:    { label: 'Vendor/Third-Party Training',     category: 'education',    group: 'A', showPresenter: true,  showOrg: true,  showYear: false, showUrl: true  },
+  webinar:            { label: 'Webinar/Online Training',         category: 'education',    group: 'A', showPresenter: true,  showOrg: true,  showYear: false, showUrl: true  },
+  seminar:            { label: 'Seminar/Conference Session',      category: 'education',    group: 'A', showPresenter: true,  showOrg: true,  showYear: false, showUrl: false },
+  self_study:         { label: 'Self-Study',                      category: 'education',    group: 'A', showPresenter: false, showOrg: true,  showYear: true,  showUrl: true  },
+  work_experience:    { label: 'Security Work Experience',        category: 'work_exp',     group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  writing:            { label: 'Writing/Authoring (Security)',    category: 'contribution', group: 'A', showPresenter: false, showOrg: true,  showYear: true,  showUrl: true  },
+  instructor:         { label: 'Instructor/Presenter',            category: 'contribution', group: 'A', showPresenter: true,  showOrg: true,  showYear: false, showUrl: false },
+  exam_dev:           { label: 'Exam Item Development',           category: 'contribution', group: 'A', showPresenter: false, showOrg: false, showYear: false, showUrl: false },
+  research:           { label: 'Research',                        category: 'contribution', group: 'A', showPresenter: false, showOrg: true,  showYear: true,  showUrl: true  },
+  volunteer_security: { label: 'Volunteer Work (Security)',       category: 'contribution', group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  education_other:    { label: 'Higher Education (Non-Security)', category: 'professional', group: 'B', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  professional_dev:   { label: 'Professional Development',        category: 'professional', group: 'B', showPresenter: true,  showOrg: true,  showYear: false, showUrl: true  },
+  volunteer_other:    { label: 'Volunteer Work (Non-Security)',   category: 'professional', group: 'B', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
 };
 
 const DOMAINS = [
@@ -306,7 +313,7 @@ const DOMAINS = [
 
 const LS_KEY      = 'cissp-cpe-data';
 const LS_THEME    = 'cissp-cpe-theme';
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.0.1';
 const GITHUB_RAW  = 'https://raw.githubusercontent.com/Xoke/cyber-fieldkit/main/0-CPE%20Tracker.html';
 
 // ── State ──────────────────────────────────────────────────────────────────────
@@ -1282,6 +1289,7 @@ function renderEntryView(entry) {
   const t = CPE_TYPES[entry.type] || {};
   const grp = t.group || '?';
   const typeLabel = t.label || entry.type;
+  const catLabel = CPE_CATEGORIES[t.category] || '';
 
   const domainsHtml = DOMAINS.map(d => {
     const active = (entry.domains || []).includes(d.id);
@@ -1316,21 +1324,22 @@ function renderEntryView(entry) {
     '</div>' +
     '<div class="view-meta-row">' +
       '<span class="view-badge grp-' + grp.toLowerCase() + '">Group ' + grp + '</span>' +
+      (catLabel ? '<span class="view-meta-item">' + escHtml(catLabel) + '</span>' : '') +
       '<span class="view-meta-item"><strong>' + escHtml(typeLabel) + '</strong></span>' +
       (dateRange ? '<span class="view-meta-item">' + dateRange + '</span>' : '') +
       '<span class="view-meta-item" style="font-size:15px;font-weight:700;color:var(--accent)">' + (parseFloat(entry.cpeCount) || 0) + ' CPEs</span>' +
     '</div>' +
     (conditionalFields ? '<div class="fields-grid" style="margin-bottom:16px">' + conditionalFields + '</div>' : '') +
-    '<div class="domains-section">' +
-      '<span class="field-label">CISSP Domains</span>' +
-      '<div class="domain-pills">' + domainsHtml + '</div>' +
-    '</div>' +
     '<div class="summary-section">' +
       '<span class="field-label">Summary</span>' + summaryHtml +
     '</div>' +
     '<div class="proof-section">' +
       '<span class="field-label">Proof Files</span>' +
       '<div class="proof-row" style="flex-wrap:wrap;gap:6px">' + proofHtml + '</div>' +
+    '</div>' +
+    '<div class="domains-section">' +
+      '<span class="field-label">CISSP Domains</span>' +
+      '<div class="domain-pills">' + domainsHtml + '</div>' +
     '</div>' +
     '<div class="transcript-section' + (entry.transcript ? ' done' : '') + '">' +
       '<span class="transcript-label">' +
@@ -1353,9 +1362,16 @@ function renderEditForm() {
   const v     = entry || { type: 'webinar', dateFrom: cm, dateTo: cm, cpeCount: 1, proofRefs: [] };
   const existingRefs = v.proofRefs || [];
 
-  const typeOpts = Object.entries(CPE_TYPES).map(([k, t]) =>
-    '<option value="' + k + '"' + (v.type === k ? ' selected' : '') + '>[' + t.group + '] ' + escHtml(t.label) + '</option>'
+  const currentCategory = (v.type && CPE_TYPES[v.type]) ? CPE_TYPES[v.type].category : 'education';
+
+  const catOpts = Object.entries(CPE_CATEGORIES).map(([k, label]) =>
+    '<option value="' + k + '"' + (k === currentCategory ? ' selected' : '') + '>' + escHtml(label) + '</option>'
   ).join('');
+
+  const typeOpts = Object.entries(CPE_TYPES)
+    .filter(([k, t]) => t.category === currentCategory)
+    .map(([k, t]) => '<option value="' + k + '"' + (v.type === k ? ' selected' : '') + '>' + escHtml(t.label) + '</option>')
+    .join('');
 
   const domainPills = DOMAINS.map(d => {
     const checked = (v.domains || []).includes(d.id);
@@ -1381,14 +1397,14 @@ function renderEditForm() {
       '</div>' +
     '</div>' +
     '<div class="fields-grid">' +
-      '<div class="field-full"><label class="field-label">CPE Type</label>' +
-        '<select class="field-input" id="f-type">' + typeOpts + '</select></div>' +
-      '<div><label class="field-label">Date From</label>' +
+      '<div><label class="field-label">Start Date</label>' +
         '<input type="date" class="field-input" id="f-date-from" value="' + (v.dateFrom || '') + '"></div>' +
-      '<div><label class="field-label">Date To</label>' +
+      '<div><label class="field-label">End Date</label>' +
         '<input type="date" class="field-input" id="f-date-to" value="' + (v.dateTo || '') + '"></div>' +
-      '<div><label class="field-label">CPE Credits</label>' +
-        '<input type="number" class="field-input" id="f-cpe" min="0" step="0.5" value="' + (v.cpeCount || '') + '"></div>' +
+      '<div class="field-full"><label class="field-label">Category</label>' +
+        '<select class="field-input" id="f-category">' + catOpts + '</select></div>' +
+      '<div class="field-full"><label class="field-label">Type</label>' +
+        '<select class="field-input" id="f-type">' + typeOpts + '</select></div>' +
       '<div id="f-presenter-wrap"><label class="field-label">Presenter / Instructor</label>' +
         '<input type="text" class="field-input" id="f-presenter" value="' + escHtml(v.presenter || '') + '"></div>' +
       '<div id="f-org-wrap"><label class="field-label">Organization / Publisher</label>' +
@@ -1397,10 +1413,8 @@ function renderEditForm() {
         '<input type="number" class="field-input" id="f-year" min="1990" max="2099" value="' + (v.yearPublished || '') + '"></div>' +
       '<div id="f-url-wrap"><label class="field-label">URL (optional)</label>' +
         '<input type="url" class="field-input" id="f-url" placeholder="https://..." value="' + escHtml(v.url || '') + '"></div>' +
-    '</div>' +
-    '<div class="domains-section">' +
-      '<span class="field-label">CISSP Domains Covered</span>' +
-      '<div class="domain-pills" id="domain-pills-edit">' + domainPills + '</div>' +
+      '<div><label class="field-label">CPE Credits</label>' +
+        '<input type="number" class="field-input" id="f-cpe" min="0" step="0.5" value="' + (v.cpeCount || '') + '"></div>' +
     '</div>' +
     '<div class="summary-section">' +
       '<span class="field-label">Summary (Markdown supported)</span>' +
@@ -1416,6 +1430,10 @@ function renderEditForm() {
       '</div>' +
       '<div id="paste-hint" style="margin-top:6px;font-size:11px;color:var(--text-muted);font-style:italic"></div>' +
     '</div>' +
+    '<div class="domains-section">' +
+      '<span class="field-label">CISSP Domains Covered</span>' +
+      '<div class="domain-pills" id="domain-pills-edit">' + domainPills + '</div>' +
+    '</div>' +
     '<div class="transcript-section' + (v.transcript ? ' done' : '') + '" id="transcript-section">' +
       '<label class="transcript-label">' +
         '<input type="checkbox" id="f-transcript"' + (v.transcript ? ' checked' : '') + '>' +
@@ -1426,16 +1444,13 @@ function renderEditForm() {
     '</div>';
 
   updateConditionalFields();
+  document.getElementById('f-category').addEventListener('change', updateTypeDropdown);
   document.getElementById('f-type').addEventListener('change', updateConditionalFields);
 
   // Domain pill toggles
   document.querySelectorAll('#domain-pills-edit .domain-pill').forEach(pill => {
-    pill.addEventListener('click', () => {
-      const cb = pill.querySelector('input[type="checkbox"]');
-      cb.checked = !cb.checked;
-      pill.classList.toggle('checked', cb.checked);
-    });
-    pill.querySelector('input').addEventListener('click', e => e.stopPropagation());
+    const cb = pill.querySelector('input[type="checkbox"]');
+    cb.addEventListener('change', () => pill.classList.toggle('checked', cb.checked));
   });
 
   // Transcript toggle
@@ -1460,6 +1475,20 @@ function renderEditForm() {
   if (!isNewEntry) {
     document.getElementById('btn-delete-edit').addEventListener('click', () => deleteEntry(activeId));
   }
+}
+
+function updateTypeDropdown() {
+  const catEl  = document.getElementById('f-category');
+  const typeEl = document.getElementById('f-type');
+  if (!catEl || !typeEl) return;
+  const cat = catEl.value;
+  const prevType = typeEl.value;
+  typeEl.innerHTML = Object.entries(CPE_TYPES)
+    .filter(([k, t]) => t.category === cat)
+    .map(([k, t]) => '<option value="' + k + '">' + escHtml(t.label) + '</option>')
+    .join('');
+  if (CPE_TYPES[prevType] && CPE_TYPES[prevType].category === cat) typeEl.value = prevType;
+  updateConditionalFields();
 }
 
 function updateConditionalFields() {
