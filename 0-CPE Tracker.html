@@ -236,6 +236,10 @@ select.field-input { appearance: auto; }
 .settings-modal .form-field input { width: 100%; padding: 7px 9px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg-ctrl); color: var(--text); font-size: 13px; font-family: inherit; outline: none; }
 .settings-modal .form-field input:focus { border-color: var(--accent); }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+
+.copy-btn { background: none; border: 1px solid var(--border); border-radius: 3px; cursor: pointer; color: var(--text-muted); font-size: 10px; padding: 0 5px; margin-left: 5px; line-height: 1.6; vertical-align: middle; font-family: inherit; }
+.copy-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-light); }
+.copy-btn.copied { color: var(--green); border-color: var(--green); }
 </style>
 </head>
 <body>
@@ -277,27 +281,58 @@ select.field-input { appearance: auto; }
 
 const CPE_CATEGORIES = {
   education:     'Education',
-  contribution:  'Contribution to the Profession',
+  contribution:  'Contributions to the Profession',
   professional:  'Professional Development',
-  work_exp:      'Work Experience',
+  work_exp:      'Unique Work Experience',
 };
 
 const CPE_TYPES = {
-  education_security: { label: 'Higher Education (Security)',     category: 'education',    group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
-  training_isc2:      { label: 'ISC\u00b2 Official Training',     category: 'education',    group: 'A', showPresenter: true,  showOrg: false, showYear: false, showUrl: true  },
-  training_vendor:    { label: 'Vendor/Third-Party Training',     category: 'education',    group: 'A', showPresenter: true,  showOrg: true,  showYear: false, showUrl: true  },
-  webinar:            { label: 'Webinar/Online Training',         category: 'education',    group: 'A', showPresenter: true,  showOrg: true,  showYear: false, showUrl: true  },
-  seminar:            { label: 'Seminar/Conference Session',      category: 'education',    group: 'A', showPresenter: true,  showOrg: true,  showYear: false, showUrl: false },
-  self_study:         { label: 'Self-Study',                      category: 'education',    group: 'A', showPresenter: false, showOrg: true,  showYear: true,  showUrl: true  },
-  work_experience:    { label: 'Security Work Experience',        category: 'work_exp',     group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
-  writing:            { label: 'Writing/Authoring (Security)',    category: 'contribution', group: 'A', showPresenter: false, showOrg: true,  showYear: true,  showUrl: true  },
-  instructor:         { label: 'Instructor/Presenter',            category: 'contribution', group: 'A', showPresenter: true,  showOrg: true,  showYear: false, showUrl: false },
-  exam_dev:           { label: 'Exam Item Development',           category: 'contribution', group: 'A', showPresenter: false, showOrg: false, showYear: false, showUrl: false },
-  research:           { label: 'Research',                        category: 'contribution', group: 'A', showPresenter: false, showOrg: true,  showYear: true,  showUrl: true  },
-  volunteer_security: { label: 'Volunteer Work (Security)',       category: 'contribution', group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
-  education_other:    { label: 'Higher Education (Non-Security)', category: 'professional', group: 'B', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
-  professional_dev:   { label: 'Professional Development',        category: 'professional', group: 'B', showPresenter: true,  showOrg: true,  showYear: false, showUrl: true  },
-  volunteer_other:    { label: 'Volunteer Work (Non-Security)',   category: 'professional', group: 'B', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  // Education
+  book_magazine:        { label: 'Book, Magazine, Whitepaper',                                                   category: 'education',    group: 'A', showPresenter: true,  showOrg: true,  showYear: true,  showUrl: true  },
+  courses_seminars:     { label: 'Courses and Seminars - Other',                                                 category: 'education',    group: 'A', showPresenter: true,  showOrg: true,  showYear: false, showUrl: false },
+  higher_education:     { label: 'Higher Education Course',                                                      category: 'education',    group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  industry_conf:        { label: 'Industry Conference',                                                          category: 'education',    group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  isec_assoc_meeting:   { label: 'Information security professional association chapter meeting',                 category: 'education',    group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  isc2_cert_course:     { label: 'ISC\u00b2 Certification Course',                                               category: 'education',    group: 'A', showPresenter: false, showOrg: false, showYear: false, showUrl: true  },
+  isc2_ce_course:       { label: 'ISC\u00b2 Continuing Education Course',                                        category: 'education',    group: 'A', showPresenter: false, showOrg: false, showYear: false, showUrl: true  },
+  online_webinar:       { label: 'Online webinars, podcasts and other online materials',                         category: 'education',    group: 'A', showPresenter: true,  showOrg: false, showYear: true,  showUrl: true  },
+  vendor_presentation:  { label: 'Vendor Presentation',                                                         category: 'education',    group: 'A', showPresenter: true,  showOrg: true,  showYear: false, showUrl: true  },
+  // Contributions to the Profession
+  board_services:       { label: 'Board Services for a Professional Security Organization',                      category: 'contribution', group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  exam_dev_sme:         { label: 'Exam Development Subject Matter Expert',                                       category: 'contribution', group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  gov_committees:       { label: 'Government/Private and Public Sector/Charitable Organization Committees',      category: 'contribution', group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  security_standards:   { label: 'Participation in Security Standards Development for a Recognized Committee',   category: 'contribution', group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  prep_presentation:    { label: 'Preparation for Presentation/Lecture/Training',                               category: 'contribution', group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  prep_training_mat:    { label: 'Preparing New or Updating Existing Training Seminar or Classroom Material',    category: 'contribution', group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  online_presentations: { label: 'Safe and Secure Online Presentations',                                        category: 'contribution', group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: true  },
+  sme_panel:            { label: 'Serving as a Subject Matter Expert for a Panel Discussion',                    category: 'contribution', group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  writing_research:     { label: 'Writing, Researching, Publishing',                                            category: 'contribution', group: 'A', showPresenter: false, showOrg: true,  showYear: true,  showUrl: true  },
+  // Professional Development
+  chapter_formation:    { label: 'Chapter Formation or Management',                                              category: 'professional', group: 'B', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  nonsec_education:     { label: 'Non-Security Education Courses and Seminars',                                  category: 'professional', group: 'B', showPresenter: true,  showOrg: true,  showYear: false, showUrl: false },
+  nonsec_conference:    { label: 'Non-Security Industry Conference',                                             category: 'professional', group: 'B', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  nonsec_org:           { label: 'Non-Security Organizations/Committees',                                        category: 'professional', group: 'B', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  prep_nonsec_pres:     { label: 'Preparation For Non-security Presentation/Lecture/Training',                   category: 'professional', group: 'B', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+  // Unique Work Experience
+  unique_work_exp:      { label: 'Unique Work Experience',                                                       category: 'work_exp',     group: 'A', showPresenter: false, showOrg: true,  showYear: false, showUrl: false },
+};
+
+const TYPE_MIGRATION = {
+  education_security: 'higher_education',
+  training_isc2:      'isc2_ce_course',
+  training_vendor:    'vendor_presentation',
+  webinar:            'online_webinar',
+  seminar:            'courses_seminars',
+  self_study:         'book_magazine',
+  work_experience:    'unique_work_exp',
+  writing:            'writing_research',
+  instructor:         'prep_presentation',
+  exam_dev:           'exam_dev_sme',
+  research:           'writing_research',
+  volunteer_security: 'gov_committees',
+  education_other:    'nonsec_education',
+  professional_dev:   'nonsec_education',
+  volunteer_other:    'nonsec_org',
 };
 
 const DOMAINS = [
@@ -313,7 +348,7 @@ const DOMAINS = [
 
 const LS_KEY      = 'cissp-cpe-data';
 const LS_THEME    = 'cissp-cpe-theme';
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.0.2';
 const GITHUB_RAW  = 'https://raw.githubusercontent.com/Xoke/cyber-fieldkit/main/0-CPE%20Tracker.html';
 
 // ── State ──────────────────────────────────────────────────────────────────────
@@ -410,12 +445,12 @@ function saveToLocalStorage() {
 }
 
 function migrateEntry(e) {
-  // Migrate proofRef (string) → proofRefs (array)
   if (e.proofRef && !e.proofRefs) {
     e.proofRefs = e.proofRef ? [e.proofRef] : [];
     delete e.proofRef;
   }
   if (!e.proofRefs) e.proofRefs = [];
+  if (e.type && !CPE_TYPES[e.type] && TYPE_MIGRATION[e.type]) e.type = TYPE_MIGRATION[e.type];
   return e;
 }
 
@@ -697,20 +732,21 @@ function autoDetectMappings(headers) {
 }
 
 function mapCsvType(raw) {
-  if (!raw) return 'webinar';
+  if (!raw) return 'online_webinar';
   const r = raw.toLowerCase();
-  if (r.includes('webinar') || r.includes('online'))      return 'webinar';
-  if (r.includes('seminar') || r.includes('conference'))  return 'seminar';
-  if (r.includes('training') && r.includes('isc'))        return 'training_isc2';
-  if (r.includes('training') || r.includes('vendor'))     return 'training_vendor';
-  if (r.includes('self') || r.includes('study'))          return 'self_study';
-  if (r.includes('work') || r.includes('experience'))     return 'work_experience';
-  if (r.includes('education') || r.includes('college') || r.includes('university')) return 'education_security';
-  if (r.includes('writing') || r.includes('author'))      return 'writing';
-  if (r.includes('instructor') || r.includes('teach'))    return 'instructor';
-  if (r.includes('research'))                             return 'research';
-  if (r.includes('volunteer'))                            return 'volunteer_security';
-  return 'webinar';
+  if (r.includes('webinar') || r.includes('podcast') || r.includes('online')) return 'online_webinar';
+  if (r.includes('vendor'))                                                    return 'vendor_presentation';
+  if (r.includes('conference'))                                                return 'industry_conf';
+  if (r.includes('seminar') || r.includes('courses'))                         return 'courses_seminars';
+  if (r.includes('isc') && r.includes('cert'))                                return 'isc2_cert_course';
+  if (r.includes('isc'))                                                       return 'isc2_ce_course';
+  if (r.includes('book') || r.includes('magazine') || r.includes('study'))    return 'book_magazine';
+  if (r.includes('work') || r.includes('experience'))                         return 'unique_work_exp';
+  if (r.includes('education') || r.includes('college') || r.includes('university')) return 'higher_education';
+  if (r.includes('writing') || r.includes('author') || r.includes('research'))return 'writing_research';
+  if (r.includes('instructor') || r.includes('teach') || r.includes('present'))return 'prep_presentation';
+  if (r.includes('volunteer'))                                                 return 'gov_committees';
+  return 'online_webinar';
 }
 
 function parseDateToMonth(raw) {
@@ -770,26 +806,25 @@ function parsePdfHeaderDate(str) {
 function mapPdfCpeType(typeStr, group) {
   const t = (typeStr || '').toLowerCase();
   if (group === 'B') {
-    if (t.includes('membership') || t.includes('channel') || t.includes('professional')) return 'professional_dev';
-    if (t.includes('education') || t.includes('seminar') || t.includes('courses')) return 'education_other';
-    return 'professional_dev';
+    if (t.includes('education') || t.includes('seminar') || t.includes('courses')) return 'nonsec_education';
+    if (t.includes('conference'))                                                   return 'nonsec_conference';
+    return 'nonsec_org';
   }
-  // Group A — map ISC2 PDF type strings to our keys
   if (t.includes('isc2') || t.includes('isc\u00b2')) {
-    if (t.includes('infosecurity') || t.includes('magazine')) return 'self_study';
-    return 'training_isc2';  // briefings, webinars, quizzes, PDI, JTA, spotlights
+    if (t.includes('infosecurity') || t.includes('magazine')) return 'book_magazine';
+    return 'isc2_ce_course';
   }
-  if (t.includes('digitell'))                                               return 'webinar';
-  if (t.includes('knowledge vault'))                                        return 'self_study';
-  if (t.includes('online webinar') || t.includes('podcast') || t.includes('online material')) return 'webinar';
-  if (t.includes('industry conference'))                                    return 'seminar';
-  if (t.includes('courses and seminars') || t.includes('courses & seminars')) return 'seminar';
-  if (t.includes('vendor presentation'))                                    return 'training_vendor';
-  if (t.includes('association') && t.includes('meeting'))                  return 'seminar';
-  if (t.includes('writing') || t.includes('author'))                       return 'writing';
-  if (t.includes('volunteer'))                                              return 'volunteer_security';
-  if (t.includes('work experience') || t.includes('employment'))           return 'work_experience';
-  return 'webinar';
+  if (t.includes('digitell'))                                                        return 'online_webinar';
+  if (t.includes('knowledge vault'))                                                 return 'book_magazine';
+  if (t.includes('online webinar') || t.includes('podcast') || t.includes('online material')) return 'online_webinar';
+  if (t.includes('industry conference'))                                             return 'industry_conf';
+  if (t.includes('courses and seminars') || t.includes('courses & seminars'))       return 'courses_seminars';
+  if (t.includes('vendor presentation'))                                             return 'vendor_presentation';
+  if (t.includes('association') && t.includes('meeting'))                           return 'isec_assoc_meeting';
+  if (t.includes('writing') || t.includes('author'))                                return 'writing_research';
+  if (t.includes('volunteer'))                                                       return 'gov_committees';
+  if (t.includes('work experience') || t.includes('employment'))                    return 'unique_work_exp';
+  return 'online_webinar';
 }
 
 async function parsePdfTranscript(arrayBuffer) {
@@ -1300,41 +1335,42 @@ function renderEntryView(entry) {
     ? '<div class="summary-rendered">' + marked.parse(entry.summary) + '</div>'
     : '<span style="color:var(--text-muted);font-size:12px">No summary.</span>';
 
-  let conditionalFields = '';
-  if (entry.presenter)    conditionalFields += '<div><span class="field-label">Presenter / Author</span><div class="field-value">' + escHtml(entry.presenter) + '</div></div>';
-  if (entry.org)          conditionalFields += '<div><span class="field-label">Organization / Publisher</span><div class="field-value">' + escHtml(entry.org) + '</div></div>';
-  if (entry.yearPublished)conditionalFields += '<div><span class="field-label">Year Published</span><div class="field-value">' + escHtml(String(entry.yearPublished)) + '</div></div>';
-  if (entry.url)          conditionalFields += '<div><span class="field-label">URL</span><div class="field-value"><a href="' + escHtml(entry.url) + '" target="_blank" rel="noopener">' + escHtml(entry.url) + '</a></div></div>';
+  const cp = (val) => '<button class="copy-btn" data-copy="' + escHtml(String(val || '')) + '">copy</button>';
 
   const proofRefs = entry.proofRefs || [];
   const proofHtml = proofRefs.length
     ? proofRefs.map(r => '<span class="proof-ref has-file">' + escHtml(r) + '</span>').join('')
     : '<span class="proof-ref">No proof files attached</span>';
 
-  const dateRange = (entry.dateFrom ? fmtDate(entry.dateFrom) : '') +
-    (entry.dateTo && entry.dateTo !== entry.dateFrom ? ' \u2013 ' + fmtDate(entry.dateTo) : '');
+  const startDate = entry.dateFrom ? fmtDate(entry.dateFrom) : '\u2014';
+  const endDate   = entry.dateTo   ? fmtDate(entry.dateTo)   : '\u2014';
+  const cpeCount  = parseFloat(entry.cpeCount) || 0;
 
   el.innerHTML =
     '<div class="entry-hdr">' +
-      '<div class="entry-hdr-title">' + escHtml(entry.title || 'Untitled') + '</div>' +
+      '<div class="entry-hdr-title">' + escHtml(entry.title || 'Untitled') + cp(entry.title || '') + '</div>' +
       '<div class="btn-row">' +
         '<button class="btn btn-primary" id="btn-edit-entry">Edit</button>' +
         '<button class="btn btn-danger" id="btn-delete-entry">Delete</button>' +
       '</div>' +
     '</div>' +
-    '<div class="view-meta-row">' +
-      '<span class="view-badge grp-' + grp.toLowerCase() + '">Group ' + grp + '</span>' +
-      (catLabel ? '<span class="view-meta-item">' + escHtml(catLabel) + '</span>' : '') +
-      '<span class="view-meta-item"><strong>' + escHtml(typeLabel) + '</strong></span>' +
-      (dateRange ? '<span class="view-meta-item">' + dateRange + '</span>' : '') +
-      '<span class="view-meta-item" style="font-size:15px;font-weight:700;color:var(--accent)">' + (parseFloat(entry.cpeCount) || 0) + ' CPEs</span>' +
+    '<div class="fields-grid" style="margin-bottom:16px">' +
+      '<div><span class="field-label">Start Date</span><div class="field-value">' + startDate + cp(startDate) + '</div></div>' +
+      '<div><span class="field-label">End Date</span><div class="field-value">' + endDate + cp(endDate) + '</div></div>' +
+      '<div class="field-full"><span class="field-label">Category</span><div class="field-value">' + escHtml(catLabel) + cp(catLabel) + '</div></div>' +
+      '<div class="field-full"><span class="field-label">Type</span><div class="field-value">' + escHtml(typeLabel) + cp(typeLabel) + '</div></div>' +
+      (entry.presenter ? '<div><span class="field-label">Presenter / Instructor</span><div class="field-value">' + escHtml(entry.presenter) + cp(entry.presenter) + '</div></div>' : '') +
+      (entry.org       ? '<div><span class="field-label">Organization</span><div class="field-value">' + escHtml(entry.org) + cp(entry.org) + '</div></div>' : '') +
+      (entry.yearPublished ? '<div><span class="field-label">Year Published</span><div class="field-value">' + escHtml(String(entry.yearPublished)) + cp(String(entry.yearPublished)) + '</div></div>' : '') +
+      '<div><span class="field-label">CPE Credits</span><div class="field-value" style="font-weight:700;color:var(--accent)">' + cpeCount + cp(String(cpeCount)) + '</div></div>' +
+      (entry.url ? '<div class="field-full"><span class="field-label">URL</span><div class="field-value"><a href="' + escHtml(entry.url) + '" target="_blank" rel="noopener">' + escHtml(entry.url) + '</a>' + cp(entry.url) + '</div></div>' : '') +
+      '<div class="field-full" style="padding-top:4px"><span class="view-badge grp-' + grp.toLowerCase() + '">Group ' + grp + '</span></div>' +
     '</div>' +
-    (conditionalFields ? '<div class="fields-grid" style="margin-bottom:16px">' + conditionalFields + '</div>' : '') +
     '<div class="summary-section">' +
-      '<span class="field-label">Summary</span>' + summaryHtml +
+      '<span class="field-label">Description ' + cp(entry.summary || '') + '</span>' + summaryHtml +
     '</div>' +
     '<div class="proof-section">' +
-      '<span class="field-label">Proof Files</span>' +
+      '<span class="field-label">Supporting Documentation</span>' +
       '<div class="proof-row" style="flex-wrap:wrap;gap:6px">' + proofHtml + '</div>' +
     '</div>' +
     '<div class="domains-section">' +
@@ -1351,6 +1387,27 @@ function renderEntryView(entry) {
 
   document.getElementById('btn-edit-entry').addEventListener('click', () => { editMode = true; isNewEntry = false; renderEditForm(); });
   document.getElementById('btn-delete-entry').addEventListener('click', () => deleteEntry(entry.id));
+
+  el.querySelectorAll('.copy-btn[data-copy]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const text = btn.dataset.copy;
+      const flash = () => {
+        const orig = btn.textContent;
+        btn.textContent = '\u2713'; btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 1500);
+      };
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(flash).catch(() => { fallbackCopy(text); flash(); });
+      } else { fallbackCopy(text); flash(); }
+    });
+  });
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+  document.body.appendChild(ta); ta.select();
+  document.execCommand('copy'); document.body.removeChild(ta);
 }
 
 function renderEditForm() {
@@ -1359,7 +1416,7 @@ function renderEditForm() {
 
   const entry = isNewEntry ? null : data.entries.find(e => e.id === activeId);
   const cm    = currentMonth();
-  const v     = entry || { type: 'webinar', dateFrom: cm, dateTo: cm, cpeCount: 1, proofRefs: [] };
+  const v     = entry || { type: 'online_webinar', dateFrom: cm, dateTo: cm, cpeCount: 1, proofRefs: [] };
   const existingRefs = v.proofRefs || [];
 
   const currentCategory = (v.type && CPE_TYPES[v.type]) ? CPE_TYPES[v.type].category : 'education';
