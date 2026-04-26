@@ -106,6 +106,8 @@ body.edit-mode .bm-row:hover td { background: transparent; }
 .bm-row-tag { font-size: 10px; padding: 1px 5px; background: var(--bg-ctrl); border-radius: 8px; color: var(--text-muted); border: 1px solid var(--border); margin-right: 3px; display: inline-block; }
 .bm-row .delete-btn { display: none; padding: 2px 8px; background: none; border: 1px solid var(--border); border-radius: 4px; color: #e06c75; cursor: pointer; font-size: 12px; }
 body.edit-mode .bm-row .delete-btn { display: inline-block; }
+.bm-row .edit-bm-btn { display: none; padding: 2px 8px; background: none; border: 1px solid var(--border); border-radius: 4px; color: var(--accent); cursor: pointer; font-size: 12px; margin-right: 4px; }
+body.edit-mode .bm-row .edit-bm-btn { display: inline-block; }
 #btn-add-row { margin: 10px 14px; padding: 6px 14px; background: transparent; border: 2px dashed var(--border); border-radius: 6px; color: var(--text-muted); cursor: pointer; font-size: 13px; display: none; }
 body.edit-mode #btn-add-row { display: inline-block; }
 #btn-add-row:hover { border-color: var(--accent); color: var(--accent); }
@@ -164,13 +166,14 @@ body.edit-mode #btn-add-row { display: inline-block; }
 // ── Constants ─────────────────────────────────────────────────────────────────
 const LS_KEY      = 'bookmarks-app-data';
 const LS_THEME    = 'bookmarks-theme';
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.0.2';
 const GITHUB_RAW  = 'https://raw.githubusercontent.com/Xoke/cyber-fieldkit/main/bookmarks.html';
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let data           = { folders: [] };
 let activeFolderId = null;
 let editMode       = false;
+let editingId      = null;
 let searchQuery    = '';
 let activeTag      = null;
 let isDirty        = false;
@@ -394,6 +397,7 @@ function renderMain() {
     '</tr></thead><tbody id="bm-tbody"></tbody></table></div>' +
     '<button id="btn-add-row">+ Add Bookmark</button>' +
     '<div id="add-form">' +
+      '<div id="add-form-hdr" style="font-weight:600;font-size:12px;margin-bottom:10px;color:var(--text)">Add Bookmark</div>' +
       '<label>Title *</label>' +
       '<input id="af-title" placeholder="My Bookmark">' +
       '<label>URL *</label>' +
@@ -419,7 +423,7 @@ function renderMain() {
           '<span class="bm-row-url">' + escHtml(b.url || '') + '</span></td>' +
         '<td class="bm-row-desc">' + escHtml(b.description || '') + '</td>' +
         '<td class="bm-row-tags">' + (b.tags || []).map(t => '<span class="bm-row-tag">' + escHtml(t) + '</span>').join('') + '</td>' +
-        (editMode ? '<td><button class="delete-btn" data-id="' + escHtml(b.id) + '">×</button></td>' : '') +
+        (editMode ? '<td><button class="edit-bm-btn" data-id="' + escHtml(b.id) + '">Edit</button><button class="delete-btn" data-id="' + escHtml(b.id) + '">×</button></td>' : '') +
       '</tr>'
     ).join('');
   } else {
@@ -431,6 +435,14 @@ function renderMain() {
   if (editMode) {
     // Add bookmark button
     document.getElementById('btn-add-row').addEventListener('click', showAddForm);
+
+    // Edit buttons on rows
+    tbody.querySelectorAll('.edit-bm-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        showEditForm(btn.dataset.id);
+      });
+    });
 
     // Delete buttons on rows
     tbody.querySelectorAll('.delete-btn').forEach(btn => {
@@ -484,13 +496,34 @@ function renderMain() {
 }
 
 function showAddForm() {
+  editingId = null;
   const form = document.getElementById('add-form');
   if (!form) return;
+  document.getElementById('add-form-hdr').textContent = 'Add Bookmark';
+  document.getElementById('af-save').textContent = 'Add';
+  form.classList.add('visible');
+  document.getElementById('af-title').focus();
+}
+
+function showEditForm(id) {
+  const folder = getActiveFolder();
+  const bm = folder && folder.bookmarks.find(b => b.id === id);
+  if (!bm) return;
+  editingId = id;
+  const form = document.getElementById('add-form');
+  if (!form) return;
+  document.getElementById('add-form-hdr').textContent = 'Edit Bookmark';
+  document.getElementById('af-save').textContent = 'Save';
+  document.getElementById('af-title').value = bm.title || '';
+  document.getElementById('af-url').value   = bm.url   || '';
+  document.getElementById('af-desc').value  = bm.description || '';
+  document.getElementById('af-tags').value  = (bm.tags || []).join(', ');
   form.classList.add('visible');
   document.getElementById('af-title').focus();
 }
 
 function hideAddForm() {
+  editingId = null;
   const form = document.getElementById('add-form');
   if (!form) return;
   form.classList.remove('visible');
@@ -498,6 +531,10 @@ function hideAddForm() {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  const saveBtn = document.getElementById('af-save');
+  if (saveBtn) saveBtn.textContent = 'Add';
+  const hdr = document.getElementById('add-form-hdr');
+  if (hdr) hdr.textContent = 'Add Bookmark';
 }
 
 function addBookmark() {
@@ -506,14 +543,24 @@ function addBookmark() {
   if (!title || !url) { alert('Title and URL are required.'); return; }
   const folder = getActiveFolder();
   if (!folder) return;
-  folder.bookmarks.push({
-    id:          uid(),
-    title,
-    url,
-    description: document.getElementById('af-desc').value.trim(),
-    tags:        parseTags(document.getElementById('af-tags').value),
-    created:     new Date().toISOString()
-  });
+  if (editingId) {
+    const bm = folder.bookmarks.find(b => b.id === editingId);
+    if (bm) {
+      bm.title       = title;
+      bm.url         = url;
+      bm.description = document.getElementById('af-desc').value.trim();
+      bm.tags        = parseTags(document.getElementById('af-tags').value);
+    }
+  } else {
+    folder.bookmarks.push({
+      id:          uid(),
+      title,
+      url,
+      description: document.getElementById('af-desc').value.trim(),
+      tags:        parseTags(document.getElementById('af-tags').value),
+      created:     new Date().toISOString()
+    });
+  }
   markDirty();
   render();
 }
