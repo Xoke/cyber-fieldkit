@@ -151,7 +151,7 @@ html[data-theme="dark"] #save-status.dirty, html[data-theme="dusk"] #save-status
 // ── Constants ─────────────────────────────────────────────────────────────────
 const LS_KEY   = 'notes-app-data';
 const LS_THEME = 'notes-app-theme';
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.0.2';
 const GITHUB_RAW = 'https://raw.githubusercontent.com/Xoke/cyber-fieldkit/main/notes.html';
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -404,8 +404,8 @@ function renderMain() {
   } else {
     main.innerHTML =
       '<div id="main-toolbar">' +
-        '<span style="flex:1;font-size:18px;font-weight:600">' + escHtml(note.title || 'Untitled') + '</span>' +
         '<button class="toolbar-btn" id="btn-edit">Edit</button>' +
+        '<span style="flex:1;font-size:18px;font-weight:600;padding:0 8px">' + escHtml(note.title || 'Untitled') + '</span>' +
         '<button class="toolbar-btn danger" id="btn-delete">Delete</button>' +
       '</div>' +
       '<div id="tag-editor">' +
