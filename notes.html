@@ -51,7 +51,12 @@ body { background: var(--bg); color: var(--text); }
 #sidebar { background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
 #sidebar-hdr { display: flex; align-items: center; gap: 6px; padding: 10px 12px 8px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
 #app-name { font-weight: 700; font-size: 13px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#save-status { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+#save-status { font-size: 11px; padding: 2px 7px; border-radius: 10px; white-space: nowrap; background: var(--bg-ctrl); border: 1px solid var(--border); color: var(--text-muted); }
+#save-status.dirty { background: #fff3cd; border-color: #ffc107; color: #856404; }
+html[data-theme="dark"] #save-status.dirty, html[data-theme="dusk"] #save-status.dirty { background: #3d3000; border-color: #8b6914; color: #ffc107; }
+#save-status.saving { color: var(--accent); }
+#save-status.saved { background: #edfbf3; border-color: #2ea043; color: #2ea043; }
+#save-status.error { background: #ffeef0; border-color: #cb2431; color: #cb2431; }
 #btn-save-hdr { font-size: 11px; padding: 3px 8px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 4px; color: var(--text); cursor: pointer; white-space: nowrap; }
 #btn-save-hdr:hover { background: var(--bg-hover); }
 
@@ -120,6 +125,7 @@ body { background: var(--bg); color: var(--text); }
       <button id="btn-new">+ New</button>
       <span id="save-status">Saved</span>
       <button id="btn-save-hdr" title="Save file (Ctrl+S)">Save</button>
+      <button id="update-check-btn" onclick="checkForUpdates()" title="Check for updates on GitHub" style="font-size:10px;padding:2px 6px;background:var(--bg-ctrl);border:1px solid var(--border);border-radius:4px;color:var(--text-muted);cursor:pointer;">Updates</button>
     </div>
     <div id="search-wrap">
       <input id="search-input" placeholder="Search notes…">
@@ -134,7 +140,6 @@ body { background: var(--bg); color: var(--text); }
         <button class="theme-btn" data-theme="dusk"  title="Dusk"  style="background:#2d3142;border:2px solid #555"></button>
         <button class="theme-btn" data-theme="dark"  title="Dark"  style="background:#1a1b1e;border:2px solid #555"></button>
       </div>
-      <button id="update-check-btn" onclick="checkForUpdates()" style="margin-top:6px;width:100%;font-size:11px;padding:4px 8px;background:var(--bg-ctrl);border:1px solid var(--border);border-radius:4px;color:var(--text-muted);cursor:pointer;text-align:center;">Check for Updates</button>
     </div>
   </aside>
   <main id="main">
@@ -146,7 +151,7 @@ body { background: var(--bg); color: var(--text); }
 // ── Constants ─────────────────────────────────────────────────────────────────
 const LS_KEY   = 'notes-app-data';
 const LS_THEME = 'notes-app-theme';
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.0.1';
 const GITHUB_RAW = 'https://raw.githubusercontent.com/Xoke/cyber-fieldkit/main/notes.html';
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -206,10 +211,14 @@ function buildUpdatedHtml() {
 function setSaveStatus(state) {
   const el = document.getElementById('save-status');
   if (!el) return;
-  const map = { saved: 'Saved', saving: 'Saving…', dirty: 'Unsaved', error: 'Error!', downloaded: 'Downloaded' };
-  el.textContent = map[state] || '';
-  el.style.color = state === 'error' ? '#e06c75' : state === 'dirty' ? '#e5c07b' : 'var(--text-muted)';
-  isDirty = (state === 'dirty');
+  el.className = '';
+  if (state === 'dirty')       { el.textContent = 'Unsaved'; el.className = 'dirty'; isDirty = true; }
+  else if (state === 'saving') { el.textContent = 'Saving…'; el.className = 'saving'; }
+  else if (state === 'saved' || state === 'downloaded') { el.textContent = state === 'downloaded' ? 'Downloaded' : 'Saved'; el.className = 'saved'; isDirty = false;
+    setTimeout(() => { const e = document.getElementById('save-status'); if (e && e.className === 'saved') { e.textContent = 'Saved'; e.className = ''; } }, 2500);
+  }
+  else if (state === 'error')  { el.textContent = 'Error'; el.className = 'error'; }
+  else { el.textContent = 'Saved'; isDirty = false; }
 }
 
 async function saveFile() {
