@@ -348,7 +348,7 @@ const DOMAINS = [
 
 const LS_KEY      = 'cissp-cpe-data';
 const LS_THEME    = 'cissp-cpe-theme';
-const APP_VERSION = '1.0.2';
+const APP_VERSION = '1.0.3';
 const GITHUB_RAW  = 'https://raw.githubusercontent.com/Xoke/cyber-fieldkit/main/0-CPETracker.html';
 
 // ── State ──────────────────────────────────────────────────────────────────────
@@ -617,6 +617,21 @@ function proofSuggestedName(entry, file) {
   return 'cpe-' + datePart + '-' + typePart + '-' + titlePart + '.' + ext;
 }
 
+function nextProofName(baseName) {
+  const dot = baseName.lastIndexOf('.');
+  const stem = dot >= 0 ? baseName.slice(0, dot) : baseName;
+  const ext  = dot >= 0 ? baseName.slice(dot) : '';
+  const listEl = document.getElementById('proof-refs-list');
+  const existing = listEl
+    ? Array.from(listEl.querySelectorAll('.proof-ref-item')).map(el => el.dataset.name)
+    : [];
+  for (let i = 0; i < 26; i++) {
+    const candidate = stem + '-' + String.fromCharCode(97 + i) + ext;
+    if (!existing.includes(candidate)) return candidate;
+  }
+  return stem + '-' + Date.now() + ext;
+}
+
 async function attachProofFile(entry) {
   const input = document.createElement('input');
   input.type  = 'file';
@@ -624,7 +639,7 @@ async function attachProofFile(entry) {
   input.multiple = true;
   input.onchange = async () => {
     for (const file of Array.from(input.files)) {
-      const name = proofSuggestedName(entry, file);
+      const name = nextProofName(proofSuggestedName(entry, file));
       try {
         const saved = await saveProofBlob(file, name);
         if (saved) addProofRef(saved);
@@ -647,7 +662,7 @@ async function handlePaste(e) {
       const file    = item.getAsFile();
       if (!file) continue;
       const entry   = collectFormData();
-      const name    = proofSuggestedName(entry, file);
+      const name    = nextProofName(proofSuggestedName(entry, file));
       try {
         const saved = await saveProofBlob(file, name);
         if (saved) addProofRef(saved);
@@ -1455,7 +1470,7 @@ function renderEditForm() {
     '</div>' +
     '<div class="fields-grid">' +
       '<div><label class="field-label">Start Date</label>' +
-        '<input type="date" class="field-input" id="f-date-from" value="' + (v.dateFrom || '') + '"></div>' +
+        '<input type="date" class="field-input" id="f-date-from" value="' + (v.dateFrom || '') + '" onchange="var t=document.getElementById(\'f-date-to\');if(!t.value)t.value=this.value;"></div>' +
       '<div><label class="field-label">End Date</label>' +
         '<input type="date" class="field-input" id="f-date-to" value="' + (v.dateTo || '') + '"></div>' +
       '<div class="field-full"><label class="field-label">Category</label>' +
