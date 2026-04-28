@@ -348,7 +348,7 @@ const DOMAINS = [
 
 const LS_KEY      = 'cissp-cpe-data';
 const LS_THEME    = 'cissp-cpe-theme';
-const APP_VERSION = '1.0.3';
+const APP_VERSION = '1.0.4';
 const GITHUB_RAW  = 'https://raw.githubusercontent.com/Xoke/cyber-fieldkit/main/0-CPETracker.html';
 
 // ── State ──────────────────────────────────────────────────────────────────────
@@ -611,7 +611,7 @@ async function saveProofBlob(blob, suggestedName) {
 
 function proofSuggestedName(entry, file) {
   const ext = file.name ? file.name.split('.').pop() : (file.type.split('/')[1] || 'bin');
-  const datePart = (entry.dateFrom || currentMonth()).slice(0, 7).replace('-', '-');
+  const datePart = (entry.dateFrom || currentMonth()).slice(0, 10);
   const typePart = entry.type || 'cpe';
   const titlePart = slug(entry.title || 'untitled');
   return 'cpe-' + datePart + '-' + typePart + '-' + titlePart + '.' + ext;
