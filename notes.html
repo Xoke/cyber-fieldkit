@@ -80,11 +80,29 @@ html[data-theme="dark"] #save-status.dirty, html[data-theme="dusk"] #save-status
 #btn-new { font-size: 11px; padding: 3px 8px; background: var(--accent); border: 1px solid transparent; border-radius: 4px; color: #fff; cursor: pointer; white-space: nowrap; }
 #btn-new:hover { background: var(--accent-hover); }
 
-#sidebar-bottom { padding: 6px 10px 10px; border-top: 1px solid var(--border); flex-shrink: 0; }
-#theme-row { display: flex; align-items: center; gap: 5px; padding: 4px 0; }
-#theme-row span { font-size: 11px; color: var(--text-muted); flex: 1; }
-.theme-btn { width: 16px; height: 16px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; padding: 0; outline-offset: 2px; }
-.theme-btn.active { border-color: var(--accent); }
+#sidebar-bottom { padding: 8px 6px 12px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.nav-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: none; border: none; border-radius: 5px; color: var(--text-muted); font-size: 13px; font-family: inherit; cursor: pointer; text-align: left; width: 100%; transition: background 0.12s, color 0.12s; }
+.nav-item:hover { background: var(--bg-hover); color: var(--text); }
+.nav-icon { font-size: 15px; flex-shrink: 0; }
+.theme-row { display: flex; gap: 6px; padding: 6px 10px; }
+.theme-btn { width: 16px; height: 16px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; padding: 0; outline: none; transition: transform 0.1s; }
+.theme-btn:hover { transform: scale(1.2); }
+.theme-btn.active { border-color: var(--text); }
+.theme-btn[data-theme="light"] { background: #fff; box-shadow: 0 0 0 1px #ccc; }
+.theme-btn[data-theme="sepia"] { background: #c8a97e; }
+.theme-btn[data-theme="dusk"]  { background: #4a5580; }
+.theme-btn[data-theme="dark"]  { background: #2a2d35; box-shadow: 0 0 0 1px #555; }
+#settings-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; display: none; justify-content: flex-start; }
+#settings-overlay.open { display: flex; }
+#settings-panel { width: 340px; max-width: 100vw; background: var(--bg-alt); border-right: 1px solid var(--border); height: 100%; overflow-y: auto; display: flex; flex-direction: column; box-shadow: 4px 0 20px rgba(0,0,0,0.3); }
+#settings-head { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--border); gap: 8px; flex-shrink: 0; }
+#settings-head h2 { font-size: 14px; font-weight: 700; flex: 1; }
+#settings-close { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--text-muted); line-height: 1; padding: 2px 4px; }
+#settings-close:hover { color: var(--text); }
+.settings-body { padding: 16px; flex: 1; display: flex; flex-direction: column; gap: 18px; }
+.settings-section { display: flex; flex-direction: column; gap: 8px; }
+.settings-section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
+.settings-actions { display: flex; flex-direction: column; gap: 8px; margin-top: auto; padding-top: 16px; }
 
 /* ── Main ── */
 #main { display: flex; flex-direction: column; overflow: hidden; background: var(--bg-alt); }
@@ -125,7 +143,6 @@ html[data-theme="dark"] #save-status.dirty, html[data-theme="dusk"] #save-status
       <button id="btn-new">+ New</button>
       <span id="save-status">Saved</span>
       <button id="btn-save-hdr" title="Save file (Ctrl+S)">Save</button>
-      <button id="update-check-btn" onclick="checkForUpdates()" title="Check for updates on GitHub" style="font-size:10px;padding:2px 6px;background:var(--bg-ctrl);border:1px solid var(--border);border-radius:4px;color:var(--text-muted);cursor:pointer;">Updates</button>
     </div>
     <div id="search-wrap">
       <input id="search-input" placeholder="Search notes…">
@@ -133,25 +150,43 @@ html[data-theme="dark"] #save-status.dirty, html[data-theme="dusk"] #save-status
     <div id="tag-panel"></div>
     <div id="note-list"></div>
     <div id="sidebar-bottom">
-      <div id="theme-row">
-        <span>Theme</span>
-        <button class="theme-btn" data-theme="light" title="Light" style="background:#ffffff;border:2px solid #ccc"></button>
-        <button class="theme-btn" data-theme="sepia" title="Sepia" style="background:#f9f5ef;border:2px solid #ccc"></button>
-        <button class="theme-btn" data-theme="dusk"  title="Dusk"  style="background:#2d3142;border:2px solid #555"></button>
-        <button class="theme-btn" data-theme="dark"  title="Dark"  style="background:#1a1b1e;border:2px solid #555"></button>
-      </div>
+      <button class="nav-item" onclick="openSettings()">
+        <span class="nav-icon">⚙</span><span>Settings</span>
+      </button>
     </div>
   </aside>
   <main id="main">
     <div id="empty-state">Select a note or create a new one</div>
   </main>
 </div>
+<div id="settings-overlay" onclick="if(event.target===this)closeSettings()">
+  <div id="settings-panel">
+    <div id="settings-head">
+      <h2>⚙ Notes Settings</h2>
+      <button id="settings-close" onclick="closeSettings()" title="Close">✕</button>
+    </div>
+    <div class="settings-body">
+      <div class="settings-section">
+        <div class="settings-section-label">Theme</div>
+        <div class="theme-row">
+          <button class="theme-btn" data-theme="light" title="Light"></button>
+          <button class="theme-btn" data-theme="sepia" title="Sepia"></button>
+          <button class="theme-btn" data-theme="dusk"  title="Dusk"></button>
+          <button class="theme-btn" data-theme="dark"  title="Dark"></button>
+        </div>
+      </div>
+      <div class="settings-actions">
+        <button id="update-check-btn" onclick="checkForUpdates()" style="font-size:11px;padding:4px 10px;background:var(--bg-ctrl);border:1px solid var(--border);border-radius:4px;color:var(--text-muted);cursor:pointer;">Check for Updates</button>
+      </div>
+    </div>
+  </div>
+</div>
 <script id="tiddlers-data" type="application/json">{}</script>
 <script>
 // ── Constants ─────────────────────────────────────────────────────────────────
 const LS_KEY   = 'notes-app-data';
 const LS_THEME = 'notes-app-theme';
-const APP_VERSION = '1.0.2';
+const APP_VERSION = '1.0.3';
 const GITHUB_RAW = 'https://raw.githubusercontent.com/Xoke/cyber-fieldkit/main/notes.html';
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -270,6 +305,13 @@ function setTheme(t) {
   document.documentElement.dataset.theme = t === 'light' ? '' : t;
   localStorage.setItem(LS_THEME, t);
   document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === t));
+}
+
+function openSettings() {
+  document.getElementById('settings-overlay').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settings-overlay').classList.remove('open');
 }
 
 // ── Filtering ─────────────────────────────────────────────────────────────────
