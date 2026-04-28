@@ -6,7 +6,7 @@
 <title>OSINT Tools</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; }
+html, body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; }
 
 html[data-theme="light"] {
   --bg: #fff; --bg-alt: #fafbfc; --bg-ctrl: #fff; --bg-hover: rgba(0,0,0,0.04);
@@ -29,44 +29,36 @@ html[data-theme="dark"] {
   --accent: #5c8dd4; --accent-hover: #79a3e0; --accent-light: #1c2a3f;
 }
 
-body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; }
-
-/* Header */
-#header {
-  display: flex; align-items: center; padding: 0 16px; height: 44px;
-  background: var(--bg-alt); border-bottom: 1px solid var(--border);
-  flex-shrink: 0; gap: 12px;
-}
-#app-name { font-weight: 700; font-size: 15px; flex: 1; }
-#theme-row { display: flex; align-items: center; gap: 5px; }
-.theme-btn {
-  width: 16px; height: 16px; border-radius: 50%; cursor: pointer;
-  border: 2px solid transparent; padding: 0; outline: none;
-  transition: transform 0.1s;
-}
+body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+.app-shell { display: flex; height: 100vh; overflow: hidden; }
+.sidebar { width: 160px; flex-shrink: 0; background: var(--bg-alt); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+.sidebar-brand { padding: 14px 14px 12px; font-size: 14px; font-weight: 700; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.sidebar-nav { padding: 8px 6px; display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.nav-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: none; border: none; border-radius: 5px; color: var(--text-muted); font-size: 13px; font-family: inherit; cursor: pointer; text-align: left; width: 100%; transition: background 0.12s, color 0.12s; }
+.nav-item:hover { background: var(--bg-hover); color: var(--text); }
+.nav-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+.nav-icon { font-size: 15px; flex-shrink: 0; }
+.sidebar-bottom { padding: 8px 6px 12px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.theme-row { display: flex; gap: 6px; padding: 6px 10px; }
+.theme-btn { width: 16px; height: 16px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; padding: 0; outline: none; transition: transform 0.1s; }
 .theme-btn:hover { transform: scale(1.2); }
 .theme-btn.active { border-color: var(--text); }
-.theme-btn[data-t="light"]  { background: #fff; box-shadow: 0 0 0 1px #ccc; }
-.theme-btn[data-t="sepia"]  { background: #c8a97e; }
-.theme-btn[data-t="dusk"]   { background: #4a5580; }
-.theme-btn[data-t="dark"]   { background: #2a2d35; box-shadow: 0 0 0 1px #555; }
-
-/* Tab bar */
-#tab-bar {
-  display: flex; background: var(--bg-alt); border-bottom: 1px solid var(--border);
-  flex-shrink: 0; padding: 0 16px;
-}
-.tab-btn {
-  padding: 10px 16px; font-size: 13px; font-weight: 500; cursor: pointer;
-  border: none; background: none; color: var(--text-muted);
-  border-bottom: 2px solid transparent; margin-bottom: -1px;
-  transition: color 0.15s, border-color 0.15s;
-}
-.tab-btn:hover { color: var(--text); }
-.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-
-/* Content */
+.theme-btn[data-theme="light"] { background: #fff; box-shadow: 0 0 0 1px #ccc; }
+.theme-btn[data-theme="sepia"] { background: #c8a97e; }
+.theme-btn[data-theme="dusk"]  { background: #4a5580; }
+.theme-btn[data-theme="dark"]  { background: #2a2d35; box-shadow: 0 0 0 1px #555; }
 #content { flex: 1; overflow-y: auto; padding: 20px 24px; }
+#settings-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; display: none; justify-content: flex-start; }
+#settings-overlay.open { display: flex; }
+#settings-panel { width: 340px; max-width: 100vw; background: var(--bg-alt); border-right: 1px solid var(--border); height: 100%; overflow-y: auto; display: flex; flex-direction: column; box-shadow: 4px 0 20px rgba(0,0,0,0.3); }
+#settings-head { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--border); gap: 8px; flex-shrink: 0; }
+#settings-head h2 { font-size: 14px; font-weight: 700; flex: 1; }
+#settings-close { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--text-muted); line-height: 1; padding: 2px 4px; }
+#settings-close:hover { color: var(--text); }
+.settings-body { padding: 16px; flex: 1; display: flex; flex-direction: column; gap: 18px; }
+.settings-section { display: flex; flex-direction: column; gap: 8px; }
+.settings-section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
+.settings-actions { display: flex; flex-direction: column; gap: 8px; margin-top: auto; padding-top: 16px; }
 
 /* Notes section */
 .notes-section { margin-top: 20px; }
@@ -146,142 +138,175 @@ body { background: var(--bg); color: var(--text); display: flex; flex-direction:
 </head>
 <body>
 
-<div id="header">
-  <div id="app-name">OSINT Tools</div>
-  <div id="theme-row">
-    <button class="theme-btn" data-t="light"  title="Light"></button>
-    <button class="theme-btn" data-t="sepia"  title="Sepia"></button>
-    <button class="theme-btn" data-t="dusk"   title="Dusk"></button>
-    <button class="theme-btn" data-t="dark"   title="Dark"></button>
-    <button id="update-check-btn" onclick="checkForUpdates()" style="font-size:11px;padding:2px 8px;background:var(--bg-ctrl);border:1px solid var(--border);border-radius:4px;color:var(--text-muted);cursor:pointer;">Check for Updates</button>
+<div class="app-shell">
+  <nav class="sidebar">
+    <div class="sidebar-brand">🔍 OSINT Tools</div>
+    <div class="sidebar-nav">
+      <button class="nav-item active" data-tab="names" onclick="switchTab('names')">
+        <span class="nav-icon">👤</span><span>Names</span>
+      </button>
+      <button class="nav-item" data-tab="phone" onclick="switchTab('phone')">
+        <span class="nav-icon">📞</span><span>Phone</span>
+      </button>
+      <button class="nav-item" data-tab="email" onclick="switchTab('email')">
+        <span class="nav-icon">✉️</span><span>Email</span>
+      </button>
+      <button class="nav-item" data-tab="username" onclick="switchTab('username')">
+        <span class="nav-icon">🔍</span><span>Username</span>
+      </button>
+    </div>
+    <div class="sidebar-bottom">
+      <button class="nav-item" onclick="openSettings()">
+        <span class="nav-icon">⚙</span><span>Settings</span>
+      </button>
+    </div>
+  </nav>
+
+  <div id="content">
+
+    <!-- NAMES TAB -->
+    <div class="tab-panel active" id="tab-names">
+      <div class="input-card" id="names-card">
+        <h2>Name Search</h2>
+        <div class="input-row">
+          <div class="input-group">
+            <label for="n-first">First Name</label>
+            <input type="text" id="n-first" placeholder="Jane" autocomplete="off">
+          </div>
+          <div class="input-group">
+            <label for="n-last">Last Name</label>
+            <input type="text" id="n-last" placeholder="Doe" autocomplete="off">
+          </div>
+          <div class="input-group">
+            <label for="n-city">City (opt.)</label>
+            <input type="text" id="n-city" placeholder="Reno" autocomplete="off">
+          </div>
+          <div class="input-group" style="max-width:90px;">
+            <label for="n-state">State (opt.)</label>
+            <input type="text" id="n-state" placeholder="NV" autocomplete="off" maxlength="2">
+          </div>
+        </div>
+        <div class="input-card-actions">
+          <button class="btn-secondary" onclick="clearTab('names')">Clear</button>
+        </div>
+      </div>
+      <div class="services-area" id="names-services"></div>
+    </div>
+
+    <!-- PHONE TAB -->
+    <div class="tab-panel" id="tab-phone">
+      <div class="input-card" id="phone-card">
+        <h2>Phone Lookup</h2>
+        <div class="input-row">
+          <div class="input-group">
+            <label for="p-phone">Phone Number</label>
+            <input type="text" id="p-phone" placeholder="(555) 867-5309" autocomplete="off">
+          </div>
+        </div>
+        <div class="input-card-actions">
+          <button class="btn-secondary" onclick="clearTab('phone')">Clear</button>
+        </div>
+      </div>
+      <div class="services-area" id="phone-services"></div>
+    </div>
+
+    <!-- EMAIL TAB -->
+    <div class="tab-panel" id="tab-email">
+      <div class="input-card" id="email-card">
+        <h2>Email Lookup</h2>
+        <div class="input-row">
+          <div class="input-group">
+            <label for="e-email">Email Address</label>
+            <input type="text" id="e-email" placeholder="user@example.com" autocomplete="off">
+          </div>
+        </div>
+        <div class="input-card-actions">
+          <button class="btn-secondary" onclick="clearTab('email')">Clear</button>
+        </div>
+      </div>
+      <div class="services-area" id="email-services"></div>
+    </div>
+
+    <!-- USERNAME TAB -->
+    <div class="tab-panel" id="tab-username">
+      <div class="input-card" id="username-card">
+        <h2>Username Search</h2>
+        <div class="input-row">
+          <div class="input-group">
+            <label for="u-user">Username</label>
+            <input type="text" id="u-user" placeholder="johndoe42" autocomplete="off">
+          </div>
+        </div>
+        <div class="input-card-actions">
+          <button class="btn-secondary" onclick="clearTab('username')">Clear</button>
+        </div>
+      </div>
+      <div class="services-area" id="username-services"></div>
+    </div>
+
+    <!-- INVESTIGATION NOTES -->
+    <div class="notes-section">
+      <h2>Investigation Notes</h2>
+      <textarea id="investigation-notes" placeholder="Paste addresses, phone numbers, notes to cross-reference..."></textarea>
+      <div class="notes-actions">
+        <button class="btn-secondary" onclick="clearNotes()">Clear Notes</button>
+      </div>
+    </div>
+
+  </div><!-- end content -->
+</div><!-- end app-shell -->
+
+<div id="settings-overlay" onclick="if(event.target===this)closeSettings()">
+  <div id="settings-panel">
+    <div id="settings-head">
+      <h2>⚙ Settings</h2>
+      <button id="settings-close" onclick="closeSettings()" title="Close">✕</button>
+    </div>
+    <div class="settings-body">
+      <div class="settings-section">
+        <div class="settings-section-label">Theme</div>
+        <div class="theme-row">
+          <button class="theme-btn" data-theme="light" title="Light"></button>
+          <button class="theme-btn" data-theme="sepia" title="Sepia"></button>
+          <button class="theme-btn" data-theme="dusk"  title="Dusk"></button>
+          <button class="theme-btn" data-theme="dark"  title="Dark"></button>
+        </div>
+      </div>
+      <div class="settings-actions">
+        <button id="update-check-btn" onclick="checkForUpdates()" style="font-size:11px;padding:4px 10px;background:var(--bg-ctrl);border:1px solid var(--border);border-radius:4px;color:var(--text-muted);cursor:pointer;">Check for Updates</button>
+      </div>
+    </div>
   </div>
 </div>
-
-<div id="tab-bar">
-  <button class="tab-btn active" data-tab="names">Names</button>
-  <button class="tab-btn" data-tab="phone">Phone</button>
-  <button class="tab-btn" data-tab="email">Email</button>
-  <button class="tab-btn" data-tab="username">Username</button>
-</div>
-
-<div id="content">
-
-  <!-- NAMES TAB -->
-  <div class="tab-panel active" id="tab-names">
-    <div class="input-card" id="names-card">
-      <h2>Name Search</h2>
-      <div class="input-row">
-        <div class="input-group">
-          <label for="n-first">First Name</label>
-          <input type="text" id="n-first" placeholder="Jane" autocomplete="off">
-        </div>
-        <div class="input-group">
-          <label for="n-last">Last Name</label>
-          <input type="text" id="n-last" placeholder="Doe" autocomplete="off">
-        </div>
-        <div class="input-group">
-          <label for="n-city">City (opt.)</label>
-          <input type="text" id="n-city" placeholder="Reno" autocomplete="off">
-        </div>
-        <div class="input-group" style="max-width:90px;">
-          <label for="n-state">State (opt.)</label>
-          <input type="text" id="n-state" placeholder="NV" autocomplete="off" maxlength="2">
-        </div>
-      </div>
-      <div class="input-card-actions">
-        <button class="btn-secondary" onclick="clearTab('names')">Clear</button>
-      </div>
-    </div>
-    <div class="services-area" id="names-services"></div>
-  </div>
-
-  <!-- PHONE TAB -->
-  <div class="tab-panel" id="tab-phone">
-    <div class="input-card" id="phone-card">
-      <h2>Phone Lookup</h2>
-      <div class="input-row">
-        <div class="input-group">
-          <label for="p-phone">Phone Number</label>
-          <input type="text" id="p-phone" placeholder="(555) 867-5309" autocomplete="off">
-        </div>
-      </div>
-      <div class="input-card-actions">
-        <button class="btn-secondary" onclick="clearTab('phone')">Clear</button>
-      </div>
-    </div>
-    <div class="services-area" id="phone-services"></div>
-  </div>
-
-  <!-- EMAIL TAB -->
-  <div class="tab-panel" id="tab-email">
-    <div class="input-card" id="email-card">
-      <h2>Email Lookup</h2>
-      <div class="input-row">
-        <div class="input-group">
-          <label for="e-email">Email Address</label>
-          <input type="text" id="e-email" placeholder="user@example.com" autocomplete="off">
-        </div>
-      </div>
-      <div class="input-card-actions">
-        <button class="btn-secondary" onclick="clearTab('email')">Clear</button>
-      </div>
-    </div>
-    <div class="services-area" id="email-services"></div>
-  </div>
-
-  <!-- USERNAME TAB -->
-  <div class="tab-panel" id="tab-username">
-    <div class="input-card" id="username-card">
-      <h2>Username Search</h2>
-      <div class="input-row">
-        <div class="input-group">
-          <label for="u-user">Username</label>
-          <input type="text" id="u-user" placeholder="johndoe42" autocomplete="off">
-        </div>
-      </div>
-      <div class="input-card-actions">
-        <button class="btn-secondary" onclick="clearTab('username')">Clear</button>
-      </div>
-    </div>
-    <div class="services-area" id="username-services"></div>
-  </div>
-
-  <!-- INVESTIGATION NOTES -->
-  <div class="notes-section">
-    <h2>Investigation Notes</h2>
-    <textarea id="investigation-notes" placeholder="Paste addresses, phone numbers, notes to cross-reference..."></textarea>
-    <div class="notes-actions">
-      <button class="btn-secondary" onclick="clearNotes()">Clear Notes</button>
-    </div>
-  </div>
-
-
-</div><!-- end content -->
 
 <script>
 // ── Version ────────────────────────────────────────────────────────────────
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.0.1';
 const GITHUB_RAW = 'https://raw.githubusercontent.com/Xoke/cyber-fieldkit/main/osint-tools.html';
 
 // ── Theme ──────────────────────────────────────────────────────────────────
 const THEME_KEY = 'osint-theme';
-function applyTheme(t) {
+function setTheme(t) {
   document.documentElement.setAttribute('data-theme', t);
-  document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.t === t));
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === t));
   localStorage.setItem(THEME_KEY, t);
 }
-document.querySelectorAll('.theme-btn').forEach(b => b.addEventListener('click', () => applyTheme(b.dataset.t)));
-applyTheme(localStorage.getItem(THEME_KEY) || 'light');
+document.querySelectorAll('.theme-btn').forEach(b => b.addEventListener('click', () => setTheme(b.dataset.theme)));
+setTheme(localStorage.getItem(THEME_KEY) || 'light');
 
 // ── Tabs ───────────────────────────────────────────────────────────────────
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-  });
-});
+function switchTab(name) {
+  document.querySelectorAll('.nav-item[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+}
+
+// ── Settings ───────────────────────────────────────────────────────────────
+function openSettings() {
+  document.getElementById('settings-overlay').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settings-overlay').classList.remove('open');
+}
 
 // ── Service definitions ────────────────────────────────────────────────────
 const enc = encodeURIComponent;
