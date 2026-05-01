@@ -258,7 +258,7 @@ select.field-input { appearance: auto; }
 .settings-actions { display: flex; flex-direction: column; gap: 8px; margin-top: auto; padding-top: 16px; }
 .settings-select { width: 100%; padding: 6px 8px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 5px; color: var(--text); font-size: 13px; font-family: inherit; }
 
-.copy-btn { background: none; border: 1px solid var(--border); border-radius: 3px; cursor: pointer; color: var(--text-muted); font-size: 10px; padding: 0 5px; margin-left: 5px; line-height: 1.6; vertical-align: middle; font-family: inherit; }
+.copy-btn { background: none; border: 1px solid var(--border); border-radius: 3px; cursor: pointer; color: var(--text-muted); font-size: 10px; padding: 0 5px; margin-right: 5px; line-height: 1.6; vertical-align: middle; font-family: inherit; }
 .copy-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-light); }
 .copy-btn.copied { color: var(--green); border-color: var(--green); }
 </style>
@@ -438,6 +438,35 @@ function fmtDate(iso) {
   const [y, m] = ym.split('-').map(Number);
   if (!y || !m) return iso;
   return (months[m - 1] || '?') + ' ' + y;
+}
+
+// Format for ISC² copy: "May 1, 2026"
+function fmtDateCopy(iso) {
+  if (!iso) return '';
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const full = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (full) {
+    const y = parseInt(full[1]), m = parseInt(full[2]), d = parseInt(full[3]);
+    return (months[m - 1] || '?') + ' ' + d + ', ' + y;
+  }
+  const [y, m] = iso.slice(0, 7).split('-').map(Number);
+  if (!y || !m) return iso;
+  return (months[m - 1] || '?') + ' ' + y;
+}
+
+// Strip basic markdown for plain-text copy
+function stripMarkdown(md) {
+  return (md || '')
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/`(.+?)`/g, '$1')
+    .replace(/\[(.+?)\]\(.+?\)/g, '$1')
+    .replace(/^\s*[-*+]\s+/gm, '• ')
+    .replace(/^\s*\d+\.\s+/gm, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }
 
 // Return today as YYYY-MM-DD
@@ -1410,32 +1439,36 @@ function renderEntryView(entry) {
     ? proofRefs.map(r => '<span class="proof-ref has-file">' + escHtml(r) + '</span>').join('')
     : '<span class="proof-ref">No proof files attached</span>';
 
-  const startDate = entry.dateFrom ? fmtDate(entry.dateFrom) : '\u2014';
-  const endDate   = entry.dateTo   ? fmtDate(entry.dateTo)   : '\u2014';
-  const cpeCount  = parseFloat(entry.cpeCount) || 0;
+  const startDate     = entry.dateFrom ? fmtDate(entry.dateFrom) : '\u2014';
+  const endDate       = entry.dateTo   ? fmtDate(entry.dateTo)   : '\u2014';
+  const startDateCopy = entry.dateFrom ? fmtDateCopy(entry.dateFrom) : '';
+  const endDateCopy   = entry.dateTo   ? fmtDateCopy(entry.dateTo)   : '';
+  const cpeCount      = parseFloat(entry.cpeCount) || 0;
+  const activityTitle = (startDateCopy ? startDateCopy + ' - ' : '') + (entry.title || '');
 
   el.innerHTML =
     '<div class="entry-hdr">' +
-      '<div class="entry-hdr-title">' + escHtml(entry.title || 'Untitled') + cp(entry.title || '') + '</div>' +
+      '<div class="entry-hdr-title">' + escHtml(entry.title || 'Untitled') + '</div>' +
       '<div class="btn-row">' +
         '<button class="btn btn-primary" id="btn-edit-entry">Edit</button>' +
         '<button class="btn btn-danger" id="btn-delete-entry">Delete</button>' +
       '</div>' +
     '</div>' +
     '<div class="fields-grid" style="margin-bottom:16px">' +
-      '<div><span class="field-label">Start Date</span><div class="field-value">' + startDate + cp(startDate) + '</div></div>' +
-      '<div><span class="field-label">End Date</span><div class="field-value">' + endDate + cp(endDate) + '</div></div>' +
-      '<div class="field-full"><span class="field-label">Category</span><div class="field-value">' + escHtml(catLabel) + cp(catLabel) + '</div></div>' +
-      '<div class="field-full"><span class="field-label">Type</span><div class="field-value">' + escHtml(typeLabel) + cp(typeLabel) + '</div></div>' +
-      (entry.presenter ? '<div><span class="field-label">Presenter / Instructor</span><div class="field-value">' + escHtml(entry.presenter) + cp(entry.presenter) + '</div></div>' : '') +
-      (entry.org       ? '<div><span class="field-label">Organization</span><div class="field-value">' + escHtml(entry.org) + cp(entry.org) + '</div></div>' : '') +
-      (entry.yearPublished ? '<div><span class="field-label">Year Published</span><div class="field-value">' + escHtml(String(entry.yearPublished)) + cp(String(entry.yearPublished)) + '</div></div>' : '') +
-      '<div><span class="field-label">CPE Credits</span><div class="field-value" style="font-weight:700;color:var(--accent)">' + cpeCount + cp(String(cpeCount)) + '</div></div>' +
-      (entry.url ? '<div class="field-full"><span class="field-label">URL</span><div class="field-value"><a href="' + escHtml(entry.url) + '" target="_blank" rel="noopener">' + escHtml(entry.url) + '</a>' + cp(entry.url) + '</div></div>' : '') +
+      '<div><span class="field-label">Start Date</span><div class="field-value">' + cp(startDateCopy) + startDate + '</div></div>' +
+      '<div><span class="field-label">End Date</span><div class="field-value">' + cp(endDateCopy) + endDate + '</div></div>' +
+      '<div class="field-full"><span class="field-label">Category</span><div class="field-value">' + escHtml(catLabel) + '</div></div>' +
+      '<div class="field-full"><span class="field-label">Type</span><div class="field-value">' + escHtml(typeLabel) + '</div></div>' +
+      '<div class="field-full"><span class="field-label">Activity Title</span><div class="field-value">' + cp(activityTitle) + escHtml(entry.title || 'Untitled') + '</div></div>' +
+      (entry.presenter ? '<div><span class="field-label">Presenter / Instructor</span><div class="field-value">' + cp(entry.presenter) + escHtml(entry.presenter) + '</div></div>' : '') +
+      (entry.org       ? '<div><span class="field-label">Organization</span><div class="field-value">' + cp(entry.org) + escHtml(entry.org) + '</div></div>' : '') +
+      (entry.yearPublished ? '<div><span class="field-label">Year Published</span><div class="field-value">' + cp(String(entry.yearPublished)) + escHtml(String(entry.yearPublished)) + '</div></div>' : '') +
+      '<div><span class="field-label">CPE Credits</span><div class="field-value" style="font-weight:700;color:var(--accent)">' + cp(String(cpeCount)) + cpeCount + '</div></div>' +
+      (entry.url ? '<div class="field-full"><span class="field-label">URL</span><div class="field-value">' + cp(entry.url) + '<a href="' + escHtml(entry.url) + '" target="_blank" rel="noopener">' + escHtml(entry.url) + '</a></div></div>' : '') +
       '<div class="field-full" style="padding-top:4px"><span class="view-badge grp-' + grp.toLowerCase() + '">Group ' + grp + '</span></div>' +
     '</div>' +
     '<div class="summary-section">' +
-      '<span class="field-label">Description ' + cp(entry.summary || '') + '</span>' + summaryHtml +
+      '<span class="field-label">' + cp(stripMarkdown(entry.summary)) + 'Description</span>' + summaryHtml +
     '</div>' +
     '<div class="proof-section">' +
       '<span class="field-label">Supporting Documentation</span>' +
@@ -1535,7 +1568,7 @@ function renderEditForm() {
       '<div id="f-org-wrap"><label class="field-label">Organization / Publisher</label>' +
         '<input type="text" class="field-input" id="f-org" value="' + escHtml(v.org || '') + '"></div>' +
       '<div id="f-year-wrap"><label class="field-label">Year Published</label>' +
-        '<input type="number" class="field-input" id="f-year" min="1990" max="2099" value="' + (v.yearPublished || '') + '"></div>' +
+        '<input type="number" class="field-input" id="f-year" min="1990" max="2099" value="' + (v.yearPublished || new Date().getFullYear()) + '"></div>' +
       '<div id="f-url-wrap"><label class="field-label">URL (optional)</label>' +
         '<input type="url" class="field-input" id="f-url" placeholder="https://..." value="' + escHtml(v.url || '') + '"></div>' +
       '<div><label class="field-label">CPE Credits</label>' +
