@@ -60,9 +60,12 @@ html[data-theme="dark"] #save-status.dirty, html[data-theme="dusk"] #save-status
 #btn-save-hdr { font-size: 11px; padding: 3px 8px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 4px; color: var(--text); cursor: pointer; white-space: nowrap; }
 #btn-save-hdr:hover { background: var(--bg-hover); }
 
-#search-wrap { padding: 8px 10px; flex-shrink: 0; border-bottom: 1px solid var(--border); }
+#search-wrap { padding: 8px 10px 6px; flex-shrink: 0; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 5px; }
 #search-input { width: 100%; padding: 5px 8px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 12px; outline: none; }
 #search-input:focus { border-color: var(--accent); }
+#sort-row { display: flex; align-items: center; gap: 5px; }
+#sort-row label { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+#sort-select { flex: 1; font-size: 11px; padding: 2px 4px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 4px; color: var(--text); cursor: pointer; }
 
 #tag-panel { padding: 6px 10px; border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 4px; flex-shrink: 0; min-height: 32px; }
 .tag-chip { font-size: 11px; padding: 2px 7px; background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; color: var(--text-muted); }
@@ -146,6 +149,15 @@ html[data-theme="dark"] #save-status.dirty, html[data-theme="dusk"] #save-status
     </div>
     <div id="search-wrap">
       <input id="search-input" placeholder="Search notes…">
+      <div id="sort-row">
+        <label for="sort-select">Sort</label>
+        <select id="sort-select">
+          <option value="modified">Last modified</option>
+          <option value="created">Date created</option>
+          <option value="title-asc">Name A→Z</option>
+          <option value="title-desc">Name Z→A</option>
+        </select>
+      </div>
     </div>
     <div id="tag-panel"></div>
     <div id="note-list"></div>
@@ -186,7 +198,7 @@ html[data-theme="dark"] #save-status.dirty, html[data-theme="dusk"] #save-status
 // ── Constants ─────────────────────────────────────────────────────────────────
 const LS_KEY   = 'notes-app-data';
 const LS_THEME = 'notes-app-theme';
-const APP_VERSION = '1.0.3';
+const APP_VERSION = '1.0.4';
 const GITHUB_RAW = 'https://raw.githubusercontent.com/Xoke/cyber-fieldkit/main/notes.html';
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -195,6 +207,7 @@ let activeId    = null;
 let editMode    = false;
 let searchQuery = '';
 let activeTag   = null;
+let sortOrder   = 'modified';
 let isDirty     = false;
 let fileHandle  = null;
 let originalHtml = '';
@@ -322,7 +335,12 @@ function filteredNotes() {
     const q = searchQuery.toLowerCase();
     notes = notes.filter(n => (n.title || '').toLowerCase().includes(q) || (n.body || '').toLowerCase().includes(q));
   }
-  return notes.slice().sort((a, b) => ((b.modified || b.created) > (a.modified || a.created) ? 1 : -1));
+  return notes.slice().sort((a, b) => {
+    if (sortOrder === 'title-asc')  return (a.title || '').localeCompare(b.title || '');
+    if (sortOrder === 'title-desc') return (b.title || '').localeCompare(a.title || '');
+    if (sortOrder === 'created')    return (b.created || '') > (a.created || '') ? 1 : -1;
+    return (b.modified || b.created || '') > (a.modified || a.created || '') ? 1 : -1;
+  });
 }
 
 function getAllTags() {
@@ -385,6 +403,7 @@ function renderMain() {
         '<button class="toolbar-btn" id="btn-save-note">Save</button>' +
         '<button class="toolbar-btn" id="btn-view">Preview</button>' +
         '<input id="note-title-input" value="' + escHtml(note.title || '') + '" placeholder="Title…">' +
+        '<button class="toolbar-btn" id="btn-copy" title="Copy note text">Copy</button>' +
         '<button class="toolbar-btn danger" id="btn-delete">Delete</button>' +
       '</div>' +
       '<div id="tag-editor">' +
@@ -407,6 +426,10 @@ function renderMain() {
       collectAndSave(false); editMode = false; renderMain();
     });
     document.getElementById('btn-save-note').addEventListener('click', () => collectAndSave(true));
+    document.getElementById('btn-copy').addEventListener('click', () => {
+      const bodyEl = document.getElementById('body-editor');
+      copyNote({ title: document.getElementById('note-title-input').value, body: bodyEl ? bodyEl.value : note.body });
+    });
     document.getElementById('btn-delete').addEventListener('click', () => deleteNote(activeId));
     document.getElementById('body-editor').addEventListener('input', e => {
       document.getElementById('body-view').innerHTML = marked.parse(e.target.value);
@@ -448,6 +471,7 @@ function renderMain() {
       '<div id="main-toolbar">' +
         '<button class="toolbar-btn" id="btn-edit">Edit</button>' +
         '<span style="flex:1;font-size:18px;font-weight:600;padding:0 8px">' + escHtml(note.title || 'Untitled') + '</span>' +
+        '<button class="toolbar-btn" id="btn-copy" title="Copy note text">Copy</button>' +
         '<button class="toolbar-btn danger" id="btn-delete">Delete</button>' +
       '</div>' +
       '<div id="tag-editor">' +
@@ -456,6 +480,7 @@ function renderMain() {
       '<div id="body-view">' + marked.parse(note.body || '') + '</div>';
 
     document.getElementById('btn-edit').addEventListener('click', () => { editMode = true; renderMain(); });
+    document.getElementById('btn-copy').addEventListener('click', () => copyNote(note));
     document.getElementById('btn-delete').addEventListener('click', () => deleteNote(activeId));
   }
 }
@@ -496,6 +521,14 @@ function newNote() {
   renderMain();
 }
 
+function copyNote(note) {
+  const text = [(note.title || '').trim(), (note.body || '').trim()].filter(Boolean).join('\n\n');
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('btn-copy');
+    if (btn) { btn.textContent = 'Copied!'; setTimeout(() => { if (btn) btn.textContent = 'Copy'; }, 1500); }
+  });
+}
+
 function deleteNote(id) {
   if (!confirm('Delete this note?')) return;
   data.notes = data.notes.filter(n => n.id !== id);
@@ -520,6 +553,10 @@ function wireEvents() {
   document.getElementById('btn-save-hdr').addEventListener('click', saveOrDownload);
   document.getElementById('search-input').addEventListener('input', e => {
     searchQuery = e.target.value;
+    renderNoteList();
+  });
+  document.getElementById('sort-select').addEventListener('change', e => {
+    sortOrder = e.target.value;
     renderNoteList();
   });
   document.querySelectorAll('.theme-btn').forEach(btn => {
