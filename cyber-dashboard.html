@@ -352,6 +352,14 @@ html[data-theme="dark"] .welcome-banner { background: #1c2a10; color: #c8e6a0; b
   padding: 4px 10px; background: var(--accent); color: #fff; border: none;
   border-radius: 4px; font-size: 12px; cursor: pointer; white-space: nowrap;
 }
+
+/* Privacy note */
+.local-note {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--bg-alt); border-top: 1px solid var(--border);
+  padding: 8px 16px; font-size: 12px; color: var(--text-muted);
+  text-align: center; z-index: 1000;
+}
 </style>
 </head>
 <body>
@@ -1092,13 +1100,32 @@ function renderNews() {
   const s = loadSettings();
   const ind = PROFILE_DATA.industries[s.industry] || PROFILE_DATA.industries.banking;
   document.getElementById('news-links-title').textContent = ind.newsTitle;
-  let html = '';
+  const body = document.getElementById('news-links-body');
+  body.innerHTML = '';
   ind.news.forEach(sec => {
-    html += `<div class="link-section"><div class="link-section-label">${escHtml(sec.label)}</div><div class="link-grid">`;
-    sec.links.forEach(l => { html += `<a class="link-tile" href="${escHtml(l.url)}" target="_blank" rel="noopener">${escHtml(l.name)}</a>`; });
-    html += '</div></div>';
+    const section = document.createElement('div');
+    section.className = 'link-section';
+
+    const label = document.createElement('div');
+    label.className = 'link-section-label';
+    label.textContent = sec.label;
+    section.appendChild(label);
+
+    const grid = document.createElement('div');
+    grid.className = 'link-grid';
+    sec.links.forEach(l => {
+      const a = document.createElement('a');
+      a.className = 'link-tile';
+      a.href = l.url;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = l.name;
+      grid.appendChild(a);
+    });
+    section.appendChild(grid);
+
+    body.appendChild(section);
   });
-  document.getElementById('news-links-body').innerHTML = html;
 }
 
 function renderRegulatory() {
@@ -1235,7 +1262,15 @@ function toggleSWFilter() {
 // ─── Panel 1: CISA KEV ───────────────────────────────────────────────────────
 
 function renderKEVList(vulns, sourceNote) {
-  if (!vulns.length) { document.getElementById('kev-body').innerHTML = '<div class="loading-state">No data.</div>'; return; }
+  const body = document.getElementById('kev-body');
+  body.innerHTML = '';
+  if (!vulns.length) {
+    const msg = document.createElement('div');
+    msg.className = 'loading-state';
+    msg.textContent = 'No data.';
+    body.appendChild(msg);
+    return;
+  }
   const now = new Date();
   const ul = document.createElement('ul');
   ul.className = 'feed-list';
@@ -1253,20 +1288,64 @@ function renderKEVList(vulns, sourceNote) {
     const li = document.createElement('li');
     li.className = 'feed-item' + (swHit ? ' sw-match' : '');
     li.dataset.cve = v.cveID;
-    li.innerHTML = `
-      <div style="font-weight:600;margin-bottom:2px;">${swHit ? '⚡ ' : ''}${escHtml(productLabel || v.vulnerabilityName)}</div>
-      ${productLabel ? `<div style="font-size:12px;color:var(--text);margin-top:2px;">${escHtml(truncate(v.vulnerabilityName, 90))}</div>` : ''}
-      <div style="font-size:12px;color:var(--text-muted);display:flex;gap:10px;flex-wrap:wrap;margin-top:3px;">
-        <a class="feed-item-title" href="https://nvd.nist.gov/vuln/detail/${escHtml(v.cveID)}" target="_blank" rel="noopener">${escHtml(v.cveID)}</a>
-        <span>Added: ${escHtml(v.dateAdded)}</span>
-        <span class="${dueCls}">${escHtml(dueLabel)}</span>
-        <span class="epss-slot"></span>
-        ${sourceNote ? `<span style="font-style:italic;">${escHtml(sourceNote)}</span>` : ''}
-      </div>`;
+
+    const titleDiv = document.createElement('div');
+    titleDiv.style.fontWeight = '600';
+    titleDiv.style.marginBottom = '2px';
+    titleDiv.textContent = (swHit ? '⚡ ' : '') + (productLabel || v.vulnerabilityName);
+    li.appendChild(titleDiv);
+
+    if (productLabel) {
+      const vulnDiv = document.createElement('div');
+      vulnDiv.style.fontSize = '12px';
+      vulnDiv.style.color = 'var(--text)';
+      vulnDiv.style.marginTop = '2px';
+      vulnDiv.textContent = truncate(v.vulnerabilityName, 90);
+      li.appendChild(vulnDiv);
+    }
+
+    const metaDiv = document.createElement('div');
+    metaDiv.style.fontSize = '12px';
+    metaDiv.style.color = 'var(--text-muted)';
+    metaDiv.style.display = 'flex';
+    metaDiv.style.gap = '10px';
+    metaDiv.style.flexWrap = 'wrap';
+    metaDiv.style.marginTop = '3px';
+
+    const titleA = document.createElement('a');
+    titleA.className = 'feed-item-title';
+    titleA.href = `https://nvd.nist.gov/vuln/detail/${v.cveID}`;
+    titleA.target = '_blank';
+    titleA.rel = 'noopener';
+    titleA.textContent = v.cveID;
+    metaDiv.appendChild(titleA);
+
+    const addedSpan = document.createElement('span');
+    addedSpan.textContent = `Added: ${v.dateAdded}`;
+    metaDiv.appendChild(addedSpan);
+
+    if (dueLabel) {
+      const dueSpan = document.createElement('span');
+      dueSpan.className = dueCls;
+      dueSpan.textContent = dueLabel;
+      metaDiv.appendChild(dueSpan);
+    }
+
+    const epssSlot = document.createElement('span');
+    epssSlot.className = 'epss-slot';
+    metaDiv.appendChild(epssSlot);
+
+    if (sourceNote) {
+      const sourceSpan = document.createElement('span');
+      sourceSpan.style.fontStyle = 'italic';
+      sourceSpan.textContent = sourceNote;
+      metaDiv.appendChild(sourceSpan);
+    }
+
+    li.appendChild(metaDiv);
     ul.appendChild(li);
   });
-  document.getElementById('kev-body').innerHTML = '';
-  document.getElementById('kev-body').appendChild(ul);
+  body.appendChild(ul);
   loadEPSS(vulns.map(v => v.cveID), 'kev-body');
   applyGlobalSWFilter();
 }
@@ -1893,5 +1972,9 @@ checkFirstRun();
 applyGlobalSWFilter();
 refreshAll();
 </script>
+
+<div class="local-note">
+  <strong>🔒 Local Storage Only:</strong> All data is stored locally in your browser and never transmitted to external servers.
+</div>
 </body>
 </html>

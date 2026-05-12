@@ -136,6 +136,20 @@ html[data-theme="dark"] #save-status.dirty, html[data-theme="dusk"] #save-status
 #body-view table { border-collapse: collapse; margin-bottom: 0.8em; }
 #body-view th, #body-view td { border: 1px solid var(--border); padding: 5px 10px; }
 #empty-state { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 14px; }
+
+.local-note {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 100;
+}
 </style>
 </head>
 <body>
@@ -353,9 +367,14 @@ function getAllTags() {
 function renderTagPanel() {
   const el   = document.getElementById('tag-panel');
   const tags = getAllTags();
-  el.innerHTML = tags.map(t =>
-    '<span class="tag-chip' + (t === activeTag ? ' active' : '') + '" data-tag="' + escHtml(t) + '">' + escHtml(t) + '</span>'
-  ).join('');
+  el.textContent = '';
+  tags.forEach(t => {
+    const span = document.createElement('span');
+    span.className = 'tag-chip' + (t === activeTag ? ' active' : '');
+    span.dataset.tag = t;
+    span.textContent = t;
+    el.appendChild(span);
+  });
   el.querySelectorAll('.tag-chip').forEach(chip => {
     chip.addEventListener('click', () => {
       activeTag = (chip.dataset.tag === activeTag) ? null : chip.dataset.tag;
@@ -368,20 +387,45 @@ function renderTagPanel() {
 function renderNoteList() {
   const el    = document.getElementById('note-list');
   const notes = filteredNotes();
+  el.textContent = '';
   if (!notes.length) {
-    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px">' +
-      (data.notes.length ? 'No matches' : 'No notes yet') + '</div>';
+    const msgDiv = document.createElement('div');
+    msgDiv.style.padding = '20px';
+    msgDiv.style.textAlign = 'center';
+    msgDiv.style.color = 'var(--text-muted)';
+    msgDiv.style.fontSize = '12px';
+    msgDiv.textContent = data.notes.length ? 'No matches' : 'No notes yet';
+    el.appendChild(msgDiv);
     return;
   }
-  el.innerHTML = notes.map(n => {
+  notes.forEach(n => {
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'note-item' + (n.id === activeId ? ' active' : '');
+    itemDiv.dataset.id = n.id;
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'note-item-title';
+    titleDiv.textContent = n.title || 'Untitled';
+    itemDiv.appendChild(titleDiv);
     const preview = (n.body || '').replace(/[#*`>_\[\]]/g, '').slice(0, 60);
-    const tags    = (n.tags || []).map(t => '<span class="note-tag">' + escHtml(t) + '</span>').join('');
-    return '<div class="note-item' + (n.id === activeId ? ' active' : '') + '" data-id="' + n.id + '">' +
-      '<div class="note-item-title">' + escHtml(n.title || 'Untitled') + '</div>' +
-      (preview ? '<div class="note-item-preview">' + escHtml(preview) + '</div>' : '') +
-      (tags    ? '<div class="note-item-tags">'    + tags              + '</div>' : '') +
-      '</div>';
-  }).join('');
+    if (preview) {
+      const previewDiv = document.createElement('div');
+      previewDiv.className = 'note-item-preview';
+      previewDiv.textContent = preview;
+      itemDiv.appendChild(previewDiv);
+    }
+    if (n.tags && n.tags.length) {
+      const tagsDiv = document.createElement('div');
+      tagsDiv.className = 'note-item-tags';
+      n.tags.forEach(t => {
+        const tagSpan = document.createElement('span');
+        tagSpan.className = 'note-tag';
+        tagSpan.textContent = t;
+        tagsDiv.appendChild(tagSpan);
+      });
+      itemDiv.appendChild(tagsDiv);
+    }
+    el.appendChild(itemDiv);
+  });
   el.querySelectorAll('.note-item').forEach(item => {
     item.addEventListener('click', () => openNote(item.dataset.id));
   });
@@ -390,75 +434,117 @@ function renderNoteList() {
 // ── Render: main ──────────────────────────────────────────────────────────────
 function renderMain() {
   const main = document.getElementById('main');
+  main.textContent = '';
   if (!activeId) {
-    main.innerHTML = '<div id="empty-state">Select a note or create a new one</div>';
+    const div = document.createElement('div');
+    div.id = 'empty-state';
+    div.textContent = 'Select a note or create a new one';
+    main.appendChild(div);
     return;
   }
   const note = data.notes.find(n => n.id === activeId);
   if (!note) { activeId = null; renderMain(); return; }
 
   if (editMode) {
-    main.innerHTML =
-      '<div id="main-toolbar">' +
-        '<button class="toolbar-btn" id="btn-save-note">Save</button>' +
-        '<button class="toolbar-btn" id="btn-view">Preview</button>' +
-        '<input id="note-title-input" value="' + escHtml(note.title || '') + '" placeholder="Title…">' +
-        '<button class="toolbar-btn" id="btn-copy" title="Copy note text">Copy</button>' +
-        '<button class="toolbar-btn danger" id="btn-delete">Delete</button>' +
-      '</div>' +
-      '<div id="tag-editor">' +
-        (note.tags || []).map(t =>
-          '<span class="edit-tag">' +
-            '<span>' + escHtml(t) + '</span>' +
-            '<span class="edit-tag-remove" data-tag="' + escHtml(t) + '">×</span>' +
-          '</span>'
-        ).join('') +
-        '<input id="tag-input" placeholder="Add tag…">' +
-      '</div>' +
-      '<div id="editor-split">' +
-        '<textarea id="body-editor">' + escHtml(note.body || '') + '</textarea>' +
-        '<div id="editor-preview-pane"><div id="body-view"></div></div>' +
-      '</div>';
+    // main toolbar
+    const toolbar = document.createElement('div');
+    toolbar.id = 'main-toolbar';
+    const btnSave = document.createElement('button');
+    btnSave.className = 'toolbar-btn';
+    btnSave.id = 'btn-save-note';
+    btnSave.textContent = 'Save';
+    toolbar.appendChild(btnSave);
+    const btnView = document.createElement('button');
+    btnView.className = 'toolbar-btn';
+    btnView.id = 'btn-view';
+    btnView.textContent = 'Preview';
+    toolbar.appendChild(btnView);
+    const titleInput = document.createElement('input');
+    titleInput.id = 'note-title-input';
+    titleInput.value = note.title || '';
+    titleInput.placeholder = 'Title…';
+    toolbar.appendChild(titleInput);
+    const btnCopy = document.createElement('button');
+    btnCopy.className = 'toolbar-btn';
+    btnCopy.id = 'btn-copy';
+    btnCopy.title = 'Copy note text';
+    btnCopy.textContent = 'Copy';
+    toolbar.appendChild(btnCopy);
+    const btnDelete = document.createElement('button');
+    btnDelete.className = 'toolbar-btn danger';
+    btnDelete.id = 'btn-delete';
+    btnDelete.textContent = 'Delete';
+    toolbar.appendChild(btnDelete);
+    main.appendChild(toolbar);
 
-    document.getElementById('body-view').innerHTML = note.body ? marked.parse(note.body) : '';
-    document.getElementById('note-title-input').focus();
-    document.getElementById('btn-view').addEventListener('click', () => {
+    // tag editor
+    const tagEditor = document.createElement('div');
+    tagEditor.id = 'tag-editor';
+    (note.tags || []).forEach(t => {
+      const editTag = document.createElement('span');
+      editTag.className = 'edit-tag';
+      const span = document.createElement('span');
+      span.textContent = t;
+      editTag.appendChild(span);
+      const remove = document.createElement('span');
+      remove.className = 'edit-tag-remove';
+      remove.dataset.tag = t;
+      remove.textContent = '×';
+      editTag.appendChild(remove);
+      tagEditor.appendChild(editTag);
+    });
+    const tagInput = document.createElement('input');
+    tagInput.id = 'tag-input';
+    tagInput.placeholder = 'Add tag…';
+    tagEditor.appendChild(tagInput);
+    main.appendChild(tagEditor);
+
+    // editor split
+    const editorSplit = document.createElement('div');
+    editorSplit.id = 'editor-split';
+    const bodyEditor = document.createElement('textarea');
+    bodyEditor.id = 'body-editor';
+    bodyEditor.textContent = note.body || '';
+    editorSplit.appendChild(bodyEditor);
+    const previewPane = document.createElement('div');
+    previewPane.id = 'editor-preview-pane';
+    const bodyView = document.createElement('div');
+    bodyView.id = 'body-view';
+    bodyView.innerHTML = note.body ? marked.parse(note.body) : '';
+    previewPane.appendChild(bodyView);
+    editorSplit.appendChild(previewPane);
+    main.appendChild(editorSplit);
+
+    titleInput.focus();
+    btnView.addEventListener('click', () => {
       collectAndSave(false); editMode = false; renderMain();
     });
-    document.getElementById('btn-save-note').addEventListener('click', () => collectAndSave(true));
-    document.getElementById('btn-copy').addEventListener('click', () => {
-      const bodyEl = document.getElementById('body-editor');
-      copyNote({ title: document.getElementById('note-title-input').value, body: bodyEl ? bodyEl.value : note.body });
+    btnSave.addEventListener('click', () => collectAndSave(true));
+    btnCopy.addEventListener('click', () => copyNote({ title: titleInput.value, body: bodyEditor.value }));
+    btnDelete.addEventListener('click', () => deleteNote(activeId));
+    bodyEditor.addEventListener('input', e => {
+      bodyView.innerHTML = marked.parse(e.target.value);
     });
-    document.getElementById('btn-delete').addEventListener('click', () => deleteNote(activeId));
-    document.getElementById('body-editor').addEventListener('input', e => {
-      document.getElementById('body-view').innerHTML = marked.parse(e.target.value);
-    });
-    document.querySelectorAll('.edit-tag-remove').forEach(btn => {
+    tagEditor.querySelectorAll('.edit-tag-remove').forEach(btn => {
       btn.addEventListener('click', () => {
         const n2 = data.notes.find(n => n.id === activeId);
         if (n2) {
-          const titleEl = document.getElementById('note-title-input');
-          const bodyEl  = document.getElementById('body-editor');
-          if (titleEl) n2.title = titleEl.value;
-          if (bodyEl)  n2.body  = bodyEl.value;
+          n2.title = titleInput.value;
+          n2.body = bodyEditor.value;
           n2.tags = (n2.tags || []).filter(t => t !== btn.dataset.tag);
           saveToLocalStorage(); setSaveStatus('dirty');
           renderTagPanel(); renderNoteList(); renderMain();
         }
       });
     });
-    const tagInput = document.getElementById('tag-input');
     tagInput.addEventListener('keydown', e => {
       if ((e.key === 'Enter' || e.key === ',') && tagInput.value.trim()) {
         e.preventDefault();
         const tag = tagInput.value.trim().replace(/,/g, '');
-        const n3  = data.notes.find(n => n.id === activeId);
+        const n3 = data.notes.find(n => n.id === activeId);
         if (n3 && !(n3.tags || []).includes(tag)) {
-          const titleEl = document.getElementById('note-title-input');
-          const bodyEl  = document.getElementById('body-editor');
-          if (titleEl) n3.title = titleEl.value;
-          if (bodyEl)  n3.body  = bodyEl.value;
+          n3.title = titleInput.value;
+          n3.body = bodyEditor.value;
           n3.tags = n3.tags || [];
           n3.tags.push(tag);
           saveToLocalStorage(); setSaveStatus('dirty');
@@ -467,21 +553,54 @@ function renderMain() {
       }
     });
   } else {
-    main.innerHTML =
-      '<div id="main-toolbar">' +
-        '<button class="toolbar-btn" id="btn-edit">Edit</button>' +
-        '<span style="flex:1;font-size:18px;font-weight:600;padding:0 8px">' + escHtml(note.title || 'Untitled') + '</span>' +
-        '<button class="toolbar-btn" id="btn-copy" title="Copy note text">Copy</button>' +
-        '<button class="toolbar-btn danger" id="btn-delete">Delete</button>' +
-      '</div>' +
-      '<div id="tag-editor">' +
-        (note.tags || []).map(t => '<span class="edit-tag"><span>' + escHtml(t) + '</span></span>').join('') +
-      '</div>' +
-      '<div id="body-view">' + marked.parse(note.body || '') + '</div>';
+    // preview mode
+    const toolbar = document.createElement('div');
+    toolbar.id = 'main-toolbar';
+    const btnEdit = document.createElement('button');
+    btnEdit.className = 'toolbar-btn';
+    btnEdit.id = 'btn-edit';
+    btnEdit.textContent = 'Edit';
+    toolbar.appendChild(btnEdit);
+    const titleSpan = document.createElement('span');
+    titleSpan.style.flex = '1';
+    titleSpan.style.fontSize = '18px';
+    titleSpan.style.fontWeight = '600';
+    titleSpan.style.padding = '0 8px';
+    titleSpan.textContent = note.title || 'Untitled';
+    toolbar.appendChild(titleSpan);
+    const btnCopy = document.createElement('button');
+    btnCopy.className = 'toolbar-btn';
+    btnCopy.id = 'btn-copy';
+    btnCopy.title = 'Copy note text';
+    btnCopy.textContent = 'Copy';
+    toolbar.appendChild(btnCopy);
+    const btnDelete = document.createElement('button');
+    btnDelete.className = 'toolbar-btn danger';
+    btnDelete.id = 'btn-delete';
+    btnDelete.textContent = 'Delete';
+    toolbar.appendChild(btnDelete);
+    main.appendChild(toolbar);
 
-    document.getElementById('btn-edit').addEventListener('click', () => { editMode = true; renderMain(); });
-    document.getElementById('btn-copy').addEventListener('click', () => copyNote(note));
-    document.getElementById('btn-delete').addEventListener('click', () => deleteNote(activeId));
+    const tagEditor = document.createElement('div');
+    tagEditor.id = 'tag-editor';
+    (note.tags || []).forEach(t => {
+      const editTag = document.createElement('span');
+      editTag.className = 'edit-tag';
+      const span = document.createElement('span');
+      span.textContent = t;
+      editTag.appendChild(span);
+      tagEditor.appendChild(editTag);
+    });
+    main.appendChild(tagEditor);
+
+    const bodyView = document.createElement('div');
+    bodyView.id = 'body-view';
+    bodyView.innerHTML = marked.parse(note.body || '');
+    main.appendChild(bodyView);
+
+    btnEdit.addEventListener('click', () => { editMode = true; renderMain(); });
+    btnCopy.addEventListener('click', () => copyNote(note));
+    btnDelete.addEventListener('click', () => deleteNote(activeId));
   }
 }
 
@@ -608,5 +727,7 @@ async function checkForUpdates() {
   }
 }
 </script>
+
+<div class="local-note">Data stored locally in browser</div>
 </body>
 </html>
