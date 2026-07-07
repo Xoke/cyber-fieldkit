@@ -693,7 +693,7 @@ document.querySelectorAll('.theme-btn').forEach(b => b.addEventListener('click',
 applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
 
 // ─── Settings Data ────────────────────────────────────────────────────────────
-const APP_VERSION  = '1.0.5';
+const APP_VERSION  = '1.0.6';
 const GITHUB_RAW   = 'https://raw.githubusercontent.com/Xoke/cyber-fieldkit/main/cyber-dashboard.html';
 const SETTINGS_KEY = 'cyber-dash-settings';
 const WELCOMED_KEY = 'cyber-dash-welcomed';
@@ -1493,87 +1493,64 @@ async function loadReddit() {
 }
 
 // ─── Threats Tab: Abuse.ch Active Threats ────────────────────────────────────
+// Feodo Tracker's JSON has no CORS headers, so it's routed through a public
+// CORS proxy. ThreatFox is dropped: abuse.ch now requires a personal
+// Auth-Key for it (can't be embedded in a public static file) and its docs
+// don't list CORS support even for authenticated requests.
 async function loadAbuse() {
   setLoading('abuse-body');
-  const [feodoResult, threatfoxResult] = await Promise.allSettled([
-    fetch('https://feodotracker.abuse.ch/downloads/ipblocklist.json')
-      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }),
-    fetch('https://threatfox-api.abuse.ch/api/v1/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: 'get_iocs', days: 1 })
-    }).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-  ]);
-
-  const entries = [];
-
-  if (feodoResult.status === 'fulfilled') {
-    const items = Array.isArray(feodoResult.value) ? feodoResult.value : [];
-    items
+  try {
+    const resp = await fetch(CORS_PROXY + encodeURIComponent('https://feodotracker.abuse.ch/downloads/ipblocklist.json'));
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const items = await resp.json();
+    const entries = (Array.isArray(items) ? items : [])
       .sort((a, b) => (b.status === 'online' ? 1 : 0) - (a.status === 'online' ? 1 : 0))
       .slice(0, 15)
-      .forEach(item => entries.push({
+      .map(item => ({
         malware: item.malware || 'Unknown',
         ioc: `${item.ip_address || ''}:${item.port || ''}`,
         type: 'C2 IP',
         country: item.country || '',
         status: item.status || '',
-        source: 'Feodo',
-        confidence: null,
       }));
-  }
 
-  if (threatfoxResult.status === 'fulfilled') {
-    const tfData = threatfoxResult.value?.data;
-    if (Array.isArray(tfData)) {
-      tfData
-        .sort((a, b) => (b.confidence_level || 0) - (a.confidence_level || 0))
-        .slice(0, 15)
-        .forEach(item => entries.push({
-          malware: item.malware_printable || item.malware || 'Unknown',
-          ioc: item.ioc || '',
-          type: item.ioc_type || '',
-          country: '',
-          status: '',
-          source: 'ThreatFox',
-          confidence: item.confidence_level != null ? item.confidence_level : null,
-        }));
+    if (!entries.length) {
+      setError('abuse-body', 'https://feodotracker.abuse.ch');
+      return;
     }
-  }
 
-  if (!entries.length) {
-    setError('abuse-body', 'https://abuse.ch');
-    return;
+    const ul = document.createElement('ul');
+    ul.className = 'feed-list';
+    entries.forEach(e => {
+      const swHit = softwareMatches(e.malware);
+      const li = document.createElement('li');
+      li.className = 'feed-item' + (swHit ? ' sw-match' : '');
+      li.innerHTML = `
+        <div style="font-weight:600;margin-bottom:2px;">${swHit ? '⚡ ' : ''}${escHtml(e.malware)}</div>
+        <div style="font-size:12px;color:var(--text);font-family:monospace;margin-bottom:3px;">${escHtml(truncate(e.ioc, 60))}</div>
+        <div class="feed-item-meta">
+          <span>Feodo</span>
+          <span>${escHtml(e.type)}</span>
+          ${e.country ? `<span>${escHtml(e.country)}</span>` : ''}
+          ${e.status === 'online' ? '<span style="color:var(--critical);font-weight:600;">● ONLINE</span>' : ''}
+        </div>`;
+      ul.appendChild(li);
+    });
+    document.getElementById('abuse-body').innerHTML = '';
+    document.getElementById('abuse-body').appendChild(ul);
+    applyGlobalSWFilter();
+  } catch (e) {
+    setError('abuse-body', 'https://feodotracker.abuse.ch');
   }
-
-  const ul = document.createElement('ul');
-  ul.className = 'feed-list';
-  entries.forEach(e => {
-    const swHit = softwareMatches(e.malware);
-    const li = document.createElement('li');
-    li.className = 'feed-item' + (swHit ? ' sw-match' : '');
-    li.innerHTML = `
-      <div style="font-weight:600;margin-bottom:2px;">${swHit ? '⚡ ' : ''}${escHtml(e.malware)}</div>
-      <div style="font-size:12px;color:var(--text);font-family:monospace;margin-bottom:3px;">${escHtml(truncate(e.ioc, 60))}</div>
-      <div class="feed-item-meta">
-        <span>${escHtml(e.source)}</span>
-        <span>${escHtml(e.type)}</span>
-        ${e.country ? `<span>${escHtml(e.country)}</span>` : ''}
-        ${e.status === 'online' ? '<span style="color:var(--critical);font-weight:600;">● ONLINE</span>' : ''}
-        ${e.confidence != null ? `<span>conf: ${e.confidence}%</span>` : ''}
-      </div>`;
-    ul.appendChild(li);
-  });
-  document.getElementById('abuse-body').innerHTML = '';
-  document.getElementById('abuse-body').appendChild(ul);
-  applyGlobalSWFilter();
 }
 
 // ─── Threats Tab: Ransomware Activity ────────────────────────────────────────
+// ransomware.live's API has no CORS headers either, so it goes through the
+// same proxy as Feodo Tracker above.
 async function loadRansomware() {
   setLoading('ransomware-body');
   try {
-    const resp = await fetch('https://api.ransomware.live/recentvictims');
+    const resp = await fetch(CORS_PROXY + encodeURIComponent('https://api.ransomware.live/recentvictims'));
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const data = await resp.json();
     const victims = (Array.isArray(data) ? data : [])
@@ -1880,6 +1857,7 @@ function checkFirstRun() {
 
 // ─── News RSS ────────────────────────────────────────────────────────────────
 const RSS2JSON_BASE = 'https://api.rss2json.com/v1/api.json?rss_url=';
+const CORS_PROXY = 'https://corsproxy.io/?url=';
 
 async function loadNewsRSS() {
   const s = loadSettings();
