@@ -547,7 +547,7 @@ html[data-theme="dark"] .welcome-banner { background: #1c2a10; color: #c8e6a0; b
           </div>
           <div class="panel-body no-scroll" id="ti-body">
             <div class="ti-input-row">
-              <input class="ti-input" id="ti-val" type="text" placeholder="IP, domain, hash, or URL…" autocomplete="off" oninput="tiDetect()" onkeydown="if(event.key==='Enter')tiDetect()">
+              <input class="ti-input" id="ti-val" type="text" placeholder="IP, domain, hash, or URL…" autocomplete="off" oninput="tiInput()" onkeydown="if(event.key==='Enter')tiDetect()">
               <select class="ti-select" id="ti-type" onchange="tiRender()">
                 <option value="ip">IP</option>
                 <option value="domain">Domain</option>
@@ -686,7 +686,7 @@ document.querySelectorAll('.theme-btn').forEach(b => b.addEventListener('click',
 applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
 
 // ─── Settings Data ────────────────────────────────────────────────────────────
-const APP_VERSION  = '1.0.3';
+const APP_VERSION  = '1.0.4';
 const GITHUB_RAW   = 'https://raw.githubusercontent.com/Xoke/cyber-fieldkit/main/cyber-dashboard.html';
 const SETTINGS_KEY = 'cyber-dash-settings';
 const WELCOMED_KEY = 'cyber-dash-welcomed';
@@ -1188,6 +1188,11 @@ function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// Only allow http(s) URLs from external feed data into href attributes
+function safeUrl(u) {
+  return /^https?:\/\//i.test(String(u || '').trim()) ? u : '#';
+}
+
 function truncate(str, len) {
   if (!str) return '';
   return str.length > len ? str.slice(0, len) + '…' : str;
@@ -1642,7 +1647,7 @@ async function loadCISAAdvisories() {
       const li = document.createElement('li');
       li.className = 'feed-item' + (relevant ? ' industry-relevant' : '') + (swHit ? ' sw-match' : '');
       li.innerHTML = `
-        <a class="feed-item-title" href="${escHtml(item.link || item.guid || '#')}" target="_blank" rel="noopener">${escHtml(title)}</a>
+        <a class="feed-item-title" href="${escHtml(safeUrl(item.link || item.guid))}" target="_blank" rel="noopener">${escHtml(title)}</a>
         <div class="feed-item-meta">
           ${typeTag ? `<span style="color:var(--accent);font-weight:600;">${escHtml(typeTag)}</span>` : ''}
           <span>CISA</span>
@@ -1698,10 +1703,17 @@ function tiDetectType(val) {
   return 'domain';
 }
 
-function tiDetect() {
+// Called on every keystroke: update detected type and buttons, but don't query anything
+function tiInput() {
   const val = document.getElementById('ti-val').value.trim();
   if (val) document.getElementById('ti-type').value = tiDetectType(val);
   tiRender();
+}
+
+// Called from the Detect button / Enter: also runs the InternetDB lookup for IPs
+function tiDetect() {
+  tiInput();
+  const val = document.getElementById('ti-val').value.trim();
   const type = document.getElementById('ti-type').value;
   if (type === 'ip' && val) {
     loadInternetDB(val);
@@ -1712,7 +1724,6 @@ function tiDetect() {
 }
 
 function tiRender() {
-  const val = document.getElementById('ti-val').value.trim();
   const type = document.getElementById('ti-type').value;
   if (type !== 'ip') {
     const el = document.getElementById('idb-result');
@@ -1720,22 +1731,42 @@ function tiRender() {
   }
   const svcs = TI_SERVICES[type] || [];
   const container = document.getElementById('ti-services');
-  if (!svcs.length) { container.innerHTML = ''; return; }
-  const makeUrl = (svc) => svc.url(val || '{value}');
-  let html = `<div class="svc-group"><div class="svc-group-label">${escHtml(type.toUpperCase())} services</div><div class="svc-buttons">`;
+  container.innerHTML = '';
+  if (!svcs.length) return;
+  // Build with DOM APIs — user input must never be interpolated into HTML attributes
+  const group = document.createElement('div');
+  group.className = 'svc-group';
+  const label = document.createElement('div');
+  label.className = 'svc-group-label';
+  label.textContent = type.toUpperCase() + ' services';
+  group.appendChild(label);
+  const btns = document.createElement('div');
+  btns.className = 'svc-buttons';
   svcs.forEach(svc => {
-    html += `<button class="svc-btn" onclick="if(document.getElementById('ti-val').value.trim())window.open(${JSON.stringify(makeUrl(svc))},'_blank')" title="${escHtml(svc.name)}">${escHtml(svc.name)}</button>`;
+    const btn = document.createElement('button');
+    btn.className = 'svc-btn';
+    btn.title = svc.name;
+    btn.textContent = svc.name;
+    btn.addEventListener('click', () => {
+      const v = document.getElementById('ti-val').value.trim();
+      if (v) window.open(svc.url(v), '_blank', 'noopener');
+    });
+    btns.appendChild(btn);
   });
-  html += `<button class="svc-open-all" onclick="tiOpenAll()">Open All</button>`;
-  html += '</div></div>';
-  container.innerHTML = html;
+  const openAll = document.createElement('button');
+  openAll.className = 'svc-open-all';
+  openAll.textContent = 'Open All';
+  openAll.addEventListener('click', tiOpenAll);
+  btns.appendChild(openAll);
+  group.appendChild(btns);
+  container.appendChild(group);
 }
 
 function tiOpenAll() {
   const val = document.getElementById('ti-val').value.trim();
   if (!val) return;
   const type = document.getElementById('ti-type').value;
-  (TI_SERVICES[type] || []).forEach(svc => window.open(svc.url(val), '_blank'));
+  (TI_SERVICES[type] || []).forEach(svc => window.open(svc.url(val), '_blank', 'noopener'));
 }
 
 async function loadInternetDB(ip) {
@@ -1903,7 +1934,7 @@ async function loadNewsRSS() {
       const li = document.createElement('li');
       li.className = 'feed-item' + (relevant ? ' industry-relevant' : '') + (swHit ? ' sw-match' : '');
       li.innerHTML = `
-        <a class="feed-item-title" href="${escHtml(item.link)}" target="_blank" rel="noopener">${escHtml(item.title)}</a>
+        <a class="feed-item-title" href="${escHtml(safeUrl(item.link))}" target="_blank" rel="noopener">${escHtml(item.title)}</a>
         ${item.description ? `<div class="feed-excerpt" style="font-size:11px;color:var(--text-muted);line-height:1.4;margin-top:2px;">${escHtml(item.description)}</div>` : ''}
         <div class="feed-item-meta">
           <span>${escHtml(item.source)}</span>
@@ -1974,7 +2005,7 @@ refreshAll();
 </script>
 
 <div class="local-note">
-  <strong>🔒 Local Storage Only:</strong> All data is stored locally in your browser and never transmitted to external servers.
+  <strong>🔒 Local Storage Only:</strong> Settings are stored locally in your browser. Feed panels fetch public sources; Intel lookups send the value you enter to the selected service only when you run them.
 </div>
 </body>
 </html>

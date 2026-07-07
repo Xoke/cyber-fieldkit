@@ -166,7 +166,7 @@ body.edit-mode #btn-add-row { display: inline-block; }
 // ── Constants ─────────────────────────────────────────────────────────────────
 const LS_KEY      = 'bookmarks-app-data';
 const LS_THEME    = 'bookmarks-theme';
-const APP_VERSION = '1.0.2';
+const APP_VERSION = '1.0.3';
 const GITHUB_RAW  = 'https://raw.githubusercontent.com/Xoke/cyber-fieldkit/main/bookmarks.html';
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -189,17 +189,27 @@ function parseTags(s){ return s.split(',').map(t => t.trim()).filter(Boolean); }
 function loadData() {
   try {
     const embedded = document.getElementById('tiddlers-data').textContent.trim();
-    if (embedded && embedded !== '{}') { data = JSON.parse(embedded); return; }
+    if (embedded && embedded !== '{}') {
+      const parsed = JSON.parse(embedded);
+      if (parsed && Array.isArray(parsed.folders)) { data = parsed; return; }
+    }
   } catch(e) {}
   try {
     const ls = localStorage.getItem(LS_KEY);
-    if (ls) { data = JSON.parse(ls); return; }
+    if (ls) {
+      const parsed = JSON.parse(ls);
+      if (parsed && Array.isArray(parsed.folders)) { data = parsed; return; }
+    }
   } catch(e) {}
   data = { folders: [] };
 }
 
 function saveToLocalStorage() { localStorage.setItem(LS_KEY, JSON.stringify(data)); }
-function serializeData()      { return JSON.stringify(data, null, 2); }
+function serializeData() {
+  // Escape </script sequences so the HTML parser won't close the script tag early
+  return JSON.stringify(data, null, 2).replace(/<\/script/gi, '<\\/script');
+}
+function isSafeUrl(u) { return /^https?:\/\//i.test(String(u || '').trim()); }
 
 function markDirty() {
   saveToLocalStorage();
@@ -249,7 +259,7 @@ async function saveFile() {
       fileHandle = await window.showSaveFilePicker({
         suggestedName: location.pathname.split('/').pop() || 'bookmarks.html',
         types: [{ description: 'HTML file', accept: { 'text/html': ['.html'] } }],
-        ...(fileHandle ? { startIn: fileHandle } : { startIn: 'documents' })
+        startIn: 'documents'
       });
     }
     setSaveStatus('saving');
@@ -489,7 +499,7 @@ function renderMain() {
     tbody.querySelectorAll('.bm-row').forEach(row => {
       row.addEventListener('click', () => {
         const bm = folder.bookmarks.find(b => b.id === row.dataset.id);
-        if (bm && bm.url) window.open(bm.url, '_blank');
+        if (bm && isSafeUrl(bm.url)) window.open(bm.url, '_blank', 'noopener');
       });
     });
   }
@@ -539,8 +549,10 @@ function hideAddForm() {
 
 function addBookmark() {
   const title = document.getElementById('af-title').value.trim();
-  const url   = document.getElementById('af-url').value.trim();
+  let url     = document.getElementById('af-url').value.trim();
   if (!title || !url) { alert('Title and URL are required.'); return; }
+  if (!/^[a-z][a-z0-9+.-]*:/i.test(url)) url = 'https://' + url;
+  if (!isSafeUrl(url)) { alert('URL must start with http:// or https://.'); return; }
   const folder = getActiveFolder();
   if (!folder) return;
   if (editingId) {
@@ -633,16 +645,21 @@ function handleImportFile(file) {
 
     if (!confirm(msg)) return;
 
+    let skipped = 0;
     parsed.forEach(({ name, bookmarks }) => {
       let folder = data.folders.find(f => f.name === name);
       if (!folder) {
         folder = { id: uid(), name, bookmarks: [] };
         data.folders.push(folder);
       }
+      const existing = new Set(folder.bookmarks.map(b => b.url));
       bookmarks.forEach(({ title, url }) => {
+        if (existing.has(url)) { skipped++; return; }
+        existing.add(url);
         folder.bookmarks.push({ id: uid(), title, url, description: '', tags: [], created: new Date().toISOString() });
       });
     });
+    if (skipped) alert(skipped + ' duplicate bookmark' + (skipped !== 1 ? 's' : '') + ' skipped (same URL already in folder).');
 
     if (!activeFolderId && data.folders.length) activeFolderId = data.folders[0].id;
     markDirty();

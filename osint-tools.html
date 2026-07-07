@@ -295,7 +295,7 @@ body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidde
 
 <script>
 // ── Version ────────────────────────────────────────────────────────────────
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.0.2';
 const GITHUB_RAW = 'https://raw.githubusercontent.com/Xoke/cyber-fieldkit/main/osint-tools.html';
 
 // ── Theme ──────────────────────────────────────────────────────────────────
@@ -563,22 +563,22 @@ const SERVICES = {
     {
       category: 'Social Media',
       items: [
-        { label: 'Twitter/X',  url: u => `https://twitter.com/${u}` },
-        { label: 'Instagram',  url: u => `https://www.instagram.com/${u}/` },
-        { label: 'Facebook',   url: u => `https://www.facebook.com/${u}` },
-        { label: 'LinkedIn',   url: u => `https://www.linkedin.com/in/${u}` },
-        { label: 'GitHub',     url: u => `https://github.com/${u}` },
-        { label: 'Reddit',     url: u => `https://www.reddit.com/user/${u}` },
-        { label: 'TikTok',     url: u => `https://www.tiktok.com/@${u}` },
-        { label: 'YouTube',    url: u => `https://www.youtube.com/@${u}` },
-        { label: 'Twitch',     url: u => `https://www.twitch.tv/${u}` },
-        { label: 'Pinterest',  url: u => `https://www.pinterest.com/${u}` },
-        { label: 'Tumblr',     url: u => `https://${u}.tumblr.com` },
-        { label: 'Medium',     url: u => `https://medium.com/@${u}` },
-        { label: 'Steam',      url: u => `https://steamcommunity.com/id/${u}` },
-        { label: 'Snapchat',   url: u => `https://www.snapchat.com/add/${u}` },
-        { label: 'Telegram',   url: u => `https://t.me/${u}` },
-        { label: 'Flickr',     url: u => `https://www.flickr.com/people/${u}` },
+        { label: 'Twitter/X',  url: u => `https://twitter.com/${enc(u)}` },
+        { label: 'Instagram',  url: u => `https://www.instagram.com/${enc(u)}/` },
+        { label: 'Facebook',   url: u => `https://www.facebook.com/${enc(u)}` },
+        { label: 'LinkedIn',   url: u => `https://www.linkedin.com/in/${enc(u)}` },
+        { label: 'GitHub',     url: u => `https://github.com/${enc(u)}` },
+        { label: 'Reddit',     url: u => `https://www.reddit.com/user/${enc(u)}` },
+        { label: 'TikTok',     url: u => `https://www.tiktok.com/@${enc(u)}` },
+        { label: 'YouTube',    url: u => `https://www.youtube.com/@${enc(u)}` },
+        { label: 'Twitch',     url: u => `https://www.twitch.tv/${enc(u)}` },
+        { label: 'Pinterest',  url: u => `https://www.pinterest.com/${enc(u)}` },
+        { label: 'Tumblr',     url: u => `https://${enc(u)}.tumblr.com` },
+        { label: 'Medium',     url: u => `https://medium.com/@${enc(u)}` },
+        { label: 'Steam',      url: u => `https://steamcommunity.com/id/${enc(u)}` },
+        { label: 'Snapchat',   url: u => `https://www.snapchat.com/add/${enc(u)}` },
+        { label: 'Telegram',   url: u => `https://t.me/${enc(u)}` },
+        { label: 'Flickr',     url: u => `https://www.flickr.com/people/${enc(u)}` },
       ]
     },
     {
@@ -674,9 +674,17 @@ function clearTab(tab) {
   }
 }
 
-// ── Clear notes ────────────────────────────────────────────────────────────
+// ── Investigation notes (persisted to localStorage) ───────────────────────
+const NOTES_KEY = 'osint-notes';
+const notesEl = document.getElementById('investigation-notes');
+try { notesEl.value = localStorage.getItem(NOTES_KEY) || ''; } catch(e) {}
+notesEl.addEventListener('input', () => {
+  try { localStorage.setItem(NOTES_KEY, notesEl.value); } catch(e) {}
+});
+
 function clearNotes() {
-  document.getElementById('investigation-notes').value = '';
+  notesEl.value = '';
+  try { localStorage.removeItem(NOTES_KEY); } catch(e) {}
 }
 
 // ── Shake animation ────────────────────────────────────────────────────────

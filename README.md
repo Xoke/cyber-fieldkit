@@ -4,7 +4,7 @@ A collection of standalone single-file HTML tools for security professionals. No
 
 ## Tools
 
-### [CISSP CPE Tracker](0-CPE%20Tracker.html)
+### [CISSP CPE Tracker](0-CPETracker.html)
 Track Continuing Professional Education hours toward CISSP renewal. Logs activities with domains covered, CPE type (Group A/B), hours, proof files, and markdown notes. Tracks progress against your 3-year cycle goal (120 CPE, ≥40 Group A).
 
 ### [Notes](notes.html)
@@ -17,15 +17,15 @@ Morning briefing dashboard with live feeds for CISA KEV, NVD critical CVEs, Redd
 Self-contained bookmark manager with folders, tags, and search. Import directly from a browser bookmark export (HTML format). Data is stored inside the file itself — works the same way as the CPE Tracker and Notes.
 
 ### [OSINT Tools](osint-tools.html)
-Query builder that opens external OSINT sources pre-filled with your search terms. Covers name, phone, email, and username lookups across 50+ sources. Includes an "Open All" mode with popup blocker detection.
+Query builder that opens external OSINT sources pre-filled with your search terms. Covers name, phone, email, and username lookups across 50+ sources. Includes an investigation notes scratchpad (saved to localStorage).
 
 ## Usage
 
 Download any file and open it directly in a browser. That's it.
 
-**Data persistence** (CPE Tracker and Notes): On first save, the browser prompts you to choose a save location via the [File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API). After that, Ctrl+S saves in place. Data is stored inside the HTML file itself — back it up like any other file. Falls back to localStorage if you haven't saved via the file picker.
+**Data persistence** (CPE Tracker, Notes, and Bookmarks): On first save, the browser prompts you to choose a save location via the [File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API). After that, Ctrl+S saves in place. Data is stored inside the HTML file itself — back it up like any other file. Falls back to localStorage if you haven't saved via the file picker.
 
-**Cyber Dashboard and OSINT Tools** store no personal data. Dashboard settings (industry, states, software) are saved to localStorage.
+**Cyber Dashboard and OSINT Tools** keep everything in localStorage: dashboard settings (industry, states, software) and the OSINT investigation notes. Note that the CPE Tracker's PDF transcript import loads PDF.js from the cdnjs CDN at import time — the only feature that requires an internet connection beyond the live feeds.
 
 ## Updates
 
@@ -35,4 +35,4 @@ Each tool has a **Check for Updates** button that compares your local version ag
 
 ## Themes
 
-All four tools support Light, Sepia, Dusk, and Dark themes. Theme preference is saved to localStorage per tool.
+All five tools support Light, Sepia, Dusk, and Dark themes. Theme preference is saved to localStorage per tool.

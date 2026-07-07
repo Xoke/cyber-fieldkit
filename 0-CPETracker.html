@@ -417,7 +417,7 @@ const DOMAINS = [
 
 const LS_KEY      = 'cissp-cpe-data';
 const LS_THEME    = 'cissp-cpe-theme';
-const APP_VERSION = '1.0.6';
+const APP_VERSION = '1.0.7';
 const GITHUB_RAW  = 'https://raw.githubusercontent.com/Xoke/cyber-fieldkit/main/0-CPETracker.html';
 
 // ── State ──────────────────────────────────────────────────────────────────────
@@ -483,9 +483,21 @@ function stripMarkdown(md) {
     .trim();
 }
 
-// Return today as YYYY-MM-DD
-function currentMonth() {
-  return new Date().toISOString().slice(0, 10);
+// Return today as YYYY-MM-DD (local time, not UTC)
+function todayLocal() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+// Render markdown without letting raw HTML or javascript: links through
+marked.use({ renderer: { html(token) { return escHtml(token.text != null ? token.text : token.raw || ''); } } });
+function safeMarkdown(md) {
+  const tpl = document.createElement('template');
+  tpl.innerHTML = marked.parse(md || '');
+  tpl.content.querySelectorAll('a[href]').forEach(a => {
+    if (!/^(https?:|mailto:|#)/i.test((a.getAttribute('href') || '').trim())) a.removeAttribute('href');
+  });
+  return tpl.innerHTML;
 }
 
 function slug(str) {
@@ -709,7 +721,7 @@ async function saveProofBlob(blob, suggestedName) {
 
 function proofSuggestedName(entry, file) {
   const ext = file.name ? file.name.split('.').pop() : (file.type.split('/')[1] || 'bin');
-  const datePart = (entry.dateFrom || currentMonth()).slice(0, 10);
+  const datePart = (entry.dateFrom || todayLocal()).slice(0, 10);
   const typePart = entry.type || 'cpe';
   const titlePart = slug(entry.title || 'untitled');
   return 'cpe-' + datePart + '-' + typePart + '-' + titlePart + '.' + ext;
@@ -883,17 +895,15 @@ function parseDateToMonth(raw) {
 
 async function loadPdfJs() {
   if (window.pdfjsLib) return window.pdfjsLib;
-  return new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-    s.onload = () => {
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
-        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-      resolve(window.pdfjsLib);
-    };
-    s.onerror = () => reject(new Error('Failed to load PDF.js. Check your internet connection.'));
-    document.head.appendChild(s);
-  });
+  try {
+    const mod = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs');
+    mod.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.mjs';
+    window.pdfjsLib = mod;
+    return mod;
+  } catch (e) {
+    throw new Error('Failed to load PDF.js. Check your internet connection.');
+  }
 }
 
 const PDF_MONTHS = {jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',
@@ -942,7 +952,8 @@ function mapPdfCpeType(typeStr, group) {
 
 async function parsePdfTranscript(arrayBuffer) {
   const pdfjsLib = await loadPdfJs();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  // isEvalSupported: false blocks PDF-embedded JS from reaching the Function constructor (CVE-2024-4367 class)
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer, isEvalSupported: false }).promise;
 
   // Collect all text items across pages with their x/y positions
   const allItems = [];
@@ -1443,7 +1454,7 @@ function renderEntryView(entry) {
   }).join('');
 
   const summaryHtml = entry.summary
-    ? '<div class="summary-rendered">' + marked.parse(entry.summary) + '</div>'
+    ? '<div class="summary-rendered">' + safeMarkdown(entry.summary) + '</div>'
     : '<span style="color:var(--text-muted);font-size:12px">No summary.</span>';
 
   const cp = (val) => '<button class="copy-btn" data-copy="' + escHtml(String(val || '')) + '">copy</button>';
@@ -1530,7 +1541,7 @@ function renderEditForm() {
   if (!el) return;
 
   const entry = isNewEntry ? null : data.entries.find(e => e.id === activeId);
-  const cm    = currentMonth();
+  const cm    = todayLocal();
   const v     = entry || { type: 'online_webinar', dateFrom: cm, dateTo: cm, cpeCount: 1, proofRefs: [] };
   const existingRefs = v.proofRefs || [];
 
@@ -1684,17 +1695,18 @@ function collectFormData() {
     const hiddenEl = document.getElementById('proof-refs-hidden');
     if (hiddenEl) proofRefs = JSON.parse(hiddenEl.value) || [];
   } catch(e) {}
+  const fieldVal = id => { const el = document.getElementById(id); return el && el.value != null ? el.value : ''; };
   return {
-    title:         (document.getElementById('f-title')     || {}).value.trim() || '',
-    type:          (document.getElementById('f-type')      || {}).value || 'webinar',
-    dateFrom:      (document.getElementById('f-date-from') || {}).value || '',
-    dateTo:        (document.getElementById('f-date-to')   || {}).value || '',
-    cpeCount:      parseFloat((document.getElementById('f-cpe') || {}).value) || 0,
-    presenter:     (document.getElementById('f-presenter') || {}).value.trim() || '',
-    org:           (document.getElementById('f-org')       || {}).value.trim() || '',
-    yearPublished: (document.getElementById('f-year')      || {}).value || '',
-    url:           (document.getElementById('f-url')       || {}).value.trim() || '',
-    summary:       (document.getElementById('f-summary')   || {}).value.trim() || '',
+    title:         fieldVal('f-title').trim(),
+    type:          fieldVal('f-type') || 'online_webinar',
+    dateFrom:      fieldVal('f-date-from'),
+    dateTo:        fieldVal('f-date-to'),
+    cpeCount:      parseFloat(fieldVal('f-cpe')) || 0,
+    presenter:     fieldVal('f-presenter').trim(),
+    org:           fieldVal('f-org').trim(),
+    yearPublished: fieldVal('f-year'),
+    url:           fieldVal('f-url').trim(),
+    summary:       fieldVal('f-summary').trim(),
     proofRefs:     proofRefs,
     transcript:    !!(document.getElementById('f-transcript') || {}).checked,
     domains:       domains,
