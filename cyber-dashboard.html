@@ -1357,21 +1357,20 @@ function renderKEVList(vulns, sourceNote) {
 
 async function loadKEV() {
   setLoading('kev-body');
-  // Try CISA direct first
+  // cisa.gov's KEV JSON has no CORS headers, so a direct browser fetch always
+  // fails — go straight to NVD, which mirrors the same KEV catalog and does
+  // support CORS. Note: the flag is `hasKev` with no value; the older
+  // `cisaKevEntry=true` param NVD used to accept now 404s. Window by
+  // kevStartDate/kevEndDate instead of paging the full ~1600-entry catalog —
+  // an unwindowed resultsPerPage=2000 request is several MB and froze the
+  // tab for 45s+ on NVD's unauthenticated rate limit before returning.
   try {
-    const resp = await fetch('https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json');
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const data = await resp.json();
-    const vulns = (data.vulnerabilities || [])
-      .slice().sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded))
-      .slice(0, 12);
-    renderKEVList(vulns, '');
-    return;
-  } catch (_) { /* fall through to NVD fallback */ }
-
-  // NVD fallback: fetch all CISA KEV entries directly, sort by dateAdded client-side
-  try {
-    const resp = await fetch('https://services.nvd.nist.gov/rest/json/cves/2.0?cisaKevEntry=true&resultsPerPage=2000');
+    const pad = n => String(n).padStart(2, '0');
+    const fmt = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T00:00:00.000`;
+    const end = new Date();
+    const start = new Date(Date.now() - 90 * 86400000);
+    const url = `https://services.nvd.nist.gov/rest/json/cves/2.0?hasKev&kevStartDate=${fmt(start)}&kevEndDate=${fmt(end)}&resultsPerPage=200`;
+    const resp = await fetch(url);
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const data = await resp.json();
     const vulns = (data.vulnerabilities || [])
