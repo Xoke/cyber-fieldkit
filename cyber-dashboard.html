@@ -325,9 +325,8 @@ body { background: var(--bg); color: var(--text); height: 100vh; display: flex; 
 .chip-wrap {
   display: flex; flex-wrap: wrap; gap: 5px; padding: 6px;
   background: var(--bg-ctrl); border: 1px solid var(--border); border-radius: 5px;
-  min-height: 38px; align-items: flex-start; cursor: text;
+  min-height: 38px; align-items: flex-start;
 }
-.chip-wrap:focus-within { border-color: var(--accent); }
 .chip {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 2px 7px; background: var(--accent-light); color: var(--accent);
@@ -335,7 +334,13 @@ body { background: var(--bg); color: var(--text); height: 100vh; display: flex; 
 }
 .chip-remove { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 13px; line-height: 1; padding: 0 1px; }
 .chip-remove:hover { color: var(--critical); }
-.chip-input { border: none; outline: none; background: none; color: var(--text); font-size: 12px; font-family: inherit; min-width: 100px; flex: 1; }
+.sw-import-row { display: flex; gap: 8px; margin-top: 6px; align-items: flex-start; }
+.sw-import-textarea {
+  flex: 1; padding: 7px 10px; background: var(--bg-ctrl); border: 1px solid var(--border);
+  border-radius: 5px; color: var(--text); font-size: 12px; font-family: inherit;
+  outline: none; resize: vertical; min-height: 60px; transition: border-color 0.15s;
+}
+.sw-import-textarea:focus { border-color: var(--accent); }
 .settings-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 .settings-actions { display: flex; gap: 8px; }
 
@@ -645,8 +650,10 @@ html[data-theme="dark"] .welcome-banner { background: #1c2a10; color: #c8e6a0; b
       </div>
       <div class="settings-section">
         <div class="settings-section-label">Software / Systems in Use</div>
-        <div class="chip-wrap" id="s-chips" onclick="document.getElementById('s-sw-input').focus()">
-          <input class="chip-input" id="s-sw-input" type="text" placeholder="Type name, press Enter…" onkeydown="chipKeydown(event)">
+        <div class="chip-wrap" id="s-chips"></div>
+        <div class="sw-import-row">
+          <textarea class="sw-import-textarea" id="s-sw-textarea" placeholder="Type or paste names, one per line…" rows="3"></textarea>
+          <button class="btn-secondary" onclick="importSWLines()">Import</button>
         </div>
         <div class="settings-hint">Matching KEV and CVE entries will be highlighted ⚡</div>
       </div>
@@ -1041,7 +1048,6 @@ function closeSettings() {
 function renderChips(chips) {
   _pendingChips = [...chips];
   const wrap = document.getElementById('s-chips');
-  const input = document.getElementById('s-sw-input');
   wrap.innerHTML = '';
   chips.forEach((c, i) => {
     const span = document.createElement('span');
@@ -1049,8 +1055,6 @@ function renderChips(chips) {
     span.innerHTML = `${escHtml(c)}<button class="chip-remove" onclick="removeChip(${i})" title="Remove">×</button>`;
     wrap.appendChild(span);
   });
-  wrap.appendChild(input);
-  input.value = '';
 }
 
 function removeChip(i) {
@@ -1058,16 +1062,12 @@ function removeChip(i) {
   renderChips(_pendingChips);
 }
 
-function chipKeydown(e) {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    const val = e.target.value.trim();
-    if (val && !_pendingChips.includes(val)) { _pendingChips.push(val); renderChips(_pendingChips); }
-    else { e.target.value = ''; }
-  } else if (e.key === 'Backspace' && !e.target.value && _pendingChips.length) {
-    _pendingChips.pop();
-    renderChips(_pendingChips);
-  }
+function importSWLines() {
+  const ta = document.getElementById('s-sw-textarea');
+  const lines = ta.value.split('\n').map(s => s.trim()).filter(Boolean);
+  lines.forEach(v => { if (!_pendingChips.includes(v)) _pendingChips.push(v); });
+  renderChips(_pendingChips);
+  ta.value = '';
 }
 
 function applySettings() {
