@@ -1442,38 +1442,28 @@ async function loadNVD() {
 }
 
 // ─── Panel 3: Security Community (r/netsec + r/cybersecurity) ────────────────
-const REDDIT_KEYWORDS = {
-  banking:    'bank fraud ransomware phishing breach payment wire swift GLBA',
-  healthcare: 'healthcare HIPAA ransomware patient breach medical PHI EHR',
-  retail:     'retail ecommerce PCI payment skimming magecart breach card',
-  technology: 'cloud vulnerability zero-day exploit ransomware API supply chain',
-  legal:      'law firm ransomware breach attorney privilege client data',
-  government: 'government CISA federal ransomware nation-state breach critical infrastructure FISMA',
-};
+// Uses each subreddit's public .rss feed via the rss2json proxy — Reddit's
+// search.json endpoint 403s on direct browser fetches (no CORS headers on
+// the error response), so a JSON API call here always fails as a CORS error.
+const REDDIT_SUBS = ['netsec', 'cybersecurity'];
 async function loadReddit() {
   setLoading('reddit-body');
-  const s = loadSettings();
   const kw = getIndustryKW();
-  const keywords = REDDIT_KEYWORDS[s.industry] || REDDIT_KEYWORDS.banking;
-  const base = 'https://www.reddit.com/search.json?sort=top&t=week&limit=15&raw_json=1';
   try {
-    const subFilter = '(subreddit:netsec OR subreddit:cybersecurity)';
-    const [r1, r2] = await Promise.all([
-      fetch(`${base}&q=${encodeURIComponent(subFilter)}`)
-        .then(r => { if (!r.ok) throw new Error(); return r.json(); }),
-      fetch(`${base}&q=${encodeURIComponent(subFilter + ' ' + keywords)}`)
-        .then(r => { if (!r.ok) throw new Error(); return r.json(); }),
-    ]);
-    const ALLOWED_SUBS = new Set(['netsec', 'cybersecurity']);
+    const feeds = await Promise.all(REDDIT_SUBS.map(sub =>
+      fetch(RSS2JSON_BASE + encodeURIComponent(`https://www.reddit.com/r/${sub}/top/.rss?t=week&limit=15`), { cache: 'default' })
+        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(data => { if (data.status !== 'ok') throw new Error('feed error'); return data.items || []; })
+    ));
     const seen = new Set();
     const posts = [];
-    [...(r1.data?.children || []), ...(r2.data?.children || [])].forEach(c => {
-      const p = c.data;
-      if (!seen.has(p.id) && ALLOWED_SUBS.has((p.subreddit || '').toLowerCase())) {
-        seen.add(p.id); posts.push(p);
-      }
+    feeds.forEach((items, i) => {
+      items.forEach(item => {
+        const id = item.guid || item.link;
+        if (!seen.has(id)) { seen.add(id); posts.push({ ...item, sub: REDDIT_SUBS[i] }); }
+      });
     });
-    posts.sort((a, b) => (b.score || 0) - (a.score || 0));
+    posts.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
     const top10 = posts.slice(0, 10);
     if (!top10.length) {
       document.getElementById('reddit-body').innerHTML = '<div class="loading-state">No posts found.</div>';
@@ -1482,19 +1472,16 @@ async function loadReddit() {
     const ul = document.createElement('ul');
     ul.className = 'feed-list';
     top10.forEach(p => {
-      const postUrl = 'https://www.reddit.com' + (p.permalink || '');
-      const relevant = kw.test(p.title + ' ' + (p.selftext || ''));
-      const swHit = softwareMatches(p.title + ' ' + (p.selftext || ''));
-      const sub = p.subreddit || 'unknown';
+      const title = p.title || '';
+      const relevant = kw.test(title);
+      const swHit = softwareMatches(title);
       const li = document.createElement('li');
       li.className = 'feed-item' + (relevant ? ' industry-relevant' : '') + (swHit ? ' sw-match' : '');
       li.innerHTML = `
-        <a class="feed-item-title" href="${escHtml(postUrl)}" target="_blank" rel="noopener">${relevant ? '★ ' : ''}${escHtml(p.title)}</a>
+        <a class="feed-item-title" href="${escHtml(safeUrl(p.link))}" target="_blank" rel="noopener">${relevant ? '★ ' : ''}${escHtml(title)}</a>
         <div class="feed-item-meta">
-          <span class="reddit-sub">r/${escHtml(sub)}</span>
-          <span>↑ ${(p.score || 0).toLocaleString()}</span>
-          <a href="${escHtml(postUrl)}" target="_blank" rel="noopener">${p.num_comments || 0} comments</a>
-          <span>${timeAgo(new Date(p.created_utc * 1000).toISOString())}</span>
+          <span class="reddit-sub">r/${escHtml(p.sub)}</span>
+          <span>${p.pubDate ? timeAgo(p.pubDate) : ''}</span>
         </div>`;
       ul.appendChild(li);
     });
