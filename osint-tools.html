@@ -135,6 +135,24 @@ body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidde
 }
 .svc-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 
+/* Domain RDAP summary */
+.btn-primary {
+  padding: 7px 12px; background: var(--accent); color: #fff;
+  border: 1px solid var(--accent); border-radius: 5px; font-size: 13px;
+  cursor: pointer; transition: background 0.15s;
+}
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-primary:disabled { opacity: 0.6; cursor: default; }
+.rdap-result { max-width: 700px; margin: -8px 0 20px; font-size: 12px; }
+.rdap-result:empty { display: none; }
+.rdap-table { width: 100%; border-collapse: collapse; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.rdap-table th, .rdap-table td { padding: 6px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--border); }
+.rdap-table tr:last-child th, .rdap-table tr:last-child td { border-bottom: none; }
+.rdap-table th { width: 130px; color: var(--text-muted); font-weight: 500; }
+.rdap-table td { word-break: break-word; }
+.rdap-age-new { color: #d73a49; font-weight: 600; }
+.rdap-msg { color: var(--text-muted); padding: 4px 2px; }
+
 .local-note {
   position: fixed;
   bottom: 10px;
@@ -167,6 +185,9 @@ body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidde
       </button>
       <button class="nav-item" data-tab="username" onclick="switchTab('username')">
         <span class="nav-icon">🔍</span><span>Username</span>
+      </button>
+      <button class="nav-item" data-tab="domain" onclick="switchTab('domain')">
+        <span class="nav-icon">🌐</span><span>Domain</span>
       </button>
     </div>
     <div class="sidebar-bottom">
@@ -258,6 +279,25 @@ body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidde
       <div class="services-area" id="username-services"></div>
     </div>
 
+    <!-- DOMAIN TAB -->
+    <div class="tab-panel" id="tab-domain">
+      <div class="input-card" id="domain-card">
+        <h2>Domain Lookup</h2>
+        <div class="input-row">
+          <div class="input-group">
+            <label for="d-domain">Domain or URL</label>
+            <input type="text" id="d-domain" placeholder="example.com" autocomplete="off">
+          </div>
+        </div>
+        <div class="input-card-actions">
+          <button class="btn-primary" id="rdap-btn" onclick="lookupRdap()">Quick Registration Info</button>
+          <button class="btn-secondary" onclick="clearTab('domain')">Clear</button>
+        </div>
+      </div>
+      <div class="rdap-result" id="rdap-result"></div>
+      <div class="services-area" id="domain-services"></div>
+    </div>
+
     <!-- INVESTIGATION NOTES -->
     <div class="notes-section">
       <h2>Investigation Notes</h2>
@@ -295,7 +335,7 @@ body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidde
 
 <script>
 // ── Version ────────────────────────────────────────────────────────────────
-const APP_VERSION = '1.0.2';
+const APP_VERSION = '1.0.3';
 const GITHUB_RAW = 'https://raw.githubusercontent.com/Xoke/cyber-fieldkit/main/osint-tools.html';
 
 // ── Theme ──────────────────────────────────────────────────────────────────
@@ -589,6 +629,66 @@ const SERVICES = {
         { label: 'DuckDuckGo', url: u => `https://duckduckgo.com/?q=${enc('"' + u + '"')}` },
       ]
     }
+  ],
+
+  domain: [
+    {
+      category: 'WHOIS / Registration',
+      items: [
+        { label: 'ICANN Lookup',  url: d => `https://lookup.icann.org/en/lookup?name=${enc(d)}` },
+        { label: 'who.is',        url: d => `https://who.is/whois/${enc(d)}` },
+        { label: 'Whois.com',     url: d => `https://www.whois.com/whois/${enc(d)}` },
+        { label: 'DomainTools',   url: d => `https://whois.domaintools.com/${enc(d)}` },
+        { label: 'Whoxy',         url: d => `https://www.whoxy.com/${enc(d)}` },
+        { label: 'ViewDNS WHOIS', url: d => `https://viewdns.info/whois/?domain=${enc(d)}` },
+        { label: 'RDAP (raw)',    url: d => `https://rdap.org/domain/${enc(d)}` },
+      ]
+    },
+    {
+      category: 'History',
+      note: '* login required',
+      items: [
+        { label: 'Wayback Machine', url: d => `https://web.archive.org/web/*/${enc(d)}` },
+        { label: 'archive.today',   url: d => `https://archive.ph/${enc(d)}` },
+        { label: 'IP History',      url: d => `https://viewdns.info/iphistory/?domain=${enc(d)}` },
+        { label: 'SecurityTrails *', url: d => `https://securitytrails.com/domain/${enc(d)}/history/a` },
+      ]
+    },
+    {
+      category: 'DNS / Infrastructure',
+      note: '* login required',
+      items: [
+        { label: 'MXToolbox',      url: d => `https://mxtoolbox.com/SuperTool.aspx?action=${enc('mx:' + d)}&run=toolpage` },
+        { label: 'Google DNS',     url: d => `https://dns.google/query?name=${enc(d)}&type=ANY` },
+        { label: 'DNSDumpster',    url: () => 'https://dnsdumpster.com/' },
+        { label: 'Reverse IP',     url: d => `https://viewdns.info/reverseip/?host=${enc(d)}&t=1` },
+        { label: 'crt.sh (certs)', url: d => `https://crt.sh/?q=${enc('%.' + d)}` },
+        { label: 'BuiltWith',      url: d => `https://builtwith.com/${enc(d)}` },
+        { label: 'Shodan *',       url: d => `https://www.shodan.io/search?query=${enc('hostname:' + d)}` },
+        { label: 'Censys *',       url: d => `https://search.censys.io/search?resource=hosts&q=${enc(d)}` },
+      ]
+    },
+    {
+      category: 'Reputation / Threat Intel',
+      items: [
+        { label: 'VirusTotal',     url: d => `https://www.virustotal.com/gui/domain/${enc(d)}` },
+        { label: 'urlscan.io',     url: d => `https://urlscan.io/search/#${enc('domain:' + d)}` },
+        { label: 'AlienVault OTX', url: d => `https://otx.alienvault.com/indicator/domain/${enc(d)}` },
+        { label: 'Cisco Talos',    url: d => `https://talosintelligence.com/reputation_center/lookup?search=${enc(d)}` },
+        { label: 'URLhaus',        url: d => `https://urlhaus.abuse.ch/browse.php?search=${enc(d)}` },
+        { label: 'Sucuri SiteCheck', url: d => `https://sitecheck.sucuri.net/results/${enc(d)}` },
+        { label: 'Safe Browsing',  url: d => `https://transparencyreport.google.com/safe-browsing/search?url=${enc(d)}` },
+      ]
+    },
+    {
+      category: 'Search Engines',
+      items: [
+        { label: 'Google site:',   url: d => `https://www.google.com/search?q=${enc('site:' + d)}` },
+        { label: 'Google mentions', url: d => `https://www.google.com/search?q=${enc('"' + d + '" -site:' + d)}` },
+        { label: 'Bing site:',     url: d => `https://www.bing.com/search?q=${enc('site:' + d)}` },
+        { label: 'DuckDuckGo',     url: d => `https://duckduckgo.com/?q=${enc('"' + d + '"')}` },
+      ]
+    }
   ]
 };
 
@@ -629,7 +729,7 @@ function renderServices(tab) {
   });
 }
 
-['names', 'phone', 'email', 'username'].forEach(renderServices);
+['names', 'phone', 'email', 'username', 'domain'].forEach(renderServices);
 
 // ── Get args for each tab ──────────────────────────────────────────────────
 function getArgs(tab) {
@@ -658,7 +758,23 @@ function getArgs(tab) {
     if (!u) return null;
     return [u];
   }
+  if (tab === 'domain') {
+    const d = normalizeDomain(document.getElementById('d-domain').value);
+    if (!d) return null;
+    return [d];
+  }
   return null;
+}
+
+// Accepts a bare domain, URL, or email and returns just the hostname
+function normalizeDomain(raw) {
+  let d = raw.trim().toLowerCase();
+  if (!d) return '';
+  d = d.replace(/^[a-z][a-z0-9+.-]*:\/\//, '');   // scheme
+  d = d.replace(/^[^@\/]*@/, '');                  // user@ / email local-part
+  d = d.split(/[\/?#]/)[0].replace(/:\d+$/, '');   // path, query, port
+  d = d.replace(/^www\./, '').replace(/\.$/, '');
+  return /^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(d) ? d : '';
 }
 
 // ── Clear ─────────────────────────────────────────────────────────────────
@@ -671,8 +787,93 @@ function clearTab(tab) {
     document.getElementById('e-email').value = '';
   } else if (tab === 'username') {
     document.getElementById('u-user').value = '';
+  } else if (tab === 'domain') {
+    document.getElementById('d-domain').value = '';
+    document.getElementById('rdap-result').innerHTML = '';
   }
 }
+
+// ── Domain: quick RDAP registration summary ───────────────────────────────
+// rdap.org redirects to the authoritative registry's RDAP server; both send CORS headers.
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+function fmtAge(from) {
+  const now = new Date();
+  let months = (now.getFullYear() - from.getFullYear()) * 12 + (now.getMonth() - from.getMonth());
+  if (now.getDate() < from.getDate()) months--;
+  if (months < 1) return Math.max(0, Math.floor((now - from) / 86400000)) + ' days';
+  const y = Math.floor(months / 12), m = months % 12;
+  return [y && y + (y === 1 ? ' year' : ' years'), m && m + (m === 1 ? ' month' : ' months')].filter(Boolean).join(', ');
+}
+
+async function lookupRdap() {
+  const out = document.getElementById('rdap-result');
+  const args = getArgs('domain');
+  if (!args) { shakeCard('domain'); return; }
+  const domain = args[0];
+  const btn = document.getElementById('rdap-btn');
+  btn.disabled = true;
+  out.innerHTML = '<div class="rdap-msg">Looking up ' + escHtml(domain) + '…</div>';
+  try {
+    // RDAP only knows registered domains — on 400/404, walk up from a subdomain to its parent
+    let res, query = domain;
+    for (;;) {
+      res = await fetch('https://rdap.org/domain/' + enc(query), { headers: { Accept: 'application/rdap+json' } });
+      if ((res.status !== 404 && res.status !== 400) || query.split('.').length <= 2) break;
+      query = query.slice(query.indexOf('.') + 1);
+    }
+    if (res.status === 404) throw new Error('No RDAP record found — the domain may be unregistered, a subdomain, or its TLD has no RDAP server.');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const j = await res.json();
+
+    const ev = {};
+    (j.events || []).forEach(e => { if (e.eventAction && e.eventDate) ev[e.eventAction] = e.eventDate; });
+    const fmtDate = s => s ? new Date(s).toISOString().slice(0, 10) : '—';
+
+    const registrar = (j.entities || []).find(e => (e.roles || []).includes('registrar'));
+    const vcardFn = ent => {
+      const fn = ent && ent.vcardArray && ent.vcardArray[1] && ent.vcardArray[1].find(f => f[0] === 'fn');
+      return fn ? fn[3] : '';
+    };
+    const regName = vcardFn(registrar) || (registrar && registrar.handle) || '—';
+    const ianaId = registrar && (registrar.publicIds || []).find(p => /iana/i.test(p.type));
+    const registrant = (j.entities || []).find(e => (e.roles || []).includes('registrant'));
+    const regOrg = registrant && (registrant.vcardArray && registrant.vcardArray[1] || []).find(f => f[0] === 'org');
+    const abuse = (registrar && registrar.entities || []).find(e => (e.roles || []).includes('abuse'));
+    const abuseEmail = abuse && (abuse.vcardArray && abuse.vcardArray[1] || []).find(f => f[0] === 'email');
+
+    let ageHtml = '—';
+    if (ev.registration) {
+      const created = new Date(ev.registration);
+      const days = (Date.now() - created) / 86400000;
+      ageHtml = '<span class="' + (days < 90 ? 'rdap-age-new' : '') + '">' + escHtml(fmtAge(created)) +
+                (days < 90 ? ' — newly registered' : '') + '</span>';
+    }
+
+    const rows = [
+      ['Domain',      escHtml(j.ldhName ? j.ldhName.toLowerCase() : domain)],
+      ['Registrar',   escHtml(regName) + (ianaId ? ' <span style="color:var(--text-muted)">(IANA ' + escHtml(ianaId.identifier) + ')</span>' : '')],
+      ['Registered',  escHtml(fmtDate(ev.registration))],
+      ['Age',         ageHtml],
+      ['Expires',     escHtml(fmtDate(ev.expiration))],
+      ['Last changed', escHtml(fmtDate(ev['last changed']))],
+      ['Registrant',  regOrg ? escHtml(regOrg[3]) : '<span style="color:var(--text-muted)">redacted / not published</span>'],
+      ['Name servers', escHtml((j.nameservers || []).map(n => (n.ldhName || '').toLowerCase()).join(', ') || '—')],
+      ['Status',      escHtml((j.status || []).join(', ') || '—')],
+      ['Abuse contact', abuseEmail ? escHtml(abuseEmail[3]) : '—'],
+    ];
+    out.innerHTML = '<table class="rdap-table">' +
+      rows.map(r => '<tr><th>' + r[0] + '</th><td>' + r[1] + '</td></tr>').join('') + '</table>';
+  } catch (e) {
+    out.innerHTML = '<div class="rdap-msg">Couldn\'t fetch registration info: ' + escHtml(e.message) +
+                    ' Try the WHOIS buttons below.</div>';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('d-domain').addEventListener('keydown', e => { if (e.key === 'Enter') lookupRdap(); });
 
 // ── Investigation notes (persisted to localStorage) ───────────────────────
 const NOTES_KEY = 'osint-notes';
@@ -710,6 +911,10 @@ function shakeCard(tab) {
     el.addEventListener('animationend', () => el.classList.remove('shake'), { once: true });
   } else if (tab === 'username') {
     const el = document.getElementById('u-user');
+    el.classList.add('shake');
+    el.addEventListener('animationend', () => el.classList.remove('shake'), { once: true });
+  } else if (tab === 'domain') {
+    const el = document.getElementById('d-domain');
     el.classList.add('shake');
     el.addEventListener('animationend', () => el.classList.remove('shake'), { once: true });
   }
